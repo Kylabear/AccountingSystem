@@ -348,7 +348,7 @@ export default function DvDetailsPage({ dv }) {
                                 </div>
                             ) : (
                                 <div className="text-center py-8">
-                                    <div className="text-6xl animate-pulse mb-4">💸</div>
+                                    <div className="text-6xl mb-4">💸</div>
                                     <p className="text-gray-400 italic">No cash allocation details available</p>
                                 </div>
                             )}
@@ -357,7 +357,7 @@ export default function DvDetailsPage({ dv }) {
                         {/* Box C / Date of Certification */}
                         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:border-purple-300 transition-all duration-500 transform hover:-translate-y-2 hover:scale-102 animate-fade-in-up">
                             <h3 className="text-xl font-bold mb-4 text-purple-700 border-b-2 border-purple-200 pb-2 flex items-center group cursor-pointer">
-                                <span className="mr-3 text-2xl group-hover:animate-pulse">📋</span>
+                                <span className="mr-3 text-2xl group-hover:scale-110 transition-transform duration-200">📋</span>
                                 <span className="group-hover:text-purple-800 transition-colors">Box C / Date of Certification</span>
                             </h3>
                             {dv.box_c_date || dv.certification_date ? (
@@ -373,7 +373,7 @@ export default function DvDetailsPage({ dv }) {
                                 </div>
                             ) : (
                                 <div className="text-center py-8">
-                                    <div className="text-6xl animate-pulse mb-4">📝</div>
+                                    <div className="text-6xl mb-4">📝</div>
                                     <p className="text-gray-400 italic">No certification details available</p>
                                 </div>
                             )}
@@ -404,7 +404,7 @@ export default function DvDetailsPage({ dv }) {
                                 </div>
                             ) : (
                                 <div className="text-center py-8">
-                                    <div className="text-6xl animate-pulse mb-4">⚡</div>
+                                    <div className="text-6xl mb-4">⚡</div>
                                     <p className="text-gray-400 italic">No approval process details available</p>
                                 </div>
                             )}
@@ -429,7 +429,7 @@ export default function DvDetailsPage({ dv }) {
                                 </div>
                             ) : (
                                 <div className="text-center py-8">
-                                    <div className="text-6xl animate-pulse mb-4">📚</div>
+                                    <div className="text-6xl mb-4">📚</div>
                                     <p className="text-gray-400 italic">No indexing details available</p>
                                 </div>
                             )}
@@ -493,7 +493,7 @@ export default function DvDetailsPage({ dv }) {
                                 </div>
                             ) : (
                                 <div className="text-center py-8">
-                                    <div className="text-6xl animate-pulse mb-4">💰</div>
+                                    <div className="text-6xl mb-4">💰</div>
                                     <p className="text-gray-400 italic">No payment method details available</p>
                                 </div>
                             )}
@@ -502,7 +502,7 @@ export default function DvDetailsPage({ dv }) {
                         {/* E-NGAS Details and CDJ Detail together with LDDAP Certification */}
                         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-2xl hover:border-red-300 transition-all duration-500 transform hover:-translate-y-2 hover:scale-102 animate-fade-in-up">
                             <h3 className="text-xl font-bold mb-4 text-red-700 border-b-2 border-red-200 pb-2 flex items-center group cursor-pointer">
-                                <span className="mr-3 text-2xl group-hover:animate-pulse">🔢</span>
+                                <span className="mr-3 text-2xl group-hover:scale-110 transition-transform duration-200">🔢</span>
                                 <span className="group-hover:text-red-800 transition-colors">E-NGAS Details and CDJ Detail together with LDDAP Certification</span>
                             </h3>
                             <div className="space-y-6">

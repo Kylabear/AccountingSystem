@@ -381,7 +381,7 @@ export default function IncomingDvForm() {
               className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-800 transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:-translate-y-1 group flex items-center"
             >
               <span className="mr-2 transition-transform duration-300 group-hover:scale-125">←</span>
-              <span className="group-hover:animate-pulse">Back to DVs</span>
+              <span className="group-hover:scale-105 transition-transform duration-200">Back to DVs</span>
             </a>
             <a href="/profile" className="cursor-pointer hover:scale-105 transition-transform duration-300">
               <img 

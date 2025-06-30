@@ -6,20 +6,28 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
   const [rtsDate, setRtsDate] = useState('');
   const [norsaNumber, setNorsaNumber] = useState('');
   const [norsaDate, setNorsaDate] = useState('');
+  
+  // Cash allocation state variables
+  const [cashAllocationDate, setCashAllocationDate] = useState('');
+  const [cashAllocationNumber, setCashAllocationNumber] = useState('');
+  const [netAmount, setNetAmount] = useState('');
 
   // Helper function to get today's date in YYYY-MM-DD format
   const getTodayDate = () => {
     return new Date().toISOString().split('T')[0];
   };
 
-  // Auto-set today's date when opening RTS or NORSA actions
+  // Auto-set today's date when opening RTS, NORSA, or Cash Allocation actions
   useEffect(() => {
     if (activeAction === 'rts' || activeAction === 'box_c_rts') {
       setRtsDate(getTodayDate());
     } else if (activeAction === 'norsa' || activeAction === 'box_c_norsa') {
       setNorsaDate(getTodayDate());
+    } else if (activeAction === 'cash_allocation') {
+      setCashAllocationDate(getTodayDate());
+      setNetAmount(dv?.amount || ''); // Pre-fill with original amount
     }
-  }, [activeAction]);
+  }, [activeAction, dv]);
 
   if (!isOpen || !dv) return null;
 
@@ -63,6 +71,26 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
       setActiveAction(null);
       setNorsaNumber('');
       setNorsaDate('');
+    }
+  };
+
+  const handleCashAllocation = () => {
+    if (!cashAllocationDate || !cashAllocationNumber.trim() || !netAmount) {
+      alert('Please fill in all cash allocation fields.');
+      return;
+    }
+    
+    if (confirm('Process cash allocation for this DV?')) {
+      onStatusUpdate(dv.id, 'for_box_c', {
+        cash_allocation_date: cashAllocationDate,
+        cash_allocation_number: cashAllocationNumber,
+        net_amount: netAmount
+      });
+      onClose();
+      setActiveAction(null);
+      setCashAllocationDate('');
+      setCashAllocationNumber('');
+      setNetAmount('');
     }
   };
 
@@ -143,7 +171,20 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-green-700 text-white p-4 rounded-t-lg flex justify-between items-center">
-          <h2 className="text-lg font-semibold">DV Details</h2>
+          <div className="flex items-center space-x-4">
+            {dv.status === 'for_review' && (
+              <button
+                onClick={onClose}
+                className="text-white hover:text-gray-300 transition-colors flex items-center space-x-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                <span>Back</span>
+              </button>
+            )}
+            <h2 className="text-lg font-semibold">DV Details</h2>
+          </div>
           <button
             onClick={onClose}
             className="text-white hover:text-gray-300 transition-colors"
@@ -153,6 +194,77 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
             </svg>
           </button>
         </div>
+
+        {/* Progressive Summary for For Review DVs - Only show RTS/NORSA if they exist */}
+        {dv.status === 'for_review' && (
+          <div className="p-6 border-b border-gray-200 bg-gray-50">
+            {/* Only show title if there are RTS or NORSA details to display */}
+            {((dv.rts_out_date || dv.rts_in_date || dv.rts_reason) || (dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason)) && (
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <span className="mr-2">📖</span>
+                Previous Actions Taken
+              </h3>
+            )}
+            <div className="space-y-4">
+
+              {/* RTS Details - Only show if RTS was issued */}
+              {(dv.rts_out_date || dv.rts_in_date || dv.rts_reason) && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <h4 className="font-semibold text-red-800 mb-3">Return to Sender (RTS) Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">RTS Issued Date:</span>
+                      <p>{dv.rts_out_date ? new Date(dv.rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">RTS Returned Date:</span>
+                      <p>{dv.rts_in_date ? new Date(dv.rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                    {dv.rts_reason && (
+                      <div className="md:col-span-2">
+                        <span className="font-medium text-gray-700">RTS Reason:</span>
+                        <p>{dv.rts_reason}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* NORSA Details - Only show if NORSA was issued */}
+              {(dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason) && (
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">NORSA Issued Date:</span>
+                      <p>{dv.norsa_out_date ? new Date(dv.norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">NORSA Completed Date:</span>
+                      <p>{dv.norsa_in_date ? new Date(dv.norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                    </div>
+                    {dv.norsa_number && (
+                      <div>
+                        <span className="font-medium text-gray-700">NORSA Number:</span>
+                        <p>{dv.norsa_number}</p>
+                      </div>
+                    )}
+                    {dv.norsa_reason && (
+                      <div className="md:col-span-2">
+                        <span className="font-medium text-gray-700">NORSA Details:</span>
+                        <p>{dv.norsa_reason}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
+
+        {/* Removed Box C section - redundant information */}
 
         {/* Content - Two columns */}
         <div className="flex">
@@ -170,9 +282,15 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                   <label className="text-sm font-medium text-gray-700">DV Number</label>
                   <p className="text-lg font-semibold">{dv.dv_number}</p>
                 </div>
+                {(dv.status === 'for_review' || dv.status === 'for_cash_allocation') && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Receive Date</label>
+                    <p className="text-sm">{dv.created_at ? new Date(dv.created_at).toLocaleDateString() : 'N/A'}</p>
+                  </div>
+                )}
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-gray-700">Particulars</label>
-                  <p className="text-sm bg-white p-3 rounded border">{dv.particulars}</p>
+                  <p className="text-sm">{dv.particulars}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Amount as stated by DV</label>
@@ -203,7 +321,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                   <label className="text-sm font-medium text-gray-700">ORS Details</label>
                   <div className="space-y-2 mt-2">
                     {dv.ors_entries.map((ors, index) => (
-                      <div key={index} className="bg-white p-3 rounded border text-sm">
+                      <div key={index} className="text-sm">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                           <div>
                             <span className="font-medium">ORS No.:</span> {ors.ors_number || 'various'}
@@ -222,7 +340,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               )}
             </div>
 
-            {/* RTS Information */}
+            {/* RTS Information - Only show if there are actual RTS records */}
             {(dv.rts_history && dv.rts_history.length > 0) && (
               <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
                 <h3 className="text-lg font-semibold text-orange-800 mb-4">RTS Information</h3>
@@ -261,6 +379,246 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             )}
 
+            {/* For Review Section - For Cash Allocation DVs */}
+            {dv.status === 'for_cash_allocation' && (
+              <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="mr-2">📖</span>
+                  For Review
+                </h3>
+                
+                {/* Review Done Date */}
+                {dv.transaction_history?.find(entry => entry.action.toLowerCase().includes('review done')) && (
+                  <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                    <span className="text-sm font-medium text-green-800">
+                      Review completed on: {new Date(dv.transaction_history.find(entry => entry.action.toLowerCase().includes('review done')).date).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* RTS Details Box */}
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h4 className="font-semibold text-red-800 mb-3">RTS Details</h4>
+                    {(dv.rts_out_date || dv.rts_in_date || dv.rts_reason) ? (
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">RTS Issued Date:</span>
+                          <p className="text-gray-600">{dv.rts_out_date ? new Date(dv.rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">RTS Returned Date:</span>
+                          <p className="text-gray-600">{dv.rts_in_date ? new Date(dv.rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        {dv.rts_reason && (
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Reason:</span>
+                            <p className="text-gray-600">{dv.rts_reason}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic">No RTS was issued for this DV.</p>
+                    )}
+                  </div>
+                  
+                  {/* NORSA Details Box */}
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details</h4>
+                    {(dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason) ? (
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">NORSA Issued Date:</span>
+                          <p className="text-gray-600">{dv.norsa_out_date ? new Date(dv.norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">NORSA Completed Date:</span>
+                          <p className="text-gray-600">{dv.norsa_in_date ? new Date(dv.norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                        </div>
+                        {dv.norsa_number && (
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Number:</span>
+                            <p className="text-gray-600">{dv.norsa_number}</p>
+                          </div>
+                        )}
+                        {dv.norsa_reason && (
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Details:</span>
+                            <p className="text-gray-600">{dv.norsa_reason}</p>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 italic">No NORSA was issued for this DV.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Progressive Summary for Box C DVs */}
+            {dv.status === 'for_box_c' && (
+              <>
+                {/* For Review Section */}
+                <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <span className="mr-2">📖</span>
+                    For Review
+                  </h3>
+                  
+                  {/* Review Done Date */}
+                  {dv.transaction_history?.find(entry => entry.action.toLowerCase().includes('review done')) && (
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <span className="text-sm font-medium text-green-800">
+                        Review completed on: {new Date(dv.transaction_history.find(entry => entry.action.toLowerCase().includes('review done')).date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* RTS Details Box */}
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-800 mb-3">RTS Details</h4>
+                      {(dv.rts_out_date || dv.rts_in_date || dv.rts_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Issued Date:</span>
+                            <p className="text-gray-600">{dv.rts_out_date ? new Date(dv.rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Returned Date:</span>
+                            <p className="text-gray-600">{dv.rts_in_date ? new Date(dv.rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.rts_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">RTS Reason:</span>
+                              <p className="text-gray-600">{dv.rts_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No RTS was issued for this DV.</p>
+                      )}
+                    </div>
+                    
+                    {/* NORSA Details Box */}
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details</h4>
+                      {(dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Issued Date:</span>
+                            <p className="text-gray-600">{dv.norsa_out_date ? new Date(dv.norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Completed Date:</span>
+                            <p className="text-gray-600">{dv.norsa_in_date ? new Date(dv.norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.norsa_number && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Number:</span>
+                              <p className="text-gray-600">{dv.norsa_number}</p>
+                            </div>
+                          )}
+                          {dv.norsa_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Details:</span>
+                              <p className="text-gray-600">{dv.norsa_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No NORSA was issued for this DV.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* For Cash Allocation Section */}
+                <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                    <span className="mr-2">💰</span>
+                    For Cash Allocation
+                  </h3>
+                  
+                  {/* Cash Allocation Date */}
+                  {dv.cash_allocation_date && (
+                    <div className="mb-4 p-2 bg-blue-100 border border-blue-300 rounded">
+                      <span className="text-sm font-medium text-blue-800">
+                        Cash allocation completed on: {new Date(dv.cash_allocation_date).toLocaleDateString()}
+                      </span>
+                      {dv.net_amount && (
+                        <span className="text-sm font-medium text-blue-800 ml-4">
+                          Net Amount: PHP {parseFloat(dv.net_amount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Cash Allocation RTS Details Box */}
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-800 mb-3">RTS Details (Cash Allocation)</h4>
+                      {(dv.cash_allocation_rts_out_date || dv.cash_allocation_rts_in_date || dv.cash_allocation_rts_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Issued Date:</span>
+                            <p className="text-gray-600">{dv.cash_allocation_rts_out_date ? new Date(dv.cash_allocation_rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Returned Date:</span>
+                            <p className="text-gray-600">{dv.cash_allocation_rts_in_date ? new Date(dv.cash_allocation_rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.cash_allocation_rts_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">RTS Reason:</span>
+                              <p className="text-gray-600">{dv.cash_allocation_rts_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No RTS was issued during cash allocation.</p>
+                      )}
+                    </div>
+                    
+                    {/* Cash Allocation NORSA Details Box */}
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details (Cash Allocation)</h4>
+                      {(dv.cash_allocation_norsa_out_date || dv.cash_allocation_norsa_in_date || dv.cash_allocation_norsa_number || dv.cash_allocation_norsa_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Issued Date:</span>
+                            <p className="text-gray-600">{dv.cash_allocation_norsa_out_date ? new Date(dv.cash_allocation_norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Completed Date:</span>
+                            <p className="text-gray-600">{dv.cash_allocation_norsa_in_date ? new Date(dv.cash_allocation_norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.cash_allocation_norsa_number && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Number:</span>
+                              <p className="text-gray-600">{dv.cash_allocation_norsa_number}</p>
+                            </div>
+                          )}
+                          {dv.cash_allocation_norsa_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Details:</span>
+                              <p className="text-gray-600">{dv.cash_allocation_norsa_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No NORSA was issued during cash allocation.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* Cash Allocation Information */}
             {(dv.cash_allocation_date || dv.cash_allocation_number || dv.net_amount) && (
               <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
@@ -295,23 +653,6 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             )}
 
-            {/* Box C Certification Information */}
-            {(dv.status === 'for_approval' || dv.status === 'for_indexing' || dv.status === 'processed' || 
-              (dv.transaction_history && dv.transaction_history.some(t => t.action.includes('Box C')))) && (
-              <div className="mb-6 p-4 border-2 border-yellow-200 rounded-lg bg-yellow-50">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-4">Box C Certification</h3>
-                <div className="bg-white p-4 rounded border">
-                  <div className="text-sm">
-                    <span className="font-medium text-gray-700">Date of Certification:</span>
-                    <p>
-                      {dv.transaction_history?.find(t => t.action.includes('Box C') || t.action.includes('Certified'))?.date || 
-                       (dv.status === 'for_approval' ? new Date().toLocaleDateString() : 'Not certified yet')}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Approval Information */}
             {(dv.approval_out_date || dv.approval_in_date || dv.approved_by) && (
               <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
@@ -336,7 +677,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
             )}
 
             {/* Action Buttons */}
-            {dv.status === 'recents' && (
+            {dv.status === 'for_review' && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4">Review Actions</h3>
                 
@@ -359,12 +700,6 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                       className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       📄 NORSA
-                    </button>
-                    <button
-                      onClick={() => setActiveAction('certify')}
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                      ✔️ Certify
                     </button>
                   </div>
                 )}
@@ -452,30 +787,6 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                           Cancel
                         </button>
                       </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Certify Action */}
-                {activeAction === 'certify' && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-purple-800 mb-3">Certify DV</h4>
-                    <p className="text-sm text-gray-700 mb-4">
-                      Certifying this DV means you are approving it for the next process. Please confirm your action.
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={handleCertify}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
-                      >
-                        Confirm Certify
-                      </button>
-                      <button
-                        onClick={() => setActiveAction(null)}
-                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
-                      >
-                        Cancel
-                      </button>
                     </div>
                   </div>
                 )}
@@ -634,6 +945,194 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             )}
 
+            {/* Cash Allocation Actions */}
+            {dv.status === 'for_cash_allocation' && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Cash Allocation Actions</h3>
+                
+                {!activeAction && (
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => setActiveAction('cash_allocation')}
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      💰 Process Cash Allocation
+                    </button>
+                    <button
+                      onClick={() => setActiveAction('rts')}
+                      className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                    >
+                      ↩ Return to Sender (RTS)
+                    </button>
+                    <button
+                      onClick={() => setActiveAction('norsa')}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      📄 NORSA
+                    </button>
+                  </div>
+                )}
+
+                {/* Cash Allocation Form */}
+                {activeAction === 'cash_allocation' && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-green-800 mb-3">Cash Allocation Details</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cash Allocation Date</label>
+                        <input
+                          type="date"
+                          value={cashAllocationDate}
+                          onChange={(e) => setCashAllocationDate(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-green-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cash Allocation Number (YYYY-MM-NNNNN)</label>
+                        <input
+                          type="text"
+                          value={cashAllocationNumber}
+                          onChange={(e) => {
+                            // Format as YYYY-MM-NNNNN
+                            let value = e.target.value.replace(/\D/g, '');
+                            value = value.slice(0, 11); // Max 11 digits
+                            let formatted = '';
+                            if (value.length > 0) {
+                              if (value.length <= 4) {
+                                formatted = value;
+                              } else if (value.length <= 6) {
+                                formatted = value.slice(0, 4) + '-' + value.slice(4);
+                              } else {
+                                formatted = value.slice(0, 4) + '-' + value.slice(4, 6) + '-' + value.slice(6);
+                              }
+                            }
+                            setCashAllocationNumber(formatted);
+                          }}
+                          placeholder="e.g., 2025-06-04734"
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-green-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Net Amount (Final Payable Amount)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={netAmount}
+                          onChange={(e) => setNetAmount(e.target.value)}
+                          placeholder="Enter final amount after taxes and deductions"
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-green-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleCashAllocation}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Confirm Cash Allocation
+                        </button>
+                        <button
+                          onClick={() => setActiveAction(null)}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* RTS Form for Cash Allocation */}
+                {activeAction === 'rts' && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-orange-800 mb-3">Return to Sender Details</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">RTS Out Date</label>
+                        <input
+                          type="date"
+                          value={rtsDate}
+                          onChange={(e) => setRtsDate(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Reason for RTS</label>
+                        <textarea
+                          value={rtsReason}
+                          onChange={(e) => setRtsReason(e.target.value)}
+                          placeholder="Enter reason for returning to sender..."
+                          className="w-full border border-gray-300 rounded-lg p-2 h-20 focus:border-orange-500 focus:outline-none resize-none"
+                          required
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleRTS}
+                          className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                        >
+                          Confirm RTS
+                        </button>
+                        <button
+                          onClick={() => setActiveAction(null)}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* NORSA Form for Cash Allocation */}
+                {activeAction === 'norsa' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-800 mb-3">NORSA Details</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">NORSA Date</label>
+                        <input
+                          type="date"
+                          value={norsaDate}
+                          onChange={(e) => setNorsaDate(e.target.value)}
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">NORSA Number</label>
+                        <input
+                          type="text"
+                          value={norsaNumber}
+                          onChange={(e) => setNorsaNumber(e.target.value)}
+                          placeholder="Enter NORSA number..."
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                          required
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleNORSA}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          Confirm NORSA
+                        </button>
+                        <button
+                          onClick={() => setActiveAction(null)}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Display RTS/NORSA Status for Review */}
             {dv.status === 'for_review' && (
               <>
@@ -749,7 +1248,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               <div className="bg-white border rounded-lg p-4 max-h-96 overflow-y-auto">
                 <div className="space-y-3">
                   {dv.transaction_history
-                    .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort by date, newest first
+                    .sort((a, b) => new Date(a.date) - new Date(b.date)) // Sort by date, oldest first (ascending)
                     .map((entry, index) => (
                     <div key={index} className="flex items-start space-x-3 pb-3 border-b border-gray-200 last:border-b-0 last:pb-0">
                       <div className="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
@@ -806,7 +1305,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                 <div className="text-center">
                   <div className="w-12 h-12 mx-auto mb-3 text-gray-400">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <p className="text-sm text-gray-500 mb-2">No transaction history available</p>
@@ -817,13 +1316,13 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
           </div>
         </div>
         
-        {/* Download Section - Available for all DVs, but more options for processed */}
-        <div className="bg-gray-100 px-6 py-4 border-t">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-800">Download Options</h3>
-            <div className="flex items-center space-x-3">
-              {dv.status === 'processed' ? (
-                // Full download options for processed DVs
+        {/* Download Section - Only for processed DVs */}
+        {dv.status === 'processed' && (
+          <div className="bg-gray-100 px-6 py-4 border-t">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-800">Download Options</h3>
+              <div className="flex items-center space-x-3">
+                {/* Full download options for processed DVs */}
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => window.open(`/incoming-dvs/${dv.id}/download?format=pdf`, '_blank')}
@@ -844,30 +1343,19 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                     <span>Download Excel</span>
                   </button>
                   <button
-                    onClick={() => window.open(`/incoming-dvs/${dv.id}/download?format=json`, '_blank')}
+                    onClick={() => window.open(`/incoming-dvs/${dv.id}/download?format=docx`, '_blank')}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
                   >
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" clipRule="evenodd" />
                     </svg>
-                    <span>Download JSON</span>
+                    <span>Download DOCX</span>
                   </button>
                 </div>
-              ) : (
-                // Basic download for non-processed DVs
-                <button
-                  onClick={() => window.open(`/incoming-dvs/${dv.id}/download?format=pdf`, '_blank')}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center space-x-2"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                  <span>Download Copy</span>
-                </button>
-              )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

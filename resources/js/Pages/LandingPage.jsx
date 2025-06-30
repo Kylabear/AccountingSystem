@@ -81,7 +81,7 @@ export default function LandingPage() {
                         className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-800 transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:-translate-y-1 group flex items-center"
                     >
                         <span className="group-hover:animate-bounce mr-2">📊</span>
-                        <span className="group-hover:animate-pulse">Statistics</span>
+                        <span className="group-hover:scale-105 transition-transform duration-200">Statistics</span>
                     </Link>
                     <Link
                         href="/logout"
@@ -90,7 +90,7 @@ export default function LandingPage() {
                         className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:-translate-y-1 group flex items-center"
                     >
                         <span className="mr-2 transition-transform duration-300 group-hover:scale-125">🚪</span>
-                        <span className="group-hover:animate-pulse">Logout</span>
+                        <span className="group-hover:scale-105 transition-transform duration-200">Logout</span>
                     </Link>
                     <Link 
                         href="/profile"

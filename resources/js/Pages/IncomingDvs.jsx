@@ -28,7 +28,22 @@ const statuses = [
 
 export default function IncomingDvs() {
     const { dvs, auth } = usePage().props;
-    const [activeTab, setActiveTab] = useState('recents');
+    
+    // Get active tab from URL params or localStorage, default to 'recents'
+    const getInitialTab = () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabFromUrl = urlParams.get('tab');
+        if (tabFromUrl && statuses.some(s => s.key === tabFromUrl)) {
+            return tabFromUrl;
+        }
+        const savedTab = localStorage.getItem('incoming-dvs-active-tab');
+        if (savedTab && statuses.some(s => s.key === savedTab)) {
+            return savedTab;
+        }
+        return 'recents';
+    };
+    
+    const [activeTab, setActiveTab] = useState(getInitialTab());
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedDv, setSelectedDv] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,6 +54,17 @@ export default function IncomingDvs() {
     const [isEngasModalOpen, setIsEngasModalOpen] = useState(false);
     const [isCdjModalOpen, setIsCdjModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    
+    // Save active tab to localStorage and URL when it changes
+    const handleTabChange = (newTab) => {
+        setActiveTab(newTab);
+        localStorage.setItem('incoming-dvs-active-tab', newTab);
+        
+        // Update URL without page reload
+        const url = new URL(window.location);
+        url.searchParams.set('tab', newTab);
+        window.history.replaceState({}, '', url);
+    };
 
     // Helper function to normalize text for searching (case-insensitive, trim whitespace)
     const normalizeForSearch = (text) => {
@@ -135,8 +161,8 @@ export default function IncomingDvs() {
             });
 
             if (response.ok) {
-                // Switch to Recents tab and refresh the page
-                setActiveTab('recents');
+                // Preserve current tab and refresh the page
+                localStorage.setItem('incoming-dvs-active-tab', activeTab);
                 window.location.reload();
             } else {
                 alert('Error sending DV out for approval');
@@ -163,8 +189,8 @@ export default function IncomingDvs() {
             });
 
             if (response.ok) {
-                // Switch to Recents tab and refresh the page
-                setActiveTab('recents');
+                // Preserve current tab and refresh the page
+                localStorage.setItem('incoming-dvs-active-tab', activeTab);
                 window.location.reload();
             } else {
                 alert('Error processing DV return from approval');
@@ -179,9 +205,9 @@ export default function IncomingDvs() {
     const handleDvClick = (dv) => {
         setSelectedDv(dv);
         
-        // Use Cash Allocation modal for cash allocation status
+        // Use DV Details modal for cash allocation status (has progressive summary)
         if (dv.status === 'for_cash_allocation') {
-            setIsCashAllocationModalOpen(true);
+            setIsModalOpen(true);
         }
         // Use Indexing modal for indexing status
         else if (dv.status === 'for_indexing') {
@@ -208,8 +234,12 @@ export default function IncomingDvs() {
             window.location.href = `/dv/${dv.id}/details`;
             return;
         }
-        // Use RTS/NORSA modal for review-related statuses
-        else if (['for_review', 'for_rts_in', 'for_norsa_in'].includes(dv.status)) {
+        // Use DV Details modal for review status (has Review Done button and progressive summary)
+        else if (dv.status === 'for_review') {
+            setIsModalOpen(true);
+        }
+        // Use RTS/NORSA modal for RTS/NORSA specific statuses
+        else if (['for_rts_in', 'for_norsa_in'].includes(dv.status)) {
             setIsRtsNorsaModalOpen(true);
         } 
         // For approval status, don't open modal - use buttons instead
@@ -260,7 +290,7 @@ export default function IncomingDvs() {
             if (response.ok) {
                 setIsIndexingModalOpen(false);
                 setSelectedDv(null);
-                setActiveTab('recents');
+                localStorage.setItem('incoming-dvs-active-tab', activeTab);
                 window.location.reload();
             } else {
                 alert('Error updating indexing');
@@ -286,7 +316,7 @@ export default function IncomingDvs() {
             if (response.ok) {
                 setIsPaymentMethodModalOpen(false);
                 setSelectedDv(null);
-                setActiveTab('recents');
+                localStorage.setItem('incoming-dvs-active-tab', activeTab);
                 window.location.reload();
             } else {
                 alert('Error setting payment method');
@@ -312,7 +342,7 @@ export default function IncomingDvs() {
             });
 
             if (response.ok) {
-                setActiveTab('recents');
+                localStorage.setItem('incoming-dvs-active-tab', activeTab);
                 window.location.reload();
             } else {
                 alert('Error processing return from cashiering');
@@ -338,7 +368,7 @@ export default function IncomingDvs() {
             if (response.ok) {
                 setIsEngasModalOpen(false);
                 setSelectedDv(null);
-                setActiveTab('recents');
+                localStorage.setItem('incoming-dvs-active-tab', activeTab);
                 window.location.reload();
             } else {
                 alert('Error recording E-NGAS');
@@ -364,7 +394,7 @@ export default function IncomingDvs() {
             if (response.ok) {
                 setIsCdjModalOpen(false);
                 setSelectedDv(null);
-                setActiveTab('recents');
+                localStorage.setItem('incoming-dvs-active-tab', activeTab);
                 window.location.reload();
             } else {
                 alert('Error recording CDJ');
@@ -421,14 +451,14 @@ export default function IncomingDvs() {
                     <img 
                         src="/DALOGO.png" 
                         alt="DA Logo" 
-                        className="w-16 h-16 mr-4 object-contain transition-all duration-500 group-hover:scale-125 group-hover:rotate-12 drop-shadow-lg"
+                        className="w-16 h-16 mr-4 object-contain transition-all duration-300 group-hover:scale-110 drop-shadow-lg"
                     />
                     <Link 
                         href="/"
                         className="text-xl font-bold text-yellow-400 hover:text-yellow-300 transition-all duration-300 cursor-pointer transform hover:scale-105 group"
                         style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                     >
-                        <span className="group-hover:animate-pulse">DA-CAR Accounting Section Monitoring System</span>
+                        <span className="group-hover:scale-105 transition-transform duration-200">DA-CAR Accounting Section Monitoring System</span>
                     </Link>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -445,8 +475,8 @@ export default function IncomingDvs() {
                         as="button"
                         className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:-translate-y-1 group flex items-center"
                     >
-                        <span className="mr-2 transition-transform duration-300 group-hover:scale-125">🚪</span>
-                        <span className="group-hover:animate-pulse">Logout</span>
+                        <span className="mr-2 transition-transform duration-200 group-hover:scale-110">🚪</span>
+                        <span className="group-hover:scale-105 transition-transform duration-200">Logout</span>
                     </Link>
                     <Link 
                         href="/profile"
@@ -520,7 +550,7 @@ export default function IncomingDvs() {
                                 return (
                                     <button
                                         key={status.key}
-                                        onClick={() => setActiveTab(status.key)}
+                                        onClick={() => handleTabChange(status.key)}
                                         className={`w-full text-left p-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105 hover:shadow-md group ${
                                             activeTab === status.key 
                                                 ? 'bg-green-100 border-l-4 border-green-600 shadow-lg scale-105' 
@@ -528,7 +558,7 @@ export default function IncomingDvs() {
                                         }`}
                                     >
                                         <div 
-                                            className={`w-3 h-3 rounded-full mr-3 flex-shrink-0 transition-all duration-300 group-hover:scale-125 ${!status.bgColor ? status.color.split(' ')[0] : ''} ${activeTab === status.key ? 'animate-pulse' : ''}`}
+                                            className={`w-3 h-3 rounded-full mr-3 flex-shrink-0 transition-all duration-200 group-hover:scale-110 ${!status.bgColor ? status.color.split(' ')[0] : ''}`}
                                             style={status.bgColor ? { backgroundColor: status.bgColor } : {}}
                                         ></div>
                                         <span className={`text-xs font-medium flex-1 transition-colors duration-300 ${
@@ -539,7 +569,7 @@ export default function IncomingDvs() {
                                         {count > 0 && (
                                             <span className={`text-xs ml-2 px-2 py-1 rounded-full transition-all duration-300 ${
                                                 activeTab === status.key 
-                                                    ? 'text-green-700 bg-green-200 animate-pulse' 
+                                                    ? 'text-green-700 bg-green-200' 
                                                     : 'text-gray-500 bg-gray-200 group-hover:bg-green-100 group-hover:text-green-600'
                                             }`}>
                                                 {count}
@@ -557,7 +587,7 @@ export default function IncomingDvs() {
                     {/* Search Bar and Add Button - Enhanced with animations */}
                     <div className="flex justify-between items-center mb-6 animate-fade-in">
                         <div className="flex-1 max-w-lg group">
-                            <div className="relative transform transition-all duration-300 group-hover:scale-105">
+                            <div className="relative transform transition-all duration-200 group-hover:scale-102">
                                 <input
                                     type="text"
                                     placeholder="Search by DV No., Payee, Transaction Type, or Account No..."
@@ -589,8 +619,8 @@ export default function IncomingDvs() {
                             href="/incoming-dvs/new"
                             className="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 flex items-center ml-4 text-sm font-medium transform transition-all duration-300 hover:scale-110 hover:shadow-lg hover:-translate-y-1 group"
                         >
-                            <span className="mr-2 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-180">+</span>
-                            <span className="group-hover:animate-pulse">Add Incoming DV</span>
+                            <span className="mr-2 transition-transform duration-200 group-hover:scale-110">+</span>
+                            <span className="group-hover:scale-105 transition-transform duration-200">Add Incoming DV</span>
                         </Link>
                     </div>
 
@@ -641,38 +671,35 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_review').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-xl p-6 shadow-lg border-r-4 border-red-500 hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-2 hover:scale-105 glass-effect animate-slide-up stagger-animation hover-lift group"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-red-500 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
-                                                    <div className="flex-1 group-hover:transform group-hover:translate-x-2 transition-transform duration-300">
-                                                        <h3 className="font-bold text-gray-800 text-lg mb-2 group-hover:text-red-600 transition-colors duration-300 flex items-center">
-                                                            <span className="mr-2 text-xl group-hover:animate-bounce">📄</span>
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1">
                                                             {dv.payee}
                                                         </h3>
-                                                        <p className="text-gray-600 text-sm mb-2 font-mono bg-gray-100 px-2 py-1 rounded group-hover:bg-red-50 transition-colors duration-300">
+                                                        <p className="text-gray-600 text-sm mb-1">
                                                             {dv.dv_number}
                                                         </p>
-                                                        <p className="text-gray-600 text-sm mb-3 italic line-clamp-2 group-hover:text-gray-700 transition-colors duration-300">
+                                                        <p className="text-gray-600 text-sm mb-2 italic line-clamp-2">
                                                             {dv.particulars && dv.particulars.length > 50 
                                                                 ? dv.particulars.substring(0, 50) + '...'
                                                                 : dv.particulars || 'No particulars specified'}
                                                         </p>
-                                                        <p className="text-gray-800 font-bold text-lg flex items-center group-hover:text-green-600 transition-colors duration-300">
-                                                            <span className="mr-1 text-green-600 group-hover:animate-pulse">₱</span>
-                                                            {parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                        <p className="text-gray-800 font-medium">
+                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
                                                                 minimumFractionDigits: 2,
                                                                 maximumFractionDigits: 2
                                                             })}
                                                             {dv.net_amount && (
-                                                                <span className="text-xs text-gray-500 ml-2 bg-yellow-100 px-2 py-1 rounded-full">(Net)</span>
+                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
                                                             )}
                                                         </p>
                                                     </div>
-                                                    <div className="text-right group-hover:transform group-hover:translate-x-1 transition-transform duration-300">
+                                                    <div className="text-right">
                                                         <div className="flex flex-col items-end space-y-2">
-                                                            <span className="px-4 py-2 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg group-hover:bg-red-600 group-hover:scale-110 transition-all duration-300 flex items-center">
-                                                                <span className="mr-1 group-hover:animate-spin">🔍</span>
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-500 text-white">
                                                                 For Review
                                                             </span>
                                                             <button
@@ -681,15 +708,14 @@ export default function IncomingDvs() {
                                                                     setSelectedDv(dv);
                                                                     setIsEditModalOpen(true);
                                                                 }}
-                                                                className="bg-blue-500 text-white px-3 py-1 rounded-lg text-xs hover:bg-blue-600 transition-all duration-300 transform hover:scale-110 flex items-center opacity-0 group-hover:opacity-100"
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
                                                             >
-                                                                <span className="mr-1">✏️</span>
                                                                 Edit
                                                             </button>
                                                         </div>
                                                         {dv.created_at && (
-                                                            <p className="text-xs text-gray-500 mt-3 group-hover:text-gray-600 transition-colors duration-300">
-                                                                📅 {new Date(dv.created_at).toLocaleDateString()}
+                                                            <p className="text-xs text-gray-500 mt-2">
+                                                                {new Date(dv.created_at).toLocaleDateString()}
                                                             </p>
                                                         )}
                                                     </div>
@@ -716,7 +742,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_rts_in').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-red-300 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-red-300 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -775,7 +801,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_norsa_in').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-purple-600 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-purple-600 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -836,7 +862,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-yellow-500 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-yellow-500 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -890,7 +916,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-red-300 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-red-300 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -944,7 +970,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-purple-600 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-purple-600 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1000,7 +1026,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_approval' && (dv.approval_status === 'pending' || !dv.approval_status)).map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-gray-500 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-gray-500 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1070,7 +1096,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_approval' && dv.approval_status === 'out').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 border-gray-400 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-gray-400 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1142,7 +1168,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_payment').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 style={{ borderRightColor: '#B00DD6' }}
                                                 onClick={() => handleDvClick(dv)}
                                             >
@@ -1205,7 +1231,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'out_to_cashiering').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-sm border-r-4 hover:shadow-md transition-shadow cursor-pointer"
+                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
                                                 style={{ borderRightColor: '#B00DD6' }}
                                                 onClick={() => handleDvClick(dv)}
                                             >
@@ -1272,7 +1298,7 @@ export default function IncomingDvs() {
                                 sortedDvs.map((dv) => (
                                     <div 
                                         key={dv.id} 
-                                        className={`bg-white rounded-lg p-4 shadow-sm border-r-4 hover:shadow-md transition-shadow cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                        className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                         onClick={() => handleDvClick(dv)}
                                     >
                                         <div className="flex justify-between items-start">
@@ -1363,7 +1389,8 @@ export default function IncomingDvs() {
                     setSelectedDv(null);
                 }}
                 onUpdate={() => {
-                    // Refresh the page to get updated data
+                    // Preserve current tab and refresh the page to get updated data
+                    localStorage.setItem('incoming-dvs-active-tab', activeTab);
                     window.location.reload();
                 }}
             />
@@ -1377,8 +1404,8 @@ export default function IncomingDvs() {
                     setSelectedDv(null);
                 }}
                 onUpdate={() => {
-                    // Switch to Recents tab and refresh the page to get updated data
-                    setActiveTab('recents');
+                    // Preserve current tab and refresh the page to get updated data
+                    localStorage.setItem('incoming-dvs-active-tab', activeTab);
                     window.location.reload();
                 }}
             />

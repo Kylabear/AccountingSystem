@@ -42,15 +42,14 @@ class IncomingDvController extends Controller
             $this->initializeDvTransactionHistory($dv);
         }
     }
-    
-    /**
+      /**
      * Initialize transaction history for a single DV
      */
     private function initializeDvTransactionHistory($dv)
     {
         $transactionHistory = [];
         
-        // Add initial receipt entry
+        // Add initial receipt entry (oldest)
         $transactionHistory[] = [
             'action' => 'DV Received',
             'user' => 'System',
@@ -62,7 +61,7 @@ class IncomingDvController extends Controller
             ]
         ];
         
-        // Add cash allocation if exists
+        // Add cash allocation if exists (chronologically after receipt)
         if ($dv->cash_allocation_date) {
             $transactionHistory[] = [
                 'action' => 'Cash Allocation',
@@ -76,19 +75,112 @@ class IncomingDvController extends Controller
             ];
         }
         
-        // Add current status if not initial
-        if ($dv->status && $dv->status !== 'for_review') {
+        // Add approval entries if they exist
+        if ($dv->approval_out_date) {
             $transactionHistory[] = [
-                'action' => 'Status Update',
+                'action' => 'Sent out for approval',
                 'user' => 'System',
-                'date' => $dv->updated_at->toDateString(),
+                'date' => $dv->approval_out_date->toDateString(),
+                'details' => []
+            ];
+        }
+        
+        if ($dv->approval_in_date) {
+            $transactionHistory[] = [
+                'action' => 'Returned from approval',
+                'user' => $dv->approved_by ?? 'System',
+                'date' => $dv->approval_in_date->toDateString(),
+                'details' => []
+            ];
+        }
+        
+        // Add indexing if exists
+        if ($dv->indexing_date) {
+            $transactionHistory[] = [
+                'action' => 'Indexed',
+                'user' => $dv->indexed_by ?? 'System',
+                'date' => $dv->indexing_date->toDateString(),
+                'details' => []
+            ];
+        }
+        
+        // Add payment method if set
+        if ($dv->payment_method && $dv->payment_method_date) {
+            $transactionHistory[] = [
+                'action' => 'Payment method set: ' . ucfirst($dv->payment_method),
+                'user' => $dv->payment_method_set_by ?? 'System',
+                'date' => $dv->payment_method_date->toDateString(),
                 'details' => [
-                    'status' => $dv->status,
-                    'status_display' => ucwords(str_replace('_', ' ', $dv->status)),
+                    'payment_method' => $dv->payment_method,
+                    'lddap_number' => $dv->lddap_number ?? null,
                 ]
             ];
         }
         
+        // Add payroll entries if applicable
+        if ($dv->pr_out_date) {
+            $transactionHistory[] = [
+                'action' => 'Sent to Cashiering (Payroll)',
+                'user' => $dv->pr_out_by ?? 'System',
+                'date' => $dv->pr_out_date->toDateString(),
+                'details' => []
+            ];
+        }
+        
+        if ($dv->pr_in_date) {
+            $transactionHistory[] = [
+                'action' => 'Returned from Cashiering',
+                'user' => $dv->pr_in_by ?? 'System',
+                'date' => $dv->pr_in_date->toDateString(),
+                'details' => []
+            ];
+        }
+        
+        // Add E-NGAS if recorded
+        if ($dv->engas_number && $dv->engas_date) {
+            $transactionHistory[] = [
+                'action' => 'E-NGAS Recorded',
+                'user' => $dv->engas_recorded_by ?? 'System',
+                'date' => $dv->engas_date->toDateString(),
+                'details' => ['engas_number' => $dv->engas_number]
+            ];
+        }
+        
+        // Add CDJ if recorded
+        if ($dv->cdj_date) {
+            $transactionHistory[] = [
+                'action' => 'CDJ Recorded',
+                'user' => $dv->cdj_recorded_by ?? 'System',
+                'date' => $dv->cdj_date->toDateString(),
+                'details' => []
+            ];
+        }
+        
+        // Add LDDAP certification if done
+        if ($dv->lddap_certified_date) {
+            $transactionHistory[] = [
+                'action' => 'LDDAP Certified',
+                'user' => $dv->lddap_certified_by ?? 'System',
+                'date' => $dv->lddap_certified_date->toDateString(),
+                'details' => []
+            ];
+        }
+        
+        // Add final processed status if completed
+        if ($dv->status === 'processed' && $dv->processed_date) {
+            $transactionHistory[] = [
+                'action' => 'Processing Complete',
+                'user' => $dv->lddap_certified_by ?? 'System',
+                'date' => $dv->processed_date->toDateString(),
+                'details' => []
+            ];
+        }
+        
+        // Sort transaction history by date to ensure chronological order
+        usort($transactionHistory, function($a, $b) {
+            return strcmp($a['date'], $b['date']);
+        });
+
         $dv->update(['transaction_history' => $transactionHistory]);
     }
     
@@ -707,8 +799,37 @@ class IncomingDvController extends Controller
     public function updateEngas(Request $request, IncomingDv $dv)
     {
         $validated = $request->validate([
-            'engas_number' => 'required|string|max:255',
+            'engas_number' => [
+                'required',
+                'string',
+                'regex:/^(\d{4})-(\d{2})-(\d{5})$/',
+                function ($attribute, $value, $fail) {
+                    // Validate the format components
+                    if (preg_match('/^(\d{4})-(\d{2})-(\d{5})$/', $value, $matches)) {
+                        $year = (int)$matches[1];
+                        $month = (int)$matches[2];
+                        $serial = (int)$matches[3];
+                        
+                        if ($year < 2020 || $year > 2030) {
+                            $fail('The year in E-NGAS number must be between 2020 and 2030.');
+                        }
+                        
+                        if ($month < 1 || $month > 12) {
+                            $fail('The month in E-NGAS number must be between 01 and 12.');
+                        }
+                        
+                        if ($serial === 0) {
+                            $fail('The serial number in E-NGAS number cannot be 00000.');
+                        }
+                    } else {
+                        $fail('The E-NGAS number format must be YYYY-MM-XXXXX (e.g., 2025-06-00001).');
+                    }
+                }
+            ],
             'engas_date' => 'required|date',
+        ], [
+            'engas_number.regex' => 'The E-NGAS number format must be YYYY-MM-XXXXX (e.g., 2025-06-00001).',
+            'engas_number.required' => 'The E-NGAS number is required.',
         ]);
         
         $currentUser = auth()->user()->name ?? 'Unknown User';
@@ -909,7 +1030,7 @@ class IncomingDvController extends Controller
             $section->addText('TRANSACTION HISTORY:', $boldStyle);
             $section->addTextBreak();
             
-            foreach (collect($dv->transaction_history)->sortByDesc('date') as $history) {
+            foreach (collect($dv->transaction_history)->sortBy('date') as $history) {
                 $section->addText('• ' . $history['action'] . ' - ' . \Carbon\Carbon::parse($history['date'])->format('Y-m-d') . ' by ' . $history['user']);
                 
                 if (isset($history['details']) && is_array($history['details'])) {
@@ -989,7 +1110,7 @@ class IncomingDvController extends Controller
             $csvData[] = ['TRANSACTION HISTORY', ''];
             $csvData[] = ['Action', 'Date', 'User', 'Details'];
             
-            foreach (collect($dv->transaction_history)->sortByDesc('date') as $entry) {
+            foreach (collect($dv->transaction_history)->sortBy('date') as $entry) {
                 $details = '';
                 if (isset($entry['details']) && is_array($entry['details'])) {
                     $detailsArray = [];

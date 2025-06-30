@@ -94,7 +94,7 @@ export default function StatisticsPage() {
                             className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:-translate-y-1 group flex items-center"
                         >
                             <span className="mr-2 transition-transform duration-300 group-hover:scale-125">🚪</span>
-                            <span className="group-hover:animate-pulse">Logout</span>
+                            <span className="group-hover:scale-105 transition-transform duration-200">Logout</span>
                         </Link>
                         <Link 
                             href="/profile"
@@ -252,7 +252,7 @@ export default function StatisticsPage() {
                             </h3>
                             <div className="h-64 bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
                                 <div className="text-center">
-                                    <div className="text-6xl mb-4 animate-pulse">📊</div>
+                                    <div className="text-6xl mb-4">📊</div>
                                     <p className="text-gray-600">Interactive Chart Coming Soon</p>
                                     <p className="text-sm text-gray-500">AI-powered trend analysis will appear here</p>
                                 </div>
@@ -288,7 +288,7 @@ export default function StatisticsPage() {
                             <div className="space-y-4">
                                 <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-l-4 border-purple-500">
                                     <div className="flex items-center mb-2">
-                                        <span className="text-2xl mr-3 animate-pulse">🔮</span>
+                                        <span className="text-2xl mr-3">🔮</span>
                                         <h4 className="font-semibold text-purple-800">Pattern Analysis</h4>
                                     </div>
                                     <p className="text-gray-700 text-sm">AI will analyze DV processing patterns and suggest optimizations</p>
@@ -296,7 +296,7 @@ export default function StatisticsPage() {
                                 
                                 <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border-l-4 border-green-500">
                                     <div className="flex items-center mb-2">
-                                        <span className="text-2xl mr-3 animate-pulse">⚡</span>
+                                        <span className="text-2xl mr-3">⚡</span>
                                         <h4 className="font-semibold text-green-800">Efficiency Boost</h4>
                                     </div>
                                     <p className="text-gray-700 text-sm">Smart suggestions to reduce processing time and improve workflow</p>
@@ -304,7 +304,7 @@ export default function StatisticsPage() {
                                 
                                 <div className="p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border-l-4 border-orange-500">
                                     <div className="flex items-center mb-2">
-                                        <span className="text-2xl mr-3 animate-pulse">🚨</span>
+                                        <span className="text-2xl mr-3">🚨</span>
                                         <h4 className="font-semibold text-orange-800">Anomaly Detection</h4>
                                     </div>
                                     <p className="text-gray-700 text-sm">Real-time alerts for unusual patterns or potential issues</p>
