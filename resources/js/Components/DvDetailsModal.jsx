@@ -12,12 +12,34 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
   const [cashAllocationNumber, setCashAllocationNumber] = useState('');
   const [netAmount, setNetAmount] = useState('');
 
+  // Indexing state variables
+  const [indexingDate, setIndexingDate] = useState('');
+
   // Helper function to get today's date in YYYY-MM-DD format
   const getTodayDate = () => {
     return new Date().toISOString().split('T')[0];
   };
 
-  // Auto-set today's date when opening RTS, NORSA, or Cash Allocation actions
+  // Helper function to format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  // Helper function to format amounts
+  const formatAmount = (amount) => {
+    if (!amount) return 'N/A';
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP'
+    }).format(amount);
+  };
+
+  // Auto-set today's date when opening RTS, NORSA, Cash Allocation, or Indexing actions
   useEffect(() => {
     if (activeAction === 'rts' || activeAction === 'box_c_rts') {
       setRtsDate(getTodayDate());
@@ -26,8 +48,17 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
     } else if (activeAction === 'cash_allocation') {
       setCashAllocationDate(getTodayDate());
       setNetAmount(dv?.amount || ''); // Pre-fill with original amount
+    } else if (activeAction === 'indexing') {
+      setIndexingDate(getTodayDate());
     }
   }, [activeAction, dv]);
+
+  // Auto-fill indexing date when modal opens for indexing status
+  useEffect(() => {
+    if (isOpen && dv?.status === 'for_indexing') {
+      setIndexingDate(getTodayDate());
+    }
+  }, [isOpen, dv?.status]);
 
   if (!isOpen || !dv) return null;
 
@@ -163,6 +194,34 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
       setActiveAction(null);
       setNorsaNumber('');
       setNorsaDate('');
+    }
+  };
+
+  const handleIndexing = () => {
+    if (!indexingDate) {
+      alert('Please select a date for indexing.');
+      return;
+    }
+    
+    if (confirm('Process indexing for this DV?')) {
+      fetch(`/incoming-dvs/${dv.id}/indexing`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+        },
+        body: JSON.stringify({
+          indexing_date: indexingDate
+        })
+      }).then(() => {
+        window.location.reload();
+      }).catch(error => {
+        console.error('Error processing indexing:', error);
+        alert('Error processing indexing. Please try again.');
+      });
+      onClose();
+      setActiveAction(null);
+      setIndexingDate('');
     }
   };
 
@@ -341,7 +400,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
             </div>
 
             {/* RTS Information - Only show if there are actual RTS records */}
-            {(dv.rts_history && dv.rts_history.length > 0) && (
+            {(dv.rts_history && dv.rts_history.length > 0) && dv.status !== 'for_cash_allocation' && dv.status !== 'for_box_c' && (
               <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
                 <h3 className="text-lg font-semibold text-orange-800 mb-4">RTS Information</h3>
                 {dv.rts_history.map((rts, index) => (
@@ -456,8 +515,8 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             )}
 
-            {/* Progressive Summary for Box C DVs */}
-            {dv.status === 'for_box_c' && (
+            {/* Progressive Summary Sections - For Approval DVs */}
+            {dv.status === 'for_approval' && (
               <>
                 {/* For Review Section */}
                 <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
@@ -543,39 +602,84 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                   
                   {/* Cash Allocation Date */}
                   {dv.cash_allocation_date && (
-                    <div className="mb-4 p-2 bg-blue-100 border border-blue-300 rounded">
-                      <span className="text-sm font-medium text-blue-800">
-                        Cash allocation completed on: {new Date(dv.cash_allocation_date).toLocaleDateString()}
-                      </span>
-                      {dv.net_amount && (
-                        <span className="text-sm font-medium text-blue-800 ml-4">
-                          Net Amount: PHP {parseFloat(dv.net_amount).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                          })}
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <span className="text-sm font-medium text-green-800">
+                          Cash allocation completed on: {new Date(dv.cash_allocation_date).toLocaleDateString()}
                         </span>
-                      )}
+                        {dv.cash_allocation_processed_date && (
+                          <span className="text-sm font-medium text-green-800">
+                            Processed on: {new Date(dv.cash_allocation_processed_date).toLocaleDateString()}
+                          </span>
+                        )}
+                        {dv.cash_allocation_number && (
+                          <span className="text-sm font-medium text-green-800">
+                            CA No.: {dv.cash_allocation_number}
+                          </span>
+                        )}
+                        {dv.net_amount && (
+                          <span className="text-sm font-medium text-green-800">
+                            Net Amount: PHP {parseFloat(dv.net_amount).toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   )}
+                  
+                  {/* Cash Allocation Details Box */}
+                  <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Date Completed:</span>
+                        <p className="text-gray-600">{dv.cash_allocation_date ? new Date(dv.cash_allocation_date).toLocaleDateString() : 'Not completed'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Date Processed:</span>
+                        <p className="text-gray-600">{dv.cash_allocation_processed_date ? new Date(dv.cash_allocation_processed_date).toLocaleDateString() : 'Not processed yet'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">CA Number:</span>
+                        <p className="text-gray-600">{dv.cash_allocation_number || 'Not assigned'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Net Amount:</span>
+                        <p className="text-gray-600 font-semibold">
+                          {dv.net_amount ? `PHP ${parseFloat(dv.net_amount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}` : 'Not set'}
+                        </p>
+                      </div>
+                      {dv.allocated_by && (
+                        <div className="md:col-span-2">
+                          <span className="font-medium text-gray-700">Allocated by:</span>
+                          <p className="text-gray-600">{dv.allocated_by}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Cash Allocation RTS Details Box */}
                     <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                       <h4 className="font-semibold text-red-800 mb-3">RTS Details (Cash Allocation)</h4>
-                      {(dv.cash_allocation_rts_out_date || dv.cash_allocation_rts_in_date || dv.cash_allocation_rts_reason) ? (
+                      {(dv.ca_rts_out_date || dv.ca_rts_in_date || dv.ca_rts_reason) ? (
                         <div className="space-y-2 text-sm">
                           <div>
                             <span className="font-medium text-gray-700">RTS Issued Date:</span>
-                            <p className="text-gray-600">{dv.cash_allocation_rts_out_date ? new Date(dv.cash_allocation_rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                            <p className="text-gray-600">{dv.ca_rts_out_date ? new Date(dv.ca_rts_out_date).toLocaleDateString() : 'N/A'}</p>
                           </div>
                           <div>
                             <span className="font-medium text-gray-700">RTS Returned Date:</span>
-                            <p className="text-gray-600">{dv.cash_allocation_rts_in_date ? new Date(dv.cash_allocation_rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                            <p className="text-gray-600">{dv.ca_rts_in_date ? new Date(dv.ca_rts_in_date).toLocaleDateString() : 'N/A'}</p>
                           </div>
-                          {dv.cash_allocation_rts_reason && (
+                          {dv.ca_rts_reason && (
                             <div>
                               <span className="font-medium text-gray-700">RTS Reason:</span>
-                              <p className="text-gray-600">{dv.cash_allocation_rts_reason}</p>
+                              <p className="text-gray-600">{dv.ca_rts_reason}</p>
                             </div>
                           )}
                         </div>
@@ -587,26 +691,26 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                     {/* Cash Allocation NORSA Details Box */}
                     <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                       <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details (Cash Allocation)</h4>
-                      {(dv.cash_allocation_norsa_out_date || dv.cash_allocation_norsa_in_date || dv.cash_allocation_norsa_number || dv.cash_allocation_norsa_reason) ? (
+                      {(dv.ca_norsa_out_date || dv.ca_norsa_in_date || dv.ca_norsa_number || dv.ca_norsa_reason) ? (
                         <div className="space-y-2 text-sm">
                           <div>
                             <span className="font-medium text-gray-700">NORSA Issued Date:</span>
-                            <p className="text-gray-600">{dv.cash_allocation_norsa_out_date ? new Date(dv.cash_allocation_norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                            <p className="text-gray-600">{dv.ca_norsa_out_date ? new Date(dv.ca_norsa_out_date).toLocaleDateString() : 'N/A'}</p>
                           </div>
                           <div>
                             <span className="font-medium text-gray-700">NORSA Completed Date:</span>
-                            <p className="text-gray-600">{dv.cash_allocation_norsa_in_date ? new Date(dv.cash_allocation_norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                            <p className="text-gray-600">{dv.ca_norsa_in_date ? new Date(dv.ca_norsa_in_date).toLocaleDateString() : 'N/A'}</p>
                           </div>
-                          {dv.cash_allocation_norsa_number && (
+                          {dv.ca_norsa_number && (
                             <div>
                               <span className="font-medium text-gray-700">NORSA Number:</span>
-                              <p className="text-gray-600">{dv.cash_allocation_norsa_number}</p>
+                              <p className="text-gray-600">{dv.ca_norsa_number}</p>
                             </div>
                           )}
-                          {dv.cash_allocation_norsa_reason && (
+                          {dv.ca_norsa_reason && (
                             <div>
                               <span className="font-medium text-gray-700">NORSA Details:</span>
-                              <p className="text-gray-600">{dv.cash_allocation_norsa_reason}</p>
+                              <p className="text-gray-600">{dv.ca_norsa_reason}</p>
                             </div>
                           )}
                         </div>
@@ -616,11 +720,463 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                     </div>
                   </div>
                 </div>
+
+                {/* For Box C Certification Section */}
+                <div className="mb-6 p-4 border-2 border-yellow-200 rounded-lg bg-yellow-50">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center">
+                    <span className="mr-2">📋</span>
+                    For Box C Certification
+                  </h3>
+                  
+                  {/* Box C Certification Date */}
+                  {dv.transaction_history?.find(entry => entry.action.toLowerCase().includes('box c certified')) && (
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <span className="text-sm font-medium text-green-800">
+                        Box C certified on: {new Date(dv.transaction_history.find(entry => entry.action.toLowerCase().includes('box c certified')).date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Box C RTS Details Box */}
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-800 mb-3">RTS Details (Box C)</h4>
+                      {(dv.bc_rts_out_date || dv.bc_rts_in_date || dv.bc_rts_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Issued Date:</span>
+                            <p className="text-gray-600">{dv.bc_rts_out_date ? new Date(dv.bc_rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Returned Date:</span>
+                            <p className="text-gray-600">{dv.bc_rts_in_date ? new Date(dv.bc_rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.bc_rts_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">RTS Reason:</span>
+                              <p className="text-gray-600">{dv.bc_rts_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No RTS was issued during Box C certification.</p>
+                      )}
+                    </div>
+                    
+                    {/* Box C NORSA Details Box */}
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details (Box C)</h4>
+                      {(dv.bc_norsa_out_date || dv.bc_norsa_in_date || dv.bc_norsa_number || dv.bc_norsa_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Issued Date:</span>
+                            <p className="text-gray-600">{dv.bc_norsa_out_date ? new Date(dv.bc_norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Completed Date:</span>
+                            <p className="text-gray-600">{dv.bc_norsa_in_date ? new Date(dv.bc_norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.bc_norsa_number && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Number:</span>
+                              <p className="text-gray-600">{dv.bc_norsa_number}</p>
+                            </div>
+                          )}
+                          {dv.bc_norsa_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Details:</span>
+                              <p className="text-gray-600">{dv.bc_norsa_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No NORSA was issued during Box C certification.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* For Approval Section */}
+                <div className="mb-6 p-4 border-2 border-purple-200 rounded-lg bg-purple-50">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
+                    <span className="mr-2">✅</span>
+                    For Approval
+                  </h3>
+                  
+                  {/* Approval Status */}
+                  {dv.approval_out_date && (
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <span className="text-sm font-medium text-green-800">
+                          Sent for approval on: {new Date(dv.approval_out_date).toLocaleDateString()}
+                        </span>
+                        {dv.approval_in_date && (
+                          <span className="text-sm font-medium text-green-800">
+                            Returned on: {new Date(dv.approval_in_date).toLocaleDateString()}
+                          </span>
+                        )}
+                        {dv.approved_by && (
+                          <span className="text-sm font-medium text-green-800">
+                            Approved by: {dv.approved_by}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Approval Details Box */}
+                  <div className="p-4 bg-purple-100 border border-purple-300 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Sent Out for Approval:</span>
+                        <p className="text-gray-600">{dv.approval_out_date ? new Date(dv.approval_out_date).toLocaleDateString() : 'Not sent yet'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Returned from Approval:</span>
+                        <p className="text-gray-600">{dv.approval_in_date ? new Date(dv.approval_in_date).toLocaleDateString() : 'Not returned yet'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Approved by:</span>
+                        <p className="text-gray-600">{dv.approved_by || 'Pending'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Progressive Summary for For Indexing DVs */}
+            {dv.status === 'for_indexing' && (
+              <>
+                {/* For Review Section */}
+                <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <span className="mr-2">📖</span>
+                    For Review
+                  </h3>
+                  
+                  {/* Review Done Date */}
+                  {dv.transaction_history?.find(entry => entry.action.toLowerCase().includes('review done')) && (
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <span className="text-sm font-medium text-green-800">
+                        Review completed on: {new Date(dv.transaction_history.find(entry => entry.action.toLowerCase().includes('review done')).date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* RTS Details Box */}
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-800 mb-3">RTS Details</h4>
+                      {(dv.rts_out_date || dv.rts_in_date || dv.rts_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Issued Date:</span>
+                            <p className="text-gray-600">{dv.rts_out_date ? new Date(dv.rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Returned Date:</span>
+                            <p className="text-gray-600">{dv.rts_in_date ? new Date(dv.rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.rts_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">RTS Reason:</span>
+                              <p className="text-gray-600">{dv.rts_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No RTS was issued for this DV.</p>
+                      )}
+                    </div>
+                    
+                    {/* NORSA Details Box */}
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details</h4>
+                      {(dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Issued Date:</span>
+                            <p className="text-gray-600">{dv.norsa_out_date ? new Date(dv.norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Completed Date:</span>
+                            <p className="text-gray-600">{dv.norsa_in_date ? new Date(dv.norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.norsa_number && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Number:</span>
+                              <p className="text-gray-600">{dv.norsa_number}</p>
+                            </div>
+                          )}
+                          {dv.norsa_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Details:</span>
+                              <p className="text-gray-600">{dv.norsa_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No NORSA was issued for this DV.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* For Cash Allocation Section */}
+                <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                    <span className="mr-2">💰</span>
+                    For Cash Allocation
+                  </h3>
+                  
+                  {/* Cash Allocation Date */}
+                  {dv.cash_allocation_date && (
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <span className="text-sm font-medium text-green-800">
+                          Cash allocation completed on: {new Date(dv.cash_allocation_date).toLocaleDateString()}
+                        </span>
+                        {dv.cash_allocation_processed_date && (
+                          <span className="text-sm font-medium text-green-800">
+                            Processed on: {new Date(dv.cash_allocation_processed_date).toLocaleDateString()}
+                          </span>
+                        )}
+                        {dv.cash_allocation_number && (
+                          <span className="text-sm font-medium text-green-800">
+                            CA No.: {dv.cash_allocation_number}
+                          </span>
+                        )}
+                        {dv.net_amount && (
+                          <span className="text-sm font-medium text-green-800">
+                            Net Amount: PHP {parseFloat(dv.net_amount).toLocaleString('en-US', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Cash Allocation Details Box */}
+                  <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Date Completed:</span>
+                        <p className="text-gray-600">{dv.cash_allocation_date ? new Date(dv.cash_allocation_date).toLocaleDateString() : 'Not completed'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Date Processed:</span>
+                        <p className="text-gray-600">{dv.cash_allocation_processed_date ? new Date(dv.cash_allocation_processed_date).toLocaleDateString() : 'Not processed yet'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">CA Number:</span>
+                        <p className="text-gray-600">{dv.cash_allocation_number || 'Not assigned'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Net Amount:</span>
+                        <p className="text-gray-600 font-semibold">
+                          {dv.net_amount ? `PHP ${parseFloat(dv.net_amount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}` : 'Not set'}
+                        </p>
+                      </div>
+                      {dv.allocated_by && (
+                        <div className="md:col-span-2">
+                          <span className="font-medium text-gray-700">Allocated by:</span>
+                          <p className="text-gray-600">{dv.allocated_by}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Cash Allocation RTS Details Box */}
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-800 mb-3">RTS Details (Cash Allocation)</h4>
+                      {(dv.ca_rts_out_date || dv.ca_rts_in_date || dv.ca_rts_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Issued Date:</span>
+                            <p className="text-gray-600">{dv.ca_rts_out_date ? new Date(dv.ca_rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Returned Date:</span>
+                            <p className="text-gray-600">{dv.ca_rts_in_date ? new Date(dv.ca_rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.ca_rts_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">RTS Reason:</span>
+                              <p className="text-gray-600">{dv.ca_rts_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No RTS was issued during cash allocation.</p>
+                      )}
+                    </div>
+                    
+                    {/* Cash Allocation NORSA Details Box */}
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details (Cash Allocation)</h4>
+                      {(dv.ca_norsa_out_date || dv.ca_norsa_in_date || dv.ca_norsa_number || dv.ca_norsa_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Issued Date:</span>
+                            <p className="text-gray-600">{dv.ca_norsa_out_date ? new Date(dv.ca_norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Completed Date:</span>
+                            <p className="text-gray-600">{dv.ca_norsa_in_date ? new Date(dv.ca_norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.ca_norsa_number && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Number:</span>
+                              <p className="text-gray-600">{dv.ca_norsa_number}</p>
+                            </div>
+                          )}
+                          {dv.ca_norsa_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Details:</span>
+                              <p className="text-gray-600">{dv.ca_norsa_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No NORSA was issued during cash allocation.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* For Box C Certification Section */}
+                <div className="mb-6 p-4 border-2 border-yellow-200 rounded-lg bg-yellow-50">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center">
+                    <span className="mr-2">📋</span>
+                    For Box C Certification
+                  </h3>
+                  
+                  {/* Box C Certification Date */}
+                  {dv.transaction_history?.find(entry => entry.action.toLowerCase().includes('box c certified')) && (
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <span className="text-sm font-medium text-green-800">
+                        Box C certified on: {new Date(dv.transaction_history.find(entry => entry.action.toLowerCase().includes('box c certified')).date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Box C RTS Details Box */}
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-800 mb-3">RTS Details (Box C)</h4>
+                      {(dv.bc_rts_out_date || dv.bc_rts_in_date || dv.bc_rts_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Issued Date:</span>
+                            <p className="text-gray-600">{dv.bc_rts_out_date ? new Date(dv.bc_rts_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">RTS Returned Date:</span>
+                            <p className="text-gray-600">{dv.bc_rts_in_date ? new Date(dv.bc_rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.bc_rts_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">RTS Reason:</span>
+                              <p className="text-gray-600">{dv.bc_rts_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No RTS was issued during Box C certification.</p>
+                      )}
+                    </div>
+                    
+                    {/* Box C NORSA Details Box */}
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details (Box C)</h4>
+                      {(dv.bc_norsa_out_date || dv.bc_norsa_in_date || dv.bc_norsa_number || dv.bc_norsa_reason) ? (
+                        <div className="space-y-2 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Issued Date:</span>
+                            <p className="text-gray-600">{dv.bc_norsa_out_date ? new Date(dv.bc_norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Completed Date:</span>
+                            <p className="text-gray-600">{dv.bc_norsa_in_date ? new Date(dv.bc_norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          {dv.bc_norsa_number && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Number:</span>
+                              <p className="text-gray-600">{dv.bc_norsa_number}</p>
+                            </div>
+                          )}
+                          {dv.bc_norsa_reason && (
+                            <div>
+                              <span className="font-medium text-gray-700">NORSA Details:</span>
+                              <p className="text-gray-600">{dv.bc_norsa_reason}</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 italic">No NORSA was issued during Box C certification.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* For Approval Section */}
+                <div className="mb-6 p-4 border-2 border-purple-200 rounded-lg bg-purple-50">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
+                    <span className="mr-2">✅</span>
+                    For Approval
+                  </h3>
+                  
+                  {/* Approval Status */}
+                  {dv.approval_out_date && (
+                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <span className="text-sm font-medium text-green-800">
+                          Sent for approval on: {new Date(dv.approval_out_date).toLocaleDateString()}
+                        </span>
+                        {dv.approval_in_date && (
+                          <span className="text-sm font-medium text-green-800">
+                            Returned on: {new Date(dv.approval_in_date).toLocaleDateString()}
+                          </span>
+                        )}
+                        {dv.approved_by && (
+                          <span className="text-sm font-medium text-green-800">
+                            Approved by: {dv.approved_by}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Approval Details Box */}
+                  <div className="p-4 bg-purple-100 border border-purple-300 rounded-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Sent Out for Approval:</span>
+                        <p className="text-gray-600">{dv.approval_out_date ? new Date(dv.approval_out_date).toLocaleDateString() : 'Not sent yet'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Returned from Approval:</span>
+                        <p className="text-gray-600">{dv.approval_in_date ? new Date(dv.approval_in_date).toLocaleDateString() : 'Not returned yet'}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Approved by:</span>
+                        <p className="text-gray-600">{dv.approved_by || 'Pending'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </>
             )}
 
             {/* Cash Allocation Information */}
-            {(dv.cash_allocation_date || dv.cash_allocation_number || dv.net_amount) && (
+            {(dv.cash_allocation_date || dv.cash_allocation_number || dv.net_amount) && dv.status !== 'for_box_c' && dv.status !== 'for_approval' && dv.status !== 'for_indexing' && (
               <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
                 <h3 className="text-lg font-semibold text-blue-800 mb-4">Cash Allocation Information</h3>
                 <div className="bg-white p-4 rounded border">
@@ -907,41 +1463,6 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                     </div>
                   </div>
                 )}
-
-                {/* Display RTS/NORSA Status for Box C */}
-                {(dv.rts_history && dv.rts_history.some(rts => rts.origin === 'box_c')) && (
-                  <div className="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-orange-800 mb-3">For RTS In (From Box C)</h4>
-                    {dv.rts_history.filter(rts => rts.origin === 'box_c').map((rts, index) => (
-                      <div key={index} className="mb-2 p-2 bg-white rounded border">
-                        <p className="text-sm"><strong>Date Out:</strong> {rts.date}</p>
-                        <p className="text-sm"><strong>Reason:</strong> {rts.reason}</p>
-                        {rts.returned_date ? (
-                          <p className="text-sm text-green-600"><strong>Returned:</strong> {rts.returned_date}</p>
-                        ) : (
-                          <p className="text-sm text-orange-600"><strong>Status:</strong> Pending Return</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {(dv.norsa_history && dv.norsa_history.some(norsa => norsa.origin === 'box_c')) && (
-                  <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-blue-800 mb-3">For NORSA In (From Box C)</h4>
-                    {dv.norsa_history.filter(norsa => norsa.origin === 'box_c').map((norsa, index) => (
-                      <div key={index} className="mb-2 p-2 bg-white rounded border">
-                        <p className="text-sm"><strong>Date:</strong> {norsa.date}</p>
-                        <p className="text-sm"><strong>Number:</strong> {norsa.number}</p>
-                        {norsa.returned_date ? (
-                          <p className="text-sm text-green-600"><strong>Returned:</strong> {norsa.returned_date}</p>
-                        ) : (
-                          <p className="text-sm text-blue-600"><strong>Status:</strong> Pending Return</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             )}
 
@@ -1215,21 +1736,276 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             )}
 
-            {/* Out to Cashiering Information */}
-            {dv.status === 'out_to_cashiering' && (
+            {/* Indexing Actions */}
+            {dv.status === 'for_indexing' && (
               <div className="border-t pt-6">
-                <div className="bg-purple-100 border border-purple-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-4">Out to Cashiering</h3>
-                  <p className="text-sm text-purple-700 mb-4">
-                    This DV is currently out for payroll register processing. Use the "In" button when it returns.
-                  </p>
-                  {dv.pr_out_date && (
-                    <p className="text-sm text-purple-600">
-                      Sent out: {new Date(dv.pr_out_date).toLocaleDateString()}
-                    </p>
-                  )}
+                <h3 className="text-lg font-semibold mb-4">Indexing Actions</h3>
+                
+                {/* Indexing Form - Always shown for indexing status */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-3">Process Indexing</h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Indexing Date</label>
+                      <input
+                        type="date"
+                        value={indexingDate}
+                        onChange={(e) => setIndexingDate(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleIndexing}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        📋 Process Indexing
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
+            )}
+
+            {/* Progressive Summary for Out to Cashiering DVs */}
+            {dv.status === 'out_to_cashiering' && (
+              <>
+                {/* For Review Section */}
+                <div className="mb-6 p-4 border-2 border-red-200 rounded-lg bg-red-50">
+                  <h3 className="text-lg font-semibold text-red-800 mb-4 flex items-center">
+                    <span className="mr-2">📝</span>
+                    For Review
+                  </h3>
+                  
+                  <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                    <span className="text-sm font-medium text-green-800">
+                      ✅ Review completed on: {formatDate(dv.review_date || dv.created_at)}
+                    </span>
+                  </div>
+
+                  {/* RTS/NORSA Details Side by Side */}
+                  {(dv.rts_reason || dv.norsa_number) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* RTS Details */}
+                      {dv.rts_reason && (
+                        <div className="p-4 bg-red-100 border border-red-300 rounded-lg">
+                          <h4 className="font-semibold text-red-800 mb-2">🔄 RTS Details</h4>
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <span className="font-medium text-red-700">RTS Date:</span>
+                              <p className="text-red-600">{formatDate(dv.rts_date)}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-red-700">RTS Reason:</span>
+                              <p className="text-red-600">{dv.rts_reason}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-red-700">RTS In Date:</span>
+                              <p className="text-red-600">{formatDate(dv.rts_in_date)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* NORSA Details */}
+                      {dv.norsa_number && (
+                        <div className="p-4 bg-purple-100 border border-purple-300 rounded-lg">
+                          <h4 className="font-semibold text-purple-800 mb-2">📝 NORSA Details</h4>
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <span className="font-medium text-purple-700">NORSA Number:</span>
+                              <p className="text-purple-600">{dv.norsa_number}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-purple-700">NORSA Date:</span>
+                              <p className="text-purple-600">{formatDate(dv.norsa_date)}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-purple-700">NORSA In Date:</span>
+                              <p className="text-purple-600">{formatDate(dv.norsa_in_date)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* For Cash Allocation Section */}
+                <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
+                  <h3 className="text-lg font-semibold text-orange-800 mb-4 flex items-center">
+                    <span className="mr-2">💰</span>
+                    For Cash Allocation
+                  </h3>
+                  
+                  <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                    <span className="text-sm font-medium text-green-800">
+                      ✅ Cash allocation completed on: {formatDate(dv.cash_allocation_date)}
+                    </span>
+                  </div>
+
+                  {/* Cash Allocation Details */}
+                  {(dv.cash_allocation_date || dv.cash_allocation_number || dv.net_amount) && (
+                    <div className="p-4 bg-orange-100 border border-orange-300 rounded-lg">
+                      <h4 className="font-semibold text-orange-800 mb-3">Cash Allocation Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                        <div>
+                          <span className="font-medium text-orange-700">Allocation Date:</span>
+                          <p className="text-orange-600">{formatDate(dv.cash_allocation_date)}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-orange-700">Allocation Number:</span>
+                          <p className="text-orange-600">{dv.cash_allocation_number || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-orange-700">Net Amount:</span>
+                          <p className="text-orange-600 font-semibold">{formatAmount(dv.net_amount)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* For Box C Certification Section */}
+                <div className="mb-6 p-4 border-2 border-yellow-200 rounded-lg bg-yellow-50">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center">
+                    <span className="mr-2">📋</span>
+                    For Box C Certification
+                  </h3>
+                  
+                  <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                    <span className="text-sm font-medium text-green-800">
+                      ✅ Box C certification completed on: {formatDate(dv.box_c_date)}
+                    </span>
+                  </div>
+
+                  {/* Box C RTS/NORSA Details Side by Side */}
+                  {(dv.box_c_rts_reason || dv.box_c_norsa_number) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Box C RTS Details */}
+                      {dv.box_c_rts_reason && (
+                        <div className="p-4 bg-red-100 border border-red-300 rounded-lg">
+                          <h4 className="font-semibold text-red-800 mb-2">🔄 Box C RTS Details</h4>
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <span className="font-medium text-red-700">RTS Date:</span>
+                              <p className="text-red-600">{formatDate(dv.box_c_rts_date)}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-red-700">RTS Reason:</span>
+                              <p className="text-red-600">{dv.box_c_rts_reason}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Box C NORSA Details */}
+                      {dv.box_c_norsa_number && (
+                        <div className="p-4 bg-purple-100 border border-purple-300 rounded-lg">
+                          <h4 className="font-semibold text-purple-800 mb-2">📝 Box C NORSA Details</h4>
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <span className="font-medium text-purple-700">NORSA Number:</span>
+                              <p className="text-purple-600">{dv.box_c_norsa_number}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-purple-700">NORSA Date:</span>
+                              <p className="text-purple-600">{formatDate(dv.box_c_norsa_date)}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* For Approval Section */}
+                <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <span className="mr-2">✅</span>
+                    For Approval
+                  </h3>
+                  
+                  <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                    <span className="text-sm font-medium text-green-800">
+                      ✅ Approval completed on: {formatDate(dv.approval_in_date)}
+                    </span>
+                  </div>
+
+                  {/* Approval Details */}
+                  {(dv.approval_out_date || dv.approval_in_date) && (
+                    <div className="p-4 bg-gray-100 border border-gray-300 rounded-lg">
+                      <h4 className="font-semibold text-gray-800 mb-3">Approval Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">Sent for Approval:</span>
+                          <p className="text-gray-600">{formatDate(dv.approval_out_date)}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Approval Returned:</span>
+                          <p className="text-gray-600">{formatDate(dv.approval_in_date)}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Approved by:</span>
+                          <p className="text-gray-600">{dv.approved_by || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* For Indexing Section */}
+                <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+                  <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                    <span className="mr-2">📋</span>
+                    For Indexing
+                  </h3>
+                  
+                  <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+                    <span className="text-sm font-medium text-green-800">
+                      ✅ Indexing completed on: {formatDate(dv.indexing_date)}
+                    </span>
+                  </div>
+
+                  {/* Indexing Details */}
+                  {dv.indexing_date && (
+                    <div className="p-4 bg-blue-100 border border-blue-300 rounded-lg">
+                      <h4 className="font-semibold text-blue-800 mb-3">Indexing Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="font-medium text-blue-700">Indexing Date:</span>
+                          <p className="text-blue-600">{formatDate(dv.indexing_date)}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-blue-700">Processing Status:</span>
+                          <p className="text-blue-600">Complete</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Out to Cashiering Information */}
+                <div className="border-t pt-6">
+                  <div className="bg-purple-100 border border-purple-200 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
+                      <span className="mr-2">🏦</span>
+                      Out to Cashiering
+                    </h3>
+                    <p className="text-sm text-purple-700 mb-4">
+                      This DV is currently out for payroll register processing. Use the "In" button when it returns.
+                    </p>
+                    {dv.pr_out_date && (
+                      <div className="p-3 bg-purple-50 border border-purple-200 rounded">
+                        <p className="text-sm text-purple-600">
+                          <span className="font-medium">Sent out:</span> {formatDate(dv.pr_out_date)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
             )}
           </div>
 

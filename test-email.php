@@ -12,22 +12,12 @@ use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 
 try {
-    // Create SMTP transport
+    // Create SMTP transport with proper TLS configuration
     $transport = new EsmtpTransport(
         $_ENV['MAIL_HOST'],
         $_ENV['MAIL_PORT'],
-        $_ENV['MAIL_SCHEME'] === 'tls' ? true : false
+        $_ENV['MAIL_ENCRYPTION'] === 'tls'
     );
-    
-    if ($_ENV['MAIL_SCHEME'] === 'tls') {
-        $transport->setStreamOptions([
-            'ssl' => [
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-                'allow_self_signed' => true
-            ]
-        ]);
-    }
     
     $transport->setUsername($_ENV['MAIL_USERNAME']);
     $transport->setPassword($_ENV['MAIL_PASSWORD']);

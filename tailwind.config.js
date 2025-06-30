@@ -25,7 +25,7 @@ export default {
             },
             borderColor: {
                 'recents': '#73FBFD',
-                'rts': '#375FA6',
+                'rts': '#dc2626', // red-600 for RTS
                 'payment': '#B00DD6',
                 'engas': '#EA3680',
                 'cdj': '#784315',

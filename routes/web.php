@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\IncomingDvController;
 use App\Http\Controllers\StatisticsController;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/check-db', function () {
     try {
@@ -17,8 +18,7 @@ Route::get('/check-db', function () {
     }
 });
 Route::get('/', function () {
-    // Show landing page for authenticated users, welcome page for guests
-    if (auth()->check()) {
+    if (Auth::check()) {
         return Inertia::render('LandingPage');
     }
     
@@ -27,15 +27,15 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
-    ]);
+]);
 });
 
 Route::get('/home', function () {
-    // Redirect authenticated users to the main app
-    if (auth()->check()) {
+    if (Auth::check()) {
         return redirect('/incoming-dvs');
     }
     
+    return redirect('/');
     return redirect('/');
 });
 

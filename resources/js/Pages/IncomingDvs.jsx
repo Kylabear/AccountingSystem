@@ -7,7 +7,9 @@ import IndexingModal from '../Components/IndexingModal';
 import PaymentMethodModal from '../Components/PaymentMethodModal';
 import EngasModal from '../Components/EngasModal';
 import CdjModal from '../Components/CdjModal';
+import LddapModal from '../Components/LddapModal';
 import EditDvModal from '../Components/EditDvModal';
+import DownloadModal from '../Components/DownloadModal';
 
 const statuses = [
     { key: 'recents', label: 'Recents', color: 'text-white', bgColor: '#73FBFD' },
@@ -53,7 +55,9 @@ export default function IncomingDvs() {
     const [isPaymentMethodModalOpen, setIsPaymentMethodModalOpen] = useState(false);
     const [isEngasModalOpen, setIsEngasModalOpen] = useState(false);
     const [isCdjModalOpen, setIsCdjModalOpen] = useState(false);
+    const [isLddapModalOpen, setIsLddapModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
     
     // Save active tab to localStorage and URL when it changes
     const handleTabChange = (newTab) => {
@@ -64,6 +68,46 @@ export default function IncomingDvs() {
         const url = new URL(window.location);
         url.searchParams.set('tab', newTab);
         window.history.replaceState({}, '', url);
+    };
+
+    // Handle download
+    const handleDownload = (params) => {
+        // Close the modal
+        setIsDownloadModalOpen(false);
+        
+        // Create query parameters for the download endpoint
+        const queryParams = new URLSearchParams();
+        queryParams.append('filter_type', params.filterType);
+        queryParams.append('file_type', params.fileType);
+        
+        if (params.selectedDate) {
+            queryParams.append('date', params.selectedDate);
+        }
+        if (params.selectedMonth) {
+            queryParams.append('month', params.selectedMonth);
+        }
+        if (params.selectedYear) {
+            queryParams.append('year', params.selectedYear);
+        }
+        if (params.transactionType) {
+            queryParams.append('transaction_type', params.transactionType);
+        }
+        if (params.implementingUnit) {
+            queryParams.append('implementing_unit', params.implementingUnit);
+        }
+        if (params.payee) {
+            queryParams.append('payee', params.payee);
+        }
+        if (params.includeDay) {
+            queryParams.append('include_day', '1');
+            queryParams.append('day_in_month', params.dayInMonth);
+        }
+        
+        // Create download URL
+        const downloadUrl = `/download-processed-dvs?${queryParams.toString()}`;
+        
+        // Trigger download
+        window.open(downloadUrl, '_blank');
     };
 
     // Helper function to normalize text for searching (case-insensitive, trim whitespace)
@@ -126,7 +170,7 @@ export default function IncomingDvs() {
             const borderColorMap = {
                 'recents': 'border-recents',
                 'for_review': 'border-red-500',
-                'for_rts_in': 'border-red-300',
+                'for_rts_in': 'border-rts',
                 'for_norsa_in': 'border-purple-600',
                 'for_cash_allocation': 'border-orange-500',
                 'for_box_c': 'border-yellow-500',
@@ -209,9 +253,13 @@ export default function IncomingDvs() {
         if (dv.status === 'for_cash_allocation') {
             setIsModalOpen(true);
         }
-        // Use Indexing modal for indexing status
+        // Use DV Details modal for box c status (has progressive summary)
+        else if (dv.status === 'for_box_c') {
+            setIsModalOpen(true);
+        }
+        // Use DV Details modal for indexing status (has progressive summary)
         else if (dv.status === 'for_indexing') {
-            setIsIndexingModalOpen(true);
+            setIsModalOpen(true);
         }
         // Use Payment Method modal for payment status
         else if (dv.status === 'for_payment') {
@@ -225,9 +273,9 @@ export default function IncomingDvs() {
         else if (dv.status === 'for_cdj') {
             setIsCdjModalOpen(true);
         }
-        // For LDDAP certification, show info and allow certification
+        // Use LDDAP modal for LDDAP certification status
         else if (dv.status === 'for_lddap') {
-            setIsModalOpen(true);
+            setIsLddapModalOpen(true);
         }
         // For processed DVs, redirect to detailed page
         else if (dv.status === 'processed') {
@@ -242,10 +290,9 @@ export default function IncomingDvs() {
         else if (['for_rts_in', 'for_norsa_in'].includes(dv.status)) {
             setIsRtsNorsaModalOpen(true);
         } 
-        // For approval status, don't open modal - use buttons instead
+        // Use DV Details modal for approval status (has progressive summary)
         else if (dv.status === 'for_approval') {
-            // Do nothing - the buttons will handle the actions
-            return;
+            setIsModalOpen(true);
         }
         // For out to cashiering, show info only
         else if (dv.status === 'out_to_cashiering') {
@@ -402,6 +449,31 @@ export default function IncomingDvs() {
         } catch (error) {
             console.error('Error:', error);
             alert('Error recording CDJ');
+        }
+    };
+
+    const handleLddapSubmit = async (data) => {
+        try {
+            const response = await fetch(`/incoming-dvs/${selectedDv.id}/lddap-certify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                setIsLddapModalOpen(false);
+                setSelectedDv(null);
+                localStorage.setItem('incoming-dvs-active-tab', activeTab);
+                window.location.reload();
+            } else {
+                alert('Error certifying LDDAP');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error certifying LDDAP');
         }
     };
 
@@ -671,7 +743,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_review').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-red-500 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -742,7 +814,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_rts_in').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-red-300 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -801,7 +873,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_norsa_in').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-purple-600 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -862,7 +934,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-yellow-500 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -916,7 +988,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-red-300 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -970,7 +1042,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-purple-600 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1026,7 +1098,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_approval' && (dv.approval_status === 'pending' || !dv.approval_status)).map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-gray-500 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1096,7 +1168,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_approval' && dv.approval_status === 'out').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 border-gray-400 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1168,8 +1240,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_payment').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                                style={{ borderRightColor: '#B00DD6' }}
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1231,8 +1302,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'out_to_cashiering').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className="bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                                style={{ borderRightColor: '#B00DD6' }}
+                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1289,6 +1359,109 @@ export default function IncomingDvs() {
                                         <p className="text-gray-500 text-center py-8">No DVs currently out to cashiering</p>
                                     )}
                                 </div>
+                            </div>
+                        </div>
+                    ) : activeTab === 'processed' ? (
+                        /* Processed tab with download functionality */
+                        <div className="space-y-6">
+                            {/* Download Section */}
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center">
+                                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
+                                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-green-800 mb-1">📥 Download Processed DVs</h3>
+                                            <p className="text-green-600 text-sm">Generate reports with customizable filters and file formats</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsDownloadModalOpen(true)}
+                                        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 flex items-center font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                    >
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        Download
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* DV List */}
+                            <div className="space-y-3">
+                                {sortedDvs.length > 0 ? (
+                                    sortedDvs.map((dv) => (
+                                        <div 
+                                            key={dv.id} 
+                                            className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                            onClick={() => handleDvClick(dv)}
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                                                        {dv.payee}
+                                                    </h3>
+                                                    <p className="text-gray-600 text-sm mb-1">
+                                                        {dv.dv_number}
+                                                    </p>
+                                                    <p className="text-gray-600 text-sm mb-2 italic">
+                                                        {dv.particulars && dv.particulars.length > 50 
+                                                            ? dv.particulars.substring(0, 50) + '...'
+                                                            : dv.particulars || 'No particulars specified'}
+                                                    </p>
+                                                    <p className="text-gray-800 font-medium">
+                                                        ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                        {dv.net_amount && (
+                                                            <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                        )}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    {(() => {
+                                                        const statusObj = statuses.find(s => s.key === dv.status);
+                                                        const hasCustomColor = statusObj?.bgColor;
+                                                        
+                                                        return (
+                                                            <div className="flex flex-col items-end space-y-2">
+                                                                <span 
+                                                                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                                                        hasCustomColor ? 'text-white' : (statusObj?.color || 'bg-gray-400 text-white')
+                                                                    }`}
+                                                                    style={hasCustomColor ? { backgroundColor: statusObj.bgColor } : {}}
+                                                                >
+                                                                    {statusObj?.label || dv.status}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                    {dv.created_at && (
+                                                        <p className="text-xs text-gray-500 mt-2">
+                                                            {new Date(dv.created_at).toLocaleDateString()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-12">
+                                        <div className="text-gray-400 mb-4">
+                                            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                        </div>
+                                        <p className="text-gray-500 text-lg mb-2">No processed disbursement vouchers found</p>
+                                        <p className="text-gray-400 text-sm">
+                                            {searchTerm ? 'Try adjusting your search terms' : 'No processed DVs available for download'}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ) : (
@@ -1454,6 +1627,17 @@ export default function IncomingDvs() {
                 onSubmit={handleCdjSubmit}
             />
 
+            {/* LDDAP Modal */}
+            <LddapModal
+                dv={selectedDv}
+                isOpen={isLddapModalOpen}
+                onClose={() => {
+                    setIsLddapModalOpen(false);
+                    setSelectedDv(null);
+                }}
+                onSubmit={handleLddapSubmit}
+            />
+
             {/* Edit DV Modal */}
             <EditDvModal
                 dv={selectedDv}
@@ -1467,6 +1651,13 @@ export default function IncomingDvs() {
                     setSelectedDv(null);
                     window.location.reload();
                 }}
+            />
+
+            {/* Download Modal */}
+            <DownloadModal
+                isOpen={isDownloadModalOpen}
+                onClose={() => setIsDownloadModalOpen(false)}
+                onDownload={handleDownload}
             />
 
             <style jsx>{`

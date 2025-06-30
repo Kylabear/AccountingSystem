@@ -8,7 +8,9 @@ use App\Models\OrsEntry;
 use App\Models\PredefinedOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class IncomingDvController extends Controller
 {
@@ -23,7 +25,7 @@ class IncomingDvController extends Controller
         return Inertia::render('IncomingDvs', [
             'dvs' => $dvs,
             'auth' => [
-                'user' => auth()->user()
+                'user' => \Illuminate\Support\Facades\Auth::user()
             ]
         ]);
     }
@@ -288,7 +290,7 @@ class IncomingDvController extends Controller
         }
 
         // Add transaction history entry
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = \Illuminate\Support\Facades\Auth::user()->name ?? 'Unknown User';
         $transactionHistory = $dv->transaction_history ?? [];
         $transactionHistory[] = [
             'action' => 'DV Details Updated',
@@ -316,7 +318,7 @@ class IncomingDvController extends Controller
         ]);
 
         // Get current user
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
 
         // Update transaction history
         $transactionHistory = $dv->transaction_history ?? [];
@@ -379,7 +381,7 @@ class IncomingDvController extends Controller
         ]);
 
         // Get current user
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
 
         // Update transaction history
         $transactionHistory = $dv->transaction_history ?? [];
@@ -451,7 +453,7 @@ class IncomingDvController extends Controller
         ]);
 
         // Get current user (you might need to adjust this based on your auth system)
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
 
         // Update transaction history
         $transactionHistory = $dv->transaction_history ?? [];
@@ -491,7 +493,7 @@ class IncomingDvController extends Controller
         ]);
 
         // Get current user
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
 
         // Update transaction history
         $transactionHistory = $dv->transaction_history ?? [];
@@ -608,7 +610,7 @@ class IncomingDvController extends Controller
         $transactionHistory = $dv->transaction_history ?? [];
         $transactionHistory[] = [
             'action' => 'Sent out for approval',
-            'user' => auth()->user()->name ?? 'System',
+            'user' => Auth::user()->name ?? 'System',
             'date' => $validated['out_date'],
             'details' => []
         ];
@@ -636,20 +638,20 @@ class IncomingDvController extends Controller
             'approval_in_date' => $validated['in_date'],
             'approval_status' => 'in', // Set approval status to 'in'
             'status' => 'for_indexing', // Move to next stage
-            'approved_by' => auth()->user()->name ?? 'System',
+            'approved_by' => Auth::user()->name ?? 'System',
         ];
         
         // Add to transaction history
         $transactionHistory = $dv->transaction_history ?? [];
         $transactionHistory[] = [
             'action' => 'Returned from approval',
-            'user' => auth()->user()->name ?? 'System',
+            'user' => Auth::user()->name ?? 'System',
             'date' => $validated['in_date'],
             'details' => []
         ];
         $transactionHistory[] = [
             'action' => 'Moved to indexing',
-            'user' => auth()->user()->name ?? 'System',
+            'user' => Auth::user()->name ?? 'System',
             'date' => $validated['in_date'],
             'details' => []
         ];
@@ -670,7 +672,7 @@ class IncomingDvController extends Controller
             'indexing_date' => 'required|date',
         ]);
         
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
         
         // Update transaction history
         $transactionHistory = $dv->transaction_history ?? [];
@@ -702,7 +704,7 @@ class IncomingDvController extends Controller
             'lddap_number' => 'nullable|required_if:payment_method,lddap|string',
         ]);
         
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
         $today = now()->toDateString();
         
         // Update transaction history
@@ -771,7 +773,7 @@ class IncomingDvController extends Controller
             'in_date' => 'required|date',
         ]);
         
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
         
         // Update transaction history
         $transactionHistory = $dv->transaction_history ?? [];
@@ -832,7 +834,7 @@ class IncomingDvController extends Controller
             'engas_number.required' => 'The E-NGAS number is required.',
         ]);
         
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
         
         // Update transaction history
         $transactionHistory = $dv->transaction_history ?? [];
@@ -864,7 +866,7 @@ class IncomingDvController extends Controller
             'cdj_date' => 'required|date',
         ]);
         
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
         
         // Update transaction history
         $transactionHistory = $dv->transaction_history ?? [];
@@ -890,7 +892,7 @@ class IncomingDvController extends Controller
     
     public function certifyLddap(Request $request, IncomingDv $dv)
     {
-        $currentUser = auth()->user()->name ?? 'Unknown User';
+        $currentUser = Auth::user()->name ?? 'Unknown User';
         $today = now()->toDateString();
         
         // Update transaction history
@@ -958,7 +960,7 @@ class IncomingDvController extends Controller
     
     private function downloadDvAsPdf(IncomingDv $dv)
     {
-        $pdf = \PDF::loadView('dv-report', compact('dv'));
+        $pdf = Pdf::loadView('dv-report', compact('dv'));
         $filename = 'DV_' . $dv->dv_number . '_' . date('Y-m-d_H-i-s') . '.pdf';
         
         return $pdf->download($filename);
