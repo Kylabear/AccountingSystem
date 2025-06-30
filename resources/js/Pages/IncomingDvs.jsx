@@ -841,9 +841,21 @@ export default function IncomingDvs() {
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-300 text-white">
-                                                            For RTS In
-                                                        </span>
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-300 text-white">
+                                                                For RTS In
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
                                                         {dv.created_at && (
                                                             <p className="text-xs text-gray-500 mt-2">
                                                                 {new Date(dv.created_at).toLocaleDateString()}
@@ -900,9 +912,21 @@ export default function IncomingDvs() {
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-600 text-white">
-                                                            For NORSA In
-                                                        </span>
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-600 text-white">
+                                                                For NORSA In
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
                                                         {dv.created_at && (
                                                             <p className="text-xs text-gray-500 mt-2">
                                                                 {new Date(dv.created_at).toLocaleDateString()}
@@ -956,9 +980,21 @@ export default function IncomingDvs() {
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500 text-white">
-                                                            For Box C Certification
-                                                        </span>
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-500 text-white">
+                                                                For Box C Certification
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
                                                         {dv.created_at && (
                                                             <p className="text-xs text-gray-500 mt-2">
                                                                 {new Date(dv.created_at).toLocaleDateString()}
@@ -1010,9 +1046,21 @@ export default function IncomingDvs() {
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-300 text-white">
-                                                            For RTS In
-                                                        </span>
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-300 text-white">
+                                                                For RTS In
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
                                                         {dv.created_at && (
                                                             <p className="text-xs text-gray-500 mt-2">
                                                                 {new Date(dv.created_at).toLocaleDateString()}
@@ -1064,9 +1112,21 @@ export default function IncomingDvs() {
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-600 text-white">
-                                                            For NORSA In
-                                                        </span>
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-600 text-white">
+                                                                For NORSA In
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
                                                         {dv.created_at && (
                                                             <p className="text-xs text-gray-500 mt-2">
                                                                 {new Date(dv.created_at).toLocaleDateString()}
@@ -1134,6 +1194,16 @@ export default function IncomingDvs() {
                                                                 className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                                                             >
                                                                 Out
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
                                                             </button>
                                                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-500 text-white">
                                                                 For Approval
@@ -1205,6 +1275,16 @@ export default function IncomingDvs() {
                                                             >
                                                                 In
                                                             </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
                                                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-400 text-white">
                                                                 For In
                                                             </span>
@@ -1267,12 +1347,24 @@ export default function IncomingDvs() {
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span 
-                                                            className="px-3 py-1 rounded-full text-xs font-medium text-white"
-                                                            style={{ backgroundColor: '#B00DD6' }}
-                                                        >
-                                                            For Payment
-                                                        </span>
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span 
+                                                                className="px-3 py-1 rounded-full text-xs font-medium text-white"
+                                                                style={{ backgroundColor: '#B00DD6' }}
+                                                            >
+                                                                For Payment
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
                                                         {dv.indexing_date && (
                                                             <p className="text-xs text-gray-500 mt-2">
                                                                 Indexed: {new Date(dv.indexing_date).toLocaleDateString()}
@@ -1338,6 +1430,16 @@ export default function IncomingDvs() {
                                                                 className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                                                             >
                                                                 In
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
                                                             </button>
                                                             <span 
                                                                 className="px-3 py-1 rounded-full text-xs font-medium text-white"
@@ -1437,6 +1539,16 @@ export default function IncomingDvs() {
                                                                 >
                                                                     {statusObj?.label || dv.status}
                                                                 </span>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSelectedDv(dv);
+                                                                        setIsEditModalOpen(true);
+                                                                    }}
+                                                                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                                >
+                                                                    Edit
+                                                                </button>
                                                             </div>
                                                         );
                                                     })()}
@@ -1512,6 +1624,16 @@ export default function IncomingDvs() {
                                                             >
                                                                 {statusObj?.label || dv.status}
                                                             </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
                                                         </div>
                                                     );
                                                 })()}
