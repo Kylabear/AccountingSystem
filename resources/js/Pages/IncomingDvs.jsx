@@ -10,22 +10,23 @@ import CdjModal from '../Components/CdjModal';
 import LddapModal from '../Components/LddapModal';
 import EditDvModal from '../Components/EditDvModal';
 import DownloadModal from '../Components/DownloadModal';
+import ProcessedDvModal from '../Components/ProcessedDvModal';
 
 const statuses = [
     { key: 'recents', label: 'Recents', color: 'text-white', bgColor: '#73FBFD' },
-    { key: 'for_review', label: 'For Review', color: 'bg-red-500 text-white' },
-    { key: 'for_rts_in', label: 'For RTS In', color: 'bg-red-300 text-white' },
-    { key: 'for_norsa_in', label: 'For NORSA In', color: 'bg-purple-600 text-white' },
-    { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'bg-orange-500 text-white' },
-    { key: 'for_box_c', label: 'For Box C Certification', color: 'bg-yellow-500 text-white' },
-    { key: 'for_approval', label: 'For Approval', color: 'bg-gray-500 text-white' },
-    { key: 'for_indexing', label: 'For Indexing', color: 'bg-blue-500 text-white' },
-    { key: 'for_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#B00DD6' },
-    { key: 'out_to_cashiering', label: 'Out to Cashiering', color: 'text-white', bgColor: '#B00DD6' },
+    { key: 'for_review', label: 'For Review', color: 'text-white', bgColor: '#D92F21' },
+    { key: 'for_rts_in', label: 'For RTS In', color: 'text-white', bgColor: '#F08784' },
+    { key: 'for_norsa_in', label: 'For NORSA In', color: 'text-white', bgColor: '#FFBAB3' },
+    { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'text-white', bgColor: '#F07B1D' },
+    { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
+    { key: 'for_approval', label: 'For Approval', color: 'text-white', bgColor: '#6B6B6B' },
+    { key: 'for_indexing', label: 'For Indexing', color: 'text-white', bgColor: '#0023F5' },
+    { key: 'for_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#6B28E3' },
+    { key: 'out_to_cashiering', label: 'Out to Cashiering', color: 'text-white', bgColor: '#C85AFF' },
     { key: 'for_engas', label: 'For E-NGAS Recording', color: 'text-white', bgColor: '#EA3680' },
     { key: 'for_cdj', label: 'For CDJ Recording', color: 'text-white', bgColor: '#784315' },
     { key: 'for_lddap', label: 'For LDDAP Certification', color: 'text-white', bgColor: '#000000' },
-    { key: 'processed', label: 'Processed', color: 'bg-green-500 text-white' },
+    { key: 'processed', label: 'Processed', color: 'text-white', bgColor: '#3E8C26' },
 ];
 
 export default function IncomingDvs() {
@@ -58,6 +59,7 @@ export default function IncomingDvs() {
     const [isLddapModalOpen, setIsLddapModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+    const [isProcessedModalOpen, setIsProcessedModalOpen] = useState(false);
     
     // Save active tab to localStorage and URL when it changes
     const handleTabChange = (newTab) => {
@@ -110,6 +112,58 @@ export default function IncomingDvs() {
         window.open(downloadUrl, '_blank');
     };
 
+    // Handle cash reallocation
+    const handleCashReallocation = async (dv) => {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+
+            console.log('Attempting to reallocate DV:', dv.id);
+
+            const response = await fetch(`/incoming-dvs/${dv.id}/reallocate-cash`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    reallocation_date: new Date().toISOString().split('T')[0],
+                    reallocation_reason: 'Returned by cashiering for reallocation'
+                })
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+
+            const responseData = await response.json();
+            console.log('Response data:', responseData);
+
+            if (response.ok) {
+                alert('✅ DV successfully reallocated to Cash Allocation! Page will refresh.');
+                // Close modal and refresh page to show updated data
+                setIsProcessedModalOpen(false);
+                setSelectedDv(null);
+                // Force page refresh to show updated DV in correct tab
+                window.location.reload();
+            } else {
+                console.error('Server error response:', responseData);
+                alert(`❌ Error reallocating DV: ${responseData.message || responseData.error || 'Unknown server error'}`);
+            }
+        } catch (error) {
+            console.error('Network or parsing error:', error);
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                alert('❌ Network error: Could not connect to server. Please check if the server is running.');
+            } else {
+                alert(`❌ Error reallocating DV: ${error.message}`);
+            }
+        }
+    };
+
     // Helper function to normalize text for searching (case-insensitive, trim whitespace)
     const normalizeForSearch = (text) => {
         return text ? text.toString().trim().toLowerCase() : '';
@@ -138,6 +192,9 @@ export default function IncomingDvs() {
             } else if (activeTab === 'for_approval') {
                 // For Approval tab shows DVs in for_approval status with any approval_status
                 matchesStatus = dv.status === 'for_approval';
+            } else if (activeTab === 'for_cash_allocation') {
+                // For Cash Allocation tab shows DVs in for_cash_allocation status (including reallocated ones)
+                matchesStatus = dv.status === 'for_cash_allocation';
             } else if (activeTab === 'for_payment') {
                 // For Payment tab shows DVs in for_payment OR out_to_cashiering status
                 matchesStatus = ['for_payment', 'out_to_cashiering'].includes(dv.status);
@@ -165,27 +222,21 @@ export default function IncomingDvs() {
     // Get current status color for the right border
     const getCurrentStatusColor = (status) => {
         const statusObj = statuses.find(s => s.key === status);
-        if (statusObj) {
-            // Map each status to its corresponding border color (using CSS classes or inline styles)
-            const borderColorMap = {
-                'recents': 'border-recents',
-                'for_review': 'border-red-500',
-                'for_rts_in': 'border-rts',
-                'for_norsa_in': 'border-purple-600',
-                'for_cash_allocation': 'border-orange-500',
-                'for_box_c': 'border-yellow-500',
-                'for_approval': 'border-gray-500',
-                'for_indexing': 'border-blue-500',
-                'for_payment': 'border-payment',
-                'out_to_cashiering': 'border-payment',
-                'for_engas': 'border-engas',
-                'for_cdj': 'border-cdj',
-                'for_lddap': 'border-lddap',
-                'processed': 'border-green-500',
-            };
-            return borderColorMap[status] || 'border-gray-400';
+        if (statusObj && statusObj.bgColor) {
+            // Use inline style for custom colors
+            return `border-r-4`;
         }
-        return 'border-gray-400';
+        // Fallback to default border
+        return 'border-r-4 border-gray-400';
+    };
+
+    // Get border color style object for inline styling
+    const getBorderStyle = (status) => {
+        const statusObj = statuses.find(s => s.key === status);
+        if (statusObj && statusObj.bgColor) {
+            return { borderRightColor: statusObj.bgColor };
+        }
+        return { borderRightColor: '#9CA3AF' }; // gray-400
     };
 
     // Handle approval actions
@@ -277,10 +328,9 @@ export default function IncomingDvs() {
         else if (dv.status === 'for_lddap') {
             setIsLddapModalOpen(true);
         }
-        // For processed DVs, redirect to detailed page
+        // For processed DVs, show processed modal with reallocation option
         else if (dv.status === 'processed') {
-            window.location.href = `/dv/${dv.id}/details`;
-            return;
+            setIsProcessedModalOpen(true);
         }
         // Use DV Details modal for review status (has Review Done button and progressive summary)
         else if (dv.status === 'for_review') {
@@ -732,7 +782,7 @@ export default function IncomingDvs() {
                             {/* For Review Section */}
                             <div>
                                 <div className="flex items-center mb-4">
-                                    <div className="w-3 h-3 rounded-full bg-red-500 mr-3"></div>
+                                    <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: '#D92F21' }}></div>
                                     <h3 className="text-lg font-semibold text-gray-800">For Review</h3>
                                     <span className="ml-2 text-sm text-gray-500">
                                         ({filteredDvs.filter(dv => dv.status === 'for_review').length})
@@ -743,7 +793,8 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_review').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                style={getBorderStyle(dv.status)}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -803,7 +854,7 @@ export default function IncomingDvs() {
                             {/* For RTS In Section */}
                             <div>
                                 <div className="flex items-center mb-4">
-                                    <div className="w-3 h-3 rounded-full bg-red-300 mr-3"></div>
+                                    <div className="w-3 h-3 rounded-full mr-3" style={{ backgroundColor: '#F08784' }}></div>
                                     <h3 className="text-lg font-semibold text-gray-800">For RTS In</h3>
                                     <span className="ml-2 text-sm text-gray-500">
                                         ({filteredDvs.filter(dv => dv.status === 'for_rts_in').length})
@@ -814,7 +865,8 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_rts_in').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                style={getBorderStyle(dv.status)}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -885,7 +937,8 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_norsa_in').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                style={getBorderStyle(dv.status)}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -942,6 +995,154 @@ export default function IncomingDvs() {
                                 </div>
                             </div>
                         </div>
+                    ) : activeTab === 'for_cash_allocation' ? (
+                        <div className="space-y-8">
+                            {/* For Cash Allocation Section */}
+                            <div>
+                                <div className="flex items-center mb-4">
+                                    <div className="w-3 h-3 rounded-full bg-orange-500 mr-3"></div>
+                                    <h3 className="text-lg font-semibold text-gray-800">For Cash Allocation</h3>
+                                    <span className="ml-2 text-sm text-gray-500">
+                                        ({filteredDvs.filter(dv => dv.status === 'for_cash_allocation' && !dv.is_reallocated).length})
+                                    </span>
+                                </div>
+                                <div className="space-y-3">
+                                    {filteredDvs.filter(dv => dv.status === 'for_cash_allocation' && !dv.is_reallocated).length > 0 ? (
+                                        filteredDvs.filter(dv => dv.status === 'for_cash_allocation' && !dv.is_reallocated).map((dv) => (
+                                            <div 
+                                                key={dv.id} 
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                style={getBorderStyle(dv.status)}
+                                                onClick={() => handleDvClick(dv)}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                                                            {dv.payee}
+                                                        </h3>
+                                                        <p className="text-gray-600 text-sm mb-1">
+                                                            {dv.dv_number}
+                                                        </p>
+                                                        <p className="text-gray-600 text-sm mb-2 italic">
+                                                            {dv.particulars && dv.particulars.length > 50 
+                                                                ? dv.particulars.substring(0, 50) + '...'
+                                                                : dv.particulars || 'No particulars specified'}
+                                                        </p>
+                                                        <p className="text-gray-800 font-medium">
+                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2
+                                                            })}
+                                                            {dv.net_amount && (
+                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-500 text-white">
+                                                                For Cash Allocation
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
+                                                        {dv.created_at && (
+                                                            <p className="text-xs text-gray-500 mt-2">
+                                                                {new Date(dv.created_at).toLocaleDateString()}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-500 text-center py-8">No DVs for cash allocation</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* For Cash Reallocation Section */}
+                            <div>
+                                <div className="flex items-center mb-4">
+                                    <div className="w-3 h-3 rounded-full bg-orange-600 mr-3"></div>
+                                    <h3 className="text-lg font-semibold text-gray-800">For Cash Reallocation</h3>
+                                    <span className="ml-2 text-sm text-gray-500">
+                                        ({filteredDvs.filter(dv => dv.status === 'for_cash_allocation' && dv.is_reallocated).length})
+                                    </span>
+                                </div>
+                                <div className="space-y-3">
+                                    {filteredDvs.filter(dv => dv.status === 'for_cash_allocation' && dv.is_reallocated).length > 0 ? (
+                                        filteredDvs.filter(dv => dv.status === 'for_cash_allocation' && dv.is_reallocated).map((dv) => (
+                                            <div 
+                                                key={dv.id} 
+                                                className="bg-orange-50 border-l-4 border-orange-600 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                onClick={() => handleDvClick(dv)}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center mb-2">
+                                                            <span className="bg-orange-600 text-white text-xs px-2 py-1 rounded-full mr-2">
+                                                                🔄 Returned by Cashiering – Reallocate Cash
+                                                            </span>
+                                                        </div>
+                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                                                            {dv.payee}
+                                                        </h3>
+                                                        <p className="text-gray-600 text-sm mb-1">
+                                                            {dv.dv_number}
+                                                        </p>
+                                                        <p className="text-gray-600 text-sm mb-2 italic">
+                                                            {dv.particulars && dv.particulars.length > 50 
+                                                                ? dv.particulars.substring(0, 50) + '...'
+                                                                : dv.particulars || 'No particulars specified'}
+                                                        </p>
+                                                        <p className="text-gray-800 font-medium">
+                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2
+                                                            })}
+                                                            {dv.net_amount && (
+                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                            )}
+                                                        </p>
+                                                        <p className="text-orange-600 text-xs mt-2">
+                                                            Reallocated on: {new Date(dv.reallocation_date).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-600 text-white">
+                                                                For Cash Reallocation
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="text-gray-500 text-center py-8">No DVs for cash reallocation</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     ) : activeTab === 'for_box_c' ? (
                         <div className="space-y-8">
                             {/* For Box C Certification Section */}
@@ -958,7 +1159,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1024,7 +1225,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1090,7 +1291,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1158,7 +1359,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_approval' && (dv.approval_status === 'pending' || !dv.approval_status)).map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1238,7 +1439,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_approval' && dv.approval_status === 'out').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1320,7 +1521,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'for_payment').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1394,7 +1595,7 @@ export default function IncomingDvs() {
                                         filteredDvs.filter(dv => dv.status === 'out_to_cashiering').map((dv) => (
                                             <div 
                                                 key={dv.id} 
-                                                className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                                className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                                 onClick={() => handleDvClick(dv)}
                                             >
                                                 <div className="flex justify-between items-start">
@@ -1498,7 +1699,7 @@ export default function IncomingDvs() {
                                     sortedDvs.map((dv) => (
                                         <div 
                                             key={dv.id} 
-                                            className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                            className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                             onClick={() => handleDvClick(dv)}
                                         >
                                             <div className="flex justify-between items-start">
@@ -1583,7 +1784,7 @@ export default function IncomingDvs() {
                                 sortedDvs.map((dv) => (
                                     <div 
                                         key={dv.id} 
-                                        className={`bg-white rounded-lg p-4 shadow-md border-r-4 hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                        className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                         onClick={() => handleDvClick(dv)}
                                     >
                                         <div className="flex justify-between items-start">
@@ -1773,6 +1974,17 @@ export default function IncomingDvs() {
                     setSelectedDv(null);
                     window.location.reload();
                 }}
+            />
+
+            {/* Processed DV Modal */}
+            <ProcessedDvModal
+                dv={selectedDv}
+                isOpen={isProcessedModalOpen}
+                onClose={() => {
+                    setIsProcessedModalOpen(false);
+                    setSelectedDv(null);
+                }}
+                onReallocate={handleCashReallocation}
             />
 
             {/* Download Modal */}

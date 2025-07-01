@@ -47,6 +47,7 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth'])->group(function () {
     // Statistics page
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
+    Route::get('/statistics/export', [StatisticsController::class, 'export'])->name('statistics.export');
     
     // Incoming DVs routes
     Route::get('/incoming-dvs', [IncomingDvController::class, 'index'])->name('incoming-dvs');
@@ -66,6 +67,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/incoming-dvs/{dv}/engas', [IncomingDvController::class, 'updateEngas'])->name('incoming-dvs.engas');
     Route::post('/incoming-dvs/{dv}/cdj', [IncomingDvController::class, 'updateCdj'])->name('incoming-dvs.cdj');
     Route::post('/incoming-dvs/{dv}/lddap-certify', [IncomingDvController::class, 'certifyLddap'])->name('incoming-dvs.lddap-certify');
+    Route::post('/incoming-dvs/{id}/reallocate-cash', [IncomingDvController::class, 'reallocateCash'])->name('incoming-dvs.reallocate-cash');
     Route::get('/dv/{dv}/details', [IncomingDvController::class, 'showDetails'])->name('dv.details');
     Route::get('/incoming-dvs/{dv}/download', [IncomingDvController::class, 'downloadDv'])->name('incoming-dvs.download');
     

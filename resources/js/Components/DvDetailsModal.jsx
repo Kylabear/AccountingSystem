@@ -12,6 +12,9 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
   const [cashAllocationNumber, setCashAllocationNumber] = useState('');
   const [netAmount, setNetAmount] = useState('');
 
+  // Check if this is a reallocated DV that should only show original DV and For Review data
+  const isReallocationView = dv?.is_reallocated === true;
+
   // Indexing state variables
   const [indexingDate, setIndexingDate] = useState('');
 
@@ -242,7 +245,14 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                 <span>Back</span>
               </button>
             )}
-            <h2 className="text-lg font-semibold">DV Details</h2>
+            <h2 className="text-lg font-semibold">
+              DV Details
+              {isReallocationView && (
+                <span className="ml-3 px-2 py-1 bg-orange-500 text-white text-xs rounded-full">
+                  FOR CASH REALLOCATION
+                </span>
+              )}
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -253,6 +263,20 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
             </svg>
           </button>
         </div>
+
+        {/* Reallocation Notice */}
+        {isReallocationView && (
+          <div className="p-4 bg-orange-50 border-b-2 border-orange-200">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 13.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="text-sm font-medium text-orange-800">
+                This DV is being reallocated. Only original DV and For Review data are shown below. All post-cash-allocation data has been cleared for reprocessing.
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Progressive Summary for For Review DVs - Only show RTS/NORSA if they exist */}
         {dv.status === 'for_review' && (
@@ -438,8 +462,8 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             )}
 
-            {/* For Review Section - For Cash Allocation DVs */}
-            {dv.status === 'for_cash_allocation' && (
+            {/* For Review Section - For Cash Allocation DVs or Reallocated DVs */}
+            {(dv.status === 'for_cash_allocation' || isReallocationView) && (
               <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <span className="mr-2">📖</span>
@@ -516,7 +540,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
             )}
 
             {/* Progressive Summary Sections - For Approval DVs */}
-            {dv.status === 'for_approval' && (
+            {dv.status === 'for_approval' && !isReallocationView && (
               <>
                 {/* For Review Section */}
                 <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
@@ -846,7 +870,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
             )}
 
             {/* Progressive Summary for For Indexing DVs */}
-            {dv.status === 'for_indexing' && (
+            {dv.status === 'for_indexing' && !isReallocationView && (
               <>
                 {/* For Review Section */}
                 <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
@@ -1467,7 +1491,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
             )}
 
             {/* Cash Allocation Actions */}
-            {dv.status === 'for_cash_allocation' && (
+            {(dv.status === 'for_cash_allocation' || isReallocationView) && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4">Cash Allocation Actions</h3>
                 

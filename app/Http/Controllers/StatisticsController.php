@@ -64,6 +64,87 @@ class StatisticsController extends Controller
         ]);
     }
 
+    /**
+     * Export statistics data
+     */
+    public function export(Request $request)
+    {
+        $filterBy = $request->get('filter_by', 'implementing_unit');
+        $timePeriod = $request->get('time_period', 'monthly');
+        $format = $request->get('format', 'csv');
+
+        // Build the base query with time period filter
+        $query = IncomingDv::query();
+        $this->applyTimePeriodFilter($query, $timePeriod);
+
+        // Get overall statistics
+        $totalDVs = $query->count();
+        $pendingDVs = (clone $query)->where('status', 'pending')->count();
+        $processedDVs = (clone $query)->whereIn('status', ['approved', 'completed', 'processed'])->count();
+
+        // Get breakdown data
+        $breakdownData = $this->getBreakdownData($query, $filterBy);
+
+        if ($format === 'csv') {
+            return $this->exportCsv($totalDVs, $pendingDVs, $processedDVs, $breakdownData, $filterBy, $timePeriod);
+        }
+
+        // For future support of other formats
+        return response()->json(['error' => 'Unsupported export format'], 400);
+    }
+
+    private function exportCsv($totalDVs, $pendingDVs, $processedDVs, $breakdownData, $filterBy, $timePeriod)
+    {
+        $csvData = [];
+
+        // Add header information
+        $csvData[] = ['DV Statistics Export Report'];
+        $csvData[] = ['Generated on', now()->format('Y-m-d H:i:s')];
+        $csvData[] = ['Time Period', ucfirst($timePeriod)];
+        $csvData[] = ['Filter By', ucwords(str_replace('_', ' ', $filterBy))];
+        $csvData[] = [''];
+
+        // Add summary statistics
+        $csvData[] = ['Summary Statistics'];
+        $csvData[] = ['Total DVs', $totalDVs];
+        $csvData[] = ['Processed DVs', $processedDVs];
+        $csvData[] = ['Pending DVs', $pendingDVs];
+        $csvData[] = ['Processing Rate', $totalDVs > 0 ? round(($processedDVs / $totalDVs) * 100, 2) . '%' : '0%'];
+        $csvData[] = [''];
+
+        // Add breakdown data
+        $csvData[] = ['Breakdown by ' . ucwords(str_replace('_', ' ', $filterBy))];
+        $csvData[] = ['Category', 'Total Received', 'Processed', 'Progress Percentage'];
+
+        foreach ($breakdownData['data'] as $item) {
+            $csvData[] = [
+                $item['category'],
+                $item['received'],
+                $item['processed'],
+                $item['progress_percentage'] . '%'
+            ];
+        }
+
+        $filename = 'dv_statistics_' . $timePeriod . '_' . $filterBy . '_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        $callback = function() use ($csvData) {
+            $file = fopen('php://output', 'w');
+            
+            // Add UTF-8 BOM for proper encoding
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            foreach ($csvData as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
     private function applyTimePeriodFilter($query, $timePeriod)
     {
         switch ($timePeriod) {

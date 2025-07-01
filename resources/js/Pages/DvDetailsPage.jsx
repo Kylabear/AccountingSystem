@@ -780,4 +780,6 @@ export default function DvDetailsPage({ dv }) {
             `}</style>
         </div>
     );
+
 }
+

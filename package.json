@@ -24,7 +24,9 @@
     },
     "dependencies": {
         "@heroicons/react": "^2.2.0",
+        "apexcharts": "^4.7.0",
         "framer-motion": "^12.19.2",
+        "react-apexcharts": "^1.7.0",
         "react-image-crop": "^11.0.10"
     }
 }

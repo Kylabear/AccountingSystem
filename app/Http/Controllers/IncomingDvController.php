@@ -9,6 +9,7 @@ use App\Models\PredefinedOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -1147,5 +1148,98 @@ class IncomingDvController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    /**
+     * Reallocate cash for a processed DV
+     * Clears post-cash-allocation data and marks for reallocation
+     */
+    public function reallocateCash(Request $request, $id)
+    {
+        try {
+            Log::info("Reallocation request received for DV ID: {$id}");
+            
+            $dv = IncomingDv::findOrFail($id);
+            
+            Log::info("DV found with status: {$dv->status}");
+            
+            // Verify that the DV is in processed status
+            if ($dv->status !== 'processed') {
+                Log::warning("DV {$id} cannot be reallocated - status is {$dv->status}, not 'processed'");
+                return response()->json(['error' => 'Only processed DVs can be reallocated'], 400);
+            }
+            
+            // Store current state for history before clearing
+            $previousState = [
+                'cash_allocation_date' => $dv->cash_allocation_date,
+                'cash_allocation_number' => $dv->cash_allocation_number,
+                'net_amount' => $dv->net_amount,
+                'processed_date' => $dv->processed_date,
+                'status' => $dv->status
+            ];
+            
+            Log::info("Updating DV {$id} status to for_cash_allocation");
+            
+            // Clear all post-cash-allocation fields (only update confirmed existing columns)
+            $updateData = [
+                'status' => 'for_cash_allocation',
+                'is_reallocated' => true,
+                'cash_allocation_date' => null,
+                'cash_allocation_number' => null,
+                'net_amount' => null,
+                'allocated_by' => null,
+                'approval_out' => false,
+                'approval_out_date' => null,
+                'approval_in_date' => null,
+                'approved_by' => null,
+                'indexing_date' => null,
+                'indexed_by' => null,
+                'payment_method' => null,
+                'lddap_number' => null,
+                'payment_method_date' => null,
+                'payment_method_set_by' => null,
+                'pr_out_date' => null,
+                'pr_in_date' => null,
+                'pr_out_by' => null,
+                'pr_in_by' => null,
+                'engas_number' => null,
+                'engas_date' => null,
+                'engas_recorded_by' => null,
+                'cdj_date' => null,
+                'cdj_details' => null,
+                'cdj_recorded_by' => null,
+                'lddap_certified_date' => null,
+                'lddap_certified_by' => null,
+                'processed_date' => null,
+            ];
+            
+            Log::info("Update data prepared:", $updateData);
+            
+            $dv->update($updateData);
+            
+            // Add reallocation entry to transaction history
+            $transactionHistory = $dv->transaction_history ?? [];
+            $transactionHistory[] = [
+                'action' => 'Cash Reallocation Requested',
+                'date' => now()->toDateTimeString(),
+                'user' => Auth::user()->name ?? 'System',
+                'details' => [
+                    'reason' => 'DV returned from cashiering for cash reallocation',
+                    'previous_processed_date' => $previousState['processed_date'],
+                    'cleared_fields' => array_filter($previousState) // Only include fields that had values
+                ]
+            ];
+            
+            $dv->update(['transaction_history' => $transactionHistory]);
+            
+            Log::info("DV {$id} successfully reallocated to cash allocation");
+            
+            return response()->json(['message' => 'DV successfully marked for cash reallocation']);
+            
+        } catch (\Exception $e) {
+            Log::error("Error reallocating DV {$id}: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            return response()->json(['error' => 'Internal server error: ' . $e->getMessage()], 500);
+        }
     }
 }
