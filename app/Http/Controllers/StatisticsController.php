@@ -79,11 +79,19 @@ class StatisticsController extends Controller
 
             $filterBy = $request->get('filter_by', 'implementing_unit');
             $timePeriod = $request->get('time_period', 'monthly');
+            $startDate = $request->get('start_date');
+            $endDate = $request->get('end_date');
             $format = $request->get('format', 'csv');
 
             // Build the base query with time period filter
             $query = IncomingDv::query();
-            $this->applyTimePeriodFilter($query, $timePeriod);
+            
+            // Apply date range filter if provided, otherwise use time period filter
+            if ($startDate && $endDate) {
+                $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            } else {
+                $this->applyTimePeriodFilter($query, $timePeriod);
+            }
 
             // Get overall statistics
             $totalDVs = $query->count();
@@ -95,7 +103,8 @@ class StatisticsController extends Controller
 
             Log::info('Export data prepared', [
                 'totalDVs' => $totalDVs,
-                'format' => $format
+                'format' => $format,
+                'dateRange' => $startDate && $endDate ? "$startDate to $endDate" : "Period: $timePeriod"
             ]);
 
             // Prepare data for export
@@ -107,6 +116,11 @@ class StatisticsController extends Controller
                 'breakdownData' => $breakdownData,
                 'filterBy' => $filterBy,
                 'timePeriod' => $timePeriod,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'dateRangeText' => $startDate && $endDate ? 
+                    "Date Range: " . date('M j, Y', strtotime($startDate)) . " - " . date('M j, Y', strtotime($endDate)) :
+                    "Time Period: " . ucfirst($timePeriod),
                 'generatedAt' => now()->format('Y-m-d H:i:s')
             ];
 
@@ -138,7 +152,7 @@ class StatisticsController extends Controller
         // Add header information
         $csvData[] = ['DV Statistics Export Report'];
         $csvData[] = ['Generated on', $exportData['generatedAt']];
-        $csvData[] = ['Time Period', ucfirst($exportData['timePeriod'])];
+        $csvData[] = ['Filter Criteria', $exportData['dateRangeText']];
         $csvData[] = ['Filter By', ucwords(str_replace('_', ' ', $exportData['filterBy']))];
         $csvData[] = [''];
 
@@ -163,7 +177,11 @@ class StatisticsController extends Controller
             ];
         }
 
-        $filename = 'dv_statistics_' . $exportData['timePeriod'] . '_' . $exportData['filterBy'] . '_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        $dateIdentifier = isset($exportData['startDate']) && isset($exportData['endDate']) ? 
+            $exportData['startDate'] . '_to_' . $exportData['endDate'] : 
+            $exportData['timePeriod'];
+        
+        $filename = 'dv_statistics_' . $dateIdentifier . '_' . $exportData['filterBy'] . '_' . now()->format('Y-m-d_H-i-s') . '.csv';
 
         $callback = function() use ($csvData) {
             $file = fopen('php://output', 'w');
@@ -190,7 +208,11 @@ class StatisticsController extends Controller
     {
         $html = $this->generateReportHtml($exportData);
         
-        $filename = 'dv_statistics_' . $exportData['timePeriod'] . '_' . $exportData['filterBy'] . '_' . now()->format('Y-m-d_H-i-s') . '.html';
+        $dateIdentifier = isset($exportData['startDate']) && isset($exportData['endDate']) ? 
+            $exportData['startDate'] . '_to_' . $exportData['endDate'] : 
+            $exportData['timePeriod'];
+        
+        $filename = 'dv_statistics_' . $dateIdentifier . '_' . $exportData['filterBy'] . '_' . now()->format('Y-m-d_H-i-s') . '.html';
         
         return response($html, 200, [
             'Content-Type' => 'text/html; charset=UTF-8',
@@ -205,7 +227,11 @@ class StatisticsController extends Controller
     {
         $xml = $this->generateExcelXml($exportData);
         
-        $filename = 'dv_statistics_' . $exportData['timePeriod'] . '_' . $exportData['filterBy'] . '_' . now()->format('Y-m-d_H-i-s') . '.xls';
+        $dateIdentifier = isset($exportData['startDate']) && isset($exportData['endDate']) ? 
+            $exportData['startDate'] . '_to_' . $exportData['endDate'] : 
+            $exportData['timePeriod'];
+        
+        $filename = 'dv_statistics_' . $dateIdentifier . '_' . $exportData['filterBy'] . '_' . now()->format('Y-m-d_H-i-s') . '.xls';
         
         return response($xml, 200, [
             'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
@@ -220,7 +246,11 @@ class StatisticsController extends Controller
     {
         $content = $this->generateDocxContent($exportData);
         
-        $filename = 'dv_statistics_' . $exportData['timePeriod'] . '_' . $exportData['filterBy'] . '_' . now()->format('Y-m-d_H-i-s') . '.doc';
+        $dateIdentifier = isset($exportData['startDate']) && isset($exportData['endDate']) ? 
+            $exportData['startDate'] . '_to_' . $exportData['endDate'] : 
+            $exportData['timePeriod'];
+        
+        $filename = 'dv_statistics_' . $dateIdentifier . '_' . $exportData['filterBy'] . '_' . now()->format('Y-m-d_H-i-s') . '.doc';
         
         return response($content, 200, [
             'Content-Type' => 'application/msword; charset=UTF-8',
@@ -256,7 +286,7 @@ class StatisticsController extends Controller
             
             <div class="meta-info">
                 <strong>Generated on:</strong> ' . $exportData['generatedAt'] . '<br>
-                <strong>Time Period:</strong> ' . ucfirst($exportData['timePeriod']) . '<br>
+                <strong>Filter Criteria:</strong> ' . $exportData['dateRangeText'] . '<br>
                 <strong>Filter By:</strong> ' . ucwords(str_replace('_', ' ', $exportData['filterBy'])) . '
             </div>
 

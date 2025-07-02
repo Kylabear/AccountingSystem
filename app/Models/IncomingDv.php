@@ -51,6 +51,24 @@ class IncomingDv extends Model
     protected $casts = [
         'transaction_history' => 'array',
         'is_reallocated' => 'boolean',
+        'cash_allocation_date' => 'date',
+        'processed_date' => 'date',
+        'cash_allocation_processed_date' => 'date',
+        'box_c_date' => 'date',
+        'approval_out_date' => 'date',
+        'approval_in_date' => 'date',
+        'indexing_date' => 'date',
+        'engas_date' => 'date',
+        'cdj_date' => 'date',
+        'lddap_date' => 'date',
+        'ca_rts_out_date' => 'date',
+        'ca_rts_in_date' => 'date',
+        'ca_norsa_out_date' => 'date',
+        'ca_norsa_in_date' => 'date',
+        'bc_rts_out_date' => 'date',
+        'bc_rts_in_date' => 'date',
+        'bc_norsa_out_date' => 'date',
+        'bc_norsa_in_date' => 'date',
     ];
 
     public function orsEntries()

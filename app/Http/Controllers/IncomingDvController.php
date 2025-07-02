@@ -1288,66 +1288,46 @@ class IncomingDvController extends Controller
     public function downloadProcessedDvs(Request $request)
     {
         try {
-            $filterType = $request->get('filter_type', 'day');
+            Log::info('Download request received', $request->all());
+            
+            $filterType = $request->get('filter_type', 'date_range');
             $fileType = $request->get('file_type', 'excel');
+            
+            Log::info('Filter type: ' . $filterType . ', File type: ' . $fileType);
             
             // Build query for processed DVs
             $query = IncomingDv::where('status', 'processed')->with('orsEntries');
             
-            // Apply filters based on filter type
+            // Apply date range filter if provided
+            if ($startDate = $request->get('start_date')) {
+                $query->whereDate('processed_date', '>=', $startDate);
+                Log::info('Start date filter: ' . $startDate);
+            }
+            if ($endDate = $request->get('end_date')) {
+                $query->whereDate('processed_date', '<=', $endDate);
+                Log::info('End date filter: ' . $endDate);
+            }
+            
+            // Apply additional filters based on filter type
             switch ($filterType) {
-                case 'day':
-                    if ($date = $request->get('date')) {
-                        $query->whereDate('processed_date', $date);
-                    }
-                    break;
-                    
-                case 'month':
-                    if ($month = $request->get('month')) {
-                        $query->whereMonth('processed_date', $month);
-                    }
-                    if ($year = $request->get('year')) {
-                        $query->whereYear('processed_date', $year);
-                    }
-                    break;
-                    
                 case 'transaction_type':
                     if ($transactionType = $request->get('transaction_type')) {
                         $query->where('transaction_type', $transactionType);
+                        Log::info('Transaction type filter: ' . $transactionType);
                     }
                     break;
                     
                 case 'implementing_unit':
                     if ($implementingUnit = $request->get('implementing_unit')) {
                         $query->where('implementing_unit', $implementingUnit);
-                    }
-                    // Add month/year filter for implementing unit
-                    if ($month = $request->get('month')) {
-                        $query->whereMonth('processed_date', $month);
-                    }
-                    if ($year = $request->get('year')) {
-                        $query->whereYear('processed_date', $year);
-                    }
-                    // Add specific day filter if requested
-                    if ($request->get('include_day') && $request->get('day_in_month')) {
-                        $query->whereDay('processed_date', $request->get('day_in_month'));
+                        Log::info('Implementing unit filter: ' . $implementingUnit);
                     }
                     break;
                     
                 case 'payee':
                     if ($payee = $request->get('payee')) {
                         $query->where('payee', $payee);
-                    }
-                    // Add month/year filter for payee
-                    if ($month = $request->get('month')) {
-                        $query->whereMonth('processed_date', $month);
-                    }
-                    if ($year = $request->get('year')) {
-                        $query->whereYear('processed_date', $year);
-                    }
-                    // Add specific day filter if requested
-                    if ($request->get('include_day') && $request->get('day_in_month')) {
-                        $query->whereDay('processed_date', $request->get('day_in_month'));
+                        Log::info('Payee filter: ' . $payee);
                     }
                     break;
             }
@@ -1355,21 +1335,28 @@ class IncomingDvController extends Controller
             // Get the filtered DVs
             $dvs = $query->orderBy('processed_date', 'desc')->get();
             
+            Log::info('Found DVs count: ' . $dvs->count());
+            
             if ($dvs->isEmpty()) {
+                Log::info('No DVs found, returning error');
                 return redirect()->back()->with('error', 'No processed DVs found for the selected criteria.');
             }
             
             // Generate filename based on filter
             $filename = $this->generateDownloadFilename($filterType, $request, $fileType);
+            Log::info('Generated filename: ' . $filename);
             
             // Return the appropriate file format
             switch ($fileType) {
                 case 'pdf':
+                    Log::info('Returning PDF download');
                     return $this->downloadDvsAsPdf($dvs, $filename);
                 case 'docx':
+                    Log::info('Returning DOCX download');
                     return $this->downloadDvsAsDocx($dvs, $filename);
                 case 'excel':
                 default:
+                    Log::info('Returning Excel/CSV download');
                     return $this->downloadDvsAsExcel($dvs, $filename);
             }
             
@@ -1387,31 +1374,40 @@ class IncomingDvController extends Controller
         $timestamp = now()->format('Y-m-d_H-i-s');
         $extension = $fileType === 'excel' ? 'csv' : $fileType;
         
+        // Get date range for filename
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+        $dateRange = '';
+        
+        if ($startDate && $endDate) {
+            if ($startDate === $endDate) {
+                $dateRange = $startDate;
+            } else {
+                $dateRange = "{$startDate}_to_{$endDate}";
+            }
+        } else if ($startDate) {
+            $dateRange = "from_{$startDate}";
+        } else if ($endDate) {
+            $dateRange = "until_{$endDate}";
+        } else {
+            $dateRange = "all_dates";
+        }
+        
         switch ($filterType) {
-            case 'day':
-                $date = $request->get('date', now()->toDateString());
-                return "Processed_DVs_Daily_{$date}_{$timestamp}.{$extension}";
-                
-            case 'month':
-                $month = $request->get('month', now()->month);
-                $year = $request->get('year', now()->year);
-                $monthPadded = str_pad($month, 2, '0', STR_PAD_LEFT);
-                return "Processed_DVs_Monthly_{$year}-{$monthPadded}_{$timestamp}.{$extension}";
-                
             case 'transaction_type':
                 $type = str_replace(' ', '_', $request->get('transaction_type', 'Unknown'));
-                return "Processed_DVs_TransactionType_{$type}_{$timestamp}.{$extension}";
+                return "Processed_DVs_TransactionType_{$type}_{$dateRange}_{$timestamp}.{$extension}";
                 
             case 'implementing_unit':
                 $unit = str_replace(' ', '_', $request->get('implementing_unit', 'Unknown'));
-                return "Processed_DVs_Unit_{$unit}_{$timestamp}.{$extension}";
+                return "Processed_DVs_Unit_{$unit}_{$dateRange}_{$timestamp}.{$extension}";
                 
             case 'payee':
                 $payee = str_replace(' ', '_', $request->get('payee', 'Unknown'));
-                return "Processed_DVs_Payee_{$payee}_{$timestamp}.{$extension}";
+                return "Processed_DVs_Payee_{$payee}_{$dateRange}_{$timestamp}.{$extension}";
                 
             default:
-                return "Processed_DVs_{$timestamp}.{$extension}";
+                return "Processed_DVs_{$dateRange}_{$timestamp}.{$extension}";
         }
     }
     

@@ -1,538 +1,226 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function DownloadModal({ isOpen, onClose, onDownload }) {
-    const [filterType, setFilterType] = useState('day');
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [filterType, setFilterType] = useState('all');
+    const [fileType, setFileType] = useState('excel');
+    const [startDate, setStartDate] = useState(() => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - 1); // Default to 1 month ago
+        return date.toISOString().split('T')[0];
+    });
+    const [endDate, setEndDate] = useState(() => {
+        return new Date().toISOString().split('T')[0]; // Default to today
+    });
     const [transactionType, setTransactionType] = useState('');
     const [implementingUnit, setImplementingUnit] = useState('');
     const [payee, setPayee] = useState('');
-    const [includeDay, setIncludeDay] = useState(false);
-    const [dayInMonth, setDayInMonth] = useState(1);
-    const [fileType, setFileType] = useState('excel');
-    
-    // Options loaded from backend
-    const [filterOptions, setFilterOptions] = useState({
-        transaction_types: [],
-        implementing_units: [],
-        payees: []
-    });
-    const [isLoadingOptions, setIsLoadingOptions] = useState(false);
-
-    // Load filter options when modal opens
-    useEffect(() => {
-        if (isOpen && !isLoadingOptions && filterOptions.transaction_types.length === 0) {
-            fetchFilterOptions();
-        }
-    }, [isOpen, isLoadingOptions, filterOptions.transaction_types.length]);
-
-    const fetchFilterOptions = async () => {
-        setIsLoadingOptions(true);
-        try {
-            const response = await fetch('/incoming-dvs/filter-options', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setFilterOptions(data);
-            } else {
-                console.error('Failed to fetch filter options');
-            }
-        } catch (error) {
-            console.error('Error fetching filter options:', error);
-        } finally {
-            setIsLoadingOptions(false);
-        }
-    };
-
-    // Generate year options (current year and 5 years back)
-    const currentYear = new Date().getFullYear();
-    const yearOptions = [];
-    for (let i = 0; i <= 5; i++) {
-        yearOptions.push(currentYear - i);
-    }
-
-    // Month options
-    const monthOptions = [
-        { value: 1, label: 'January' },
-        { value: 2, label: 'February' },
-        { value: 3, label: 'March' },
-        { value: 4, label: 'April' },
-        { value: 5, label: 'May' },
-        { value: 6, label: 'June' },
-        { value: 7, label: 'July' },
-        { value: 8, label: 'August' },
-        { value: 9, label: 'September' },
-        { value: 10, label: 'October' },
-        { value: 11, label: 'November' },
-        { value: 12, label: 'December' }
-    ];
-
-    // Generate day options
-    const getDaysInMonth = (year, month) => {
-        return new Date(year, month, 0).getDate();
-    };
-
-    const dayOptions = [];
-    const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
-    for (let i = 1; i <= daysInMonth; i++) {
-        dayOptions.push(i);
-    }
 
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        const downloadParams = {
+        onDownload({
             filterType,
             fileType,
-            selectedDate: filterType === 'day' ? selectedDate : null,
-            selectedMonth: filterType !== 'day' ? selectedMonth : null,
-            selectedYear: filterType !== 'day' ? selectedYear : null,
-            transactionType: filterType === 'transaction_type' ? transactionType : null,
-            implementingUnit: filterType === 'implementing_unit' ? implementingUnit : null,
-            payee: filterType === 'payee' ? payee : null,
-            includeDay: (filterType === 'implementing_unit' || filterType === 'payee') ? includeDay : false,
-            dayInMonth: includeDay ? dayInMonth : null
-        };
-
-        onDownload(downloadParams);
+            startDate,
+            endDate,
+            transactionType,
+            implementingUnit,
+            payee
+        });
     };
 
-    const resetForm = () => {
-        setFilterType('day');
-        setSelectedDate(new Date().toISOString().split('T')[0]);
-        setSelectedMonth(new Date().getMonth() + 1);
-        setSelectedYear(new Date().getFullYear());
-        setTransactionType('');
-        setImplementingUnit('');
-        setPayee('');
-        setIncludeDay(false);
-        setDayInMonth(1);
-        setFileType('excel');
+    const setQuickDateRange = (days) => {
+        const today = new Date();
+        const pastDate = new Date();
+        pastDate.setDate(today.getDate() - days);
+        
+        setStartDate(pastDate.toISOString().split('T')[0]);
+        setEndDate(today.toISOString().split('T')[0]);
     };
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '80px', paddingBottom: '20px' }}>
-            <div className="bg-white rounded-lg w-full max-w-2xl max-h-screen overflow-hidden m-4 flex flex-col">
-                {/* Header */}
-                <div className="bg-green-600 text-white border-b px-6 py-4 flex justify-between items-center flex-shrink-0">
-                    <h2 className="text-xl font-bold">📥 Download Processed DVs</h2>
-                    <button onClick={onClose} className="text-white hover:text-gray-300">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6 border-b border-gray-200">
+                    <div className="flex justify-between items-center">
+                        <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                            <span className="mr-2">📥</span>
+                            Download Processed DVs
+                        </h2>
+                        <button
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-gray-600 text-2xl font-bold transition-colors"
+                        >
+                            ×
+                        </button>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
-                    {/* Filter Type Selection */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                            🔍 Filter By:
-                        </label>
-                        <div className="space-y-2">
-                            <label className="flex items-center">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    {/* Date Range Section */}
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <span className="mr-2">📅</span>
+                            Date Range Filter
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    📅 Start Date
+                                </label>
                                 <input
-                                    type="radio"
-                                    value="day"
-                                    checked={filterType === 'day'}
-                                    onChange={(e) => setFilterType(e.target.value)}
-                                    className="mr-2"
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    required
                                 />
-                                <span>📅 Per Day</span>
-                            </label>
-                            <label className="flex items-center">
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    📅 End Date
+                                </label>
                                 <input
-                                    type="radio"
-                                    value="month"
-                                    checked={filterType === 'month'}
-                                    onChange={(e) => setFilterType(e.target.value)}
-                                    className="mr-2"
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    required
                                 />
-                                <span>📆 Per Month</span>
-                            </label>
-                            <label className="flex items-center">
-                                <input
-                                    type="radio"
-                                    value="transaction_type"
-                                    checked={filterType === 'transaction_type'}
-                                    onChange={(e) => setFilterType(e.target.value)}
-                                    className="mr-2"
-                                />
-                                <span>📋 Per Transaction Type</span>
-                            </label>
-                            <label className="flex items-center">
-                                <input
-                                    type="radio"
-                                    value="implementing_unit"
-                                    checked={filterType === 'implementing_unit'}
-                                    onChange={(e) => setFilterType(e.target.value)}
-                                    className="mr-2"
-                                />
-                                <span>🏢 Per Implementing Unit</span>
-                            </label>
-                            <label className="flex items-center">
-                                <input
-                                    type="radio"
-                                    value="payee"
-                                    checked={filterType === 'payee'}
-                                    onChange={(e) => setFilterType(e.target.value)}
-                                    className="mr-2"
-                                />
-                                <span>👤 Per Payee</span>
-                            </label>
+                            </div>
+                        </div>
+
+                        {/* Quick Date Range Buttons */}
+                        <div className="flex flex-wrap gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setQuickDateRange(7)}
+                                className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                            >
+                                Last 7 Days
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setQuickDateRange(30)}
+                                className="px-3 py-1 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                            >
+                                Last 30 Days
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setQuickDateRange(90)}
+                                className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
+                            >
+                                Last 90 Days
+                            </button>
+                        </div>
+
+                        {/* Date Range Summary */}
+                        <div className="mt-3 p-2 bg-white rounded-lg border border-green-200">
+                            <span className="text-sm text-gray-600">
+                                Selected Range: <strong>{new Date(startDate).toLocaleDateString()}</strong> to <strong>{new Date(endDate).toLocaleDateString()}</strong>
+                                ({Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))} days)
+                            </span>
                         </div>
                     </div>
 
-                    {/* Date Selection for Per Day */}
-                    {filterType === 'day' && (
+                    {/* Filter Type */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            🔍 Filter Type
+                        </label>
+                        <select
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                            <option value="all">All Records</option>
+                            <option value="transaction_type">By Transaction Type</option>
+                            <option value="implementing_unit">By Implementing Unit</option>
+                            <option value="payee">By Payee</option>
+                        </select>
+                    </div>
+
+                    {/* Conditional filter inputs */}
+                    {filterType === 'transaction_type' && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                📅 Select Date:
+                                📋 Transaction Type
                             </label>
                             <input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                required
+                                type="text"
+                                value={transactionType}
+                                onChange={(e) => setTransactionType(e.target.value)}
+                                placeholder="Enter transaction type"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                             />
                         </div>
                     )}
 
-                    {/* Month/Year Selection for Per Month */}
-                    {filterType === 'month' && (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    📆 Month:
-                                </label>
-                                <select
-                                    value={selectedMonth}
-                                    onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
-                                    {monthOptions.map(month => (
-                                        <option key={month.value} value={month.value}>
-                                            {month.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    📅 Year:
-                                </label>
-                                <select
-                                    value={selectedYear}
-                                    onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
-                                    {yearOptions.map(year => (
-                                        <option key={year} value={year}>
-                                            {year}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Transaction Type Selection */}
-                    {filterType === 'transaction_type' && (
+                    {filterType === 'implementing_unit' && (
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                📋 Transaction Type:
+                                🏢 Implementing Unit
                             </label>
-                            {isLoadingOptions ? (
-                                <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-center">
-                                    Loading transaction types...
-                                </div>
-                            ) : (
-                                <select
-                                    value={transactionType}
-                                    onChange={(e) => setTransactionType(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                    required
-                                >
-                                    <option value="">Select Transaction Type</option>
-                                    {filterOptions.transaction_types.map(type => (
-                                        <option key={type} value={type}>
-                                            {type}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
+                            <input
+                                type="text"
+                                value={implementingUnit}
+                                onChange={(e) => setImplementingUnit(e.target.value)}
+                                placeholder="Enter implementing unit"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            />
                         </div>
                     )}
 
-                    {/* Implementing Unit Selection */}
-                    {filterType === 'implementing_unit' && (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    🏢 Implementing Unit:
-                                </label>
-                                {isLoadingOptions ? (
-                                    <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-center">
-                                        Loading implementing units...
-                                    </div>
-                                ) : (
-                                    <select
-                                        value={implementingUnit}
-                                        onChange={(e) => setImplementingUnit(e.target.value)}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                        required
-                                    >
-                                        <option value="">Select Implementing Unit</option>
-                                        {filterOptions.implementing_units.map(unit => (
-                                            <option key={unit} value={unit}>
-                                                {unit}
-                                            </option>
-                                        ))}
-                                    </select>
-                                )}
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        📆 Month:
-                                    </label>
-                                    <select
-                                        value={selectedMonth}
-                                        onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                        required
-                                    >
-                                        {monthOptions.map(month => (
-                                            <option key={month.value} value={month.value}>
-                                                {month.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        📅 Year:
-                                    </label>
-                                    <select
-                                        value={selectedYear}
-                                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                        required
-                                    >
-                                        {yearOptions.map(year => (
-                                            <option key={year} value={year}>
-                                                {year}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Optional specific day */}
-                            <div>
-                                <label className="flex items-center mb-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={includeDay}
-                                        onChange={(e) => setIncludeDay(e.target.checked)}
-                                        className="mr-2"
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">
-                                        📅 Filter by specific day
-                                    </span>
-                                </label>
-                                {includeDay && (
-                                    <select
-                                        value={dayInMonth}
-                                        onChange={(e) => setDayInMonth(parseInt(e.target.value))}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                    >
-                                        {dayOptions.map(day => (
-                                            <option key={day} value={day}>
-                                                {day}
-                                            </option>
-                                        ))}
-                                    </select>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Payee Selection */}
                     {filterType === 'payee' && (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    👤 Payee:
-                                </label>
-                                {isLoadingOptions ? (
-                                    <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-center">
-                                        Loading payees...
-                                    </div>
-                                ) : (
-                                    <select
-                                        value={payee}
-                                        onChange={(e) => setPayee(e.target.value)}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                        required
-                                    >
-                                        <option value="">Select Payee</option>
-                                        {filterOptions.payees.map(payeeName => (
-                                            <option key={payeeName} value={payeeName}>
-                                                {payeeName}
-                                            </option>
-                                        ))}
-                                    </select>
-                                )}
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        📆 Month:
-                                    </label>
-                                    <select
-                                        value={selectedMonth}
-                                        onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                        required
-                                    >
-                                        {monthOptions.map(month => (
-                                            <option key={month.value} value={month.value}>
-                                                {month.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        📅 Year:
-                                    </label>
-                                    <select
-                                        value={selectedYear}
-                                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                        required
-                                    >
-                                        {yearOptions.map(year => (
-                                            <option key={year} value={year}>
-                                                {year}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Optional specific day */}
-                            <div>
-                                <label className="flex items-center mb-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={includeDay}
-                                        onChange={(e) => setIncludeDay(e.target.checked)}
-                                        className="mr-2"
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">
-                                        📅 Filter by specific day
-                                    </span>
-                                </label>
-                                {includeDay && (
-                                    <select
-                                        value={dayInMonth}
-                                        onChange={(e) => setDayInMonth(parseInt(e.target.value))}
-                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                    >
-                                        {dayOptions.map(day => (
-                                            <option key={day} value={day}>
-                                                {day}
-                                            </option>
-                                        ))}
-                                    </select>
-                                )}
-                            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                👤 Payee
+                            </label>
+                            <input
+                                type="text"
+                                value={payee}
+                                onChange={(e) => setPayee(e.target.value)}
+                                placeholder="Enter payee name"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            />
                         </div>
                     )}
 
-                    {/* File Type Selection */}
+                    {/* File Type */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                            📁 Download File Type:
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                            📄 File Type
                         </label>
-                        <div className="grid grid-cols-3 gap-4">
-                            <label className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
-                                <input
-                                    type="radio"
-                                    value="excel"
-                                    checked={fileType === 'excel'}
-                                    onChange={(e) => setFileType(e.target.value)}
-                                    className="sr-only"
-                                />
-                                <div className={`text-center ${fileType === 'excel' ? 'text-green-600' : 'text-gray-600'}`}>
-                                    <div className="text-2xl mb-1">📊</div>
-                                    <div className="text-sm font-medium">Excel</div>
-                                </div>
-                            </label>
-                            <label className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
-                                <input
-                                    type="radio"
-                                    value="docx"
-                                    checked={fileType === 'docx'}
-                                    onChange={(e) => setFileType(e.target.value)}
-                                    className="sr-only"
-                                />
-                                <div className={`text-center ${fileType === 'docx' ? 'text-green-600' : 'text-gray-600'}`}>
-                                    <div className="text-2xl mb-1">📄</div>
-                                    <div className="text-sm font-medium">Word</div>
-                                </div>
-                            </label>
-                            <label className="flex items-center justify-center p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-green-500 transition-colors">
-                                <input
-                                    type="radio"
-                                    value="pdf"
-                                    checked={fileType === 'pdf'}
-                                    onChange={(e) => setFileType(e.target.value)}
-                                    className="sr-only"
-                                />
-                                <div className={`text-center ${fileType === 'pdf' ? 'text-green-600' : 'text-gray-600'}`}>
-                                    <div className="text-2xl mb-1">📕</div>
-                                    <div className="text-sm font-medium">PDF</div>
-                                </div>
-                            </label>
-                        </div>
+                        <select
+                            value={fileType}
+                            onChange={(e) => setFileType(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                            <option value="excel">📊 Excel (.xlsx)</option>
+                            <option value="csv">📋 CSV (.csv)</option>
+                            <option value="pdf">📄 PDF (.pdf)</option>
+                        </select>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 pt-4 border-t">
+                    <div className="flex gap-3 pt-4 border-t border-gray-200">
                         <button
                             type="button"
-                            onClick={() => {
-                                resetForm();
-                                onClose();
-                            }}
-                            className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                            onClick={onClose}
+                            className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+                            className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all font-medium flex items-center justify-center"
                         >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                            <span className="mr-2">📥</span>
                             Download
                         </button>
                     </div>

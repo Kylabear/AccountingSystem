@@ -82,14 +82,12 @@ export default function IncomingDvs() {
         queryParams.append('filter_type', params.filterType);
         queryParams.append('file_type', params.fileType);
         
-        if (params.selectedDate) {
-            queryParams.append('date', params.selectedDate);
+        // Use date range instead of period filters
+        if (params.startDate) {
+            queryParams.append('start_date', params.startDate);
         }
-        if (params.selectedMonth) {
-            queryParams.append('month', params.selectedMonth);
-        }
-        if (params.selectedYear) {
-            queryParams.append('year', params.selectedYear);
+        if (params.endDate) {
+            queryParams.append('end_date', params.endDate);
         }
         if (params.transactionType) {
             queryParams.append('transaction_type', params.transactionType);
@@ -100,15 +98,13 @@ export default function IncomingDvs() {
         if (params.payee) {
             queryParams.append('payee', params.payee);
         }
-        if (params.includeDay) {
-            queryParams.append('include_day', '1');
-            queryParams.append('day_in_month', params.dayInMonth);
-        }
         
         // Create download URL
         const downloadUrl = `/download-processed-dvs?${queryParams.toString()}`;
+        console.log('Download URL:', downloadUrl);
+        console.log('Download params:', params);
         
-        // Trigger download
+        // Trigger download - this should work with authenticated sessions
         window.open(downloadUrl, '_blank');
     };
 
