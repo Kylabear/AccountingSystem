@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function DownloadModal({ isOpen, onClose, onDownload }) {
     const [filterType, setFilterType] = useState('day');
@@ -11,6 +11,45 @@ export default function DownloadModal({ isOpen, onClose, onDownload }) {
     const [includeDay, setIncludeDay] = useState(false);
     const [dayInMonth, setDayInMonth] = useState(1);
     const [fileType, setFileType] = useState('excel');
+    
+    // Options loaded from backend
+    const [filterOptions, setFilterOptions] = useState({
+        transaction_types: [],
+        implementing_units: [],
+        payees: []
+    });
+    const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+
+    // Load filter options when modal opens
+    useEffect(() => {
+        if (isOpen && !isLoadingOptions && filterOptions.transaction_types.length === 0) {
+            fetchFilterOptions();
+        }
+    }, [isOpen, isLoadingOptions, filterOptions.transaction_types.length]);
+
+    const fetchFilterOptions = async () => {
+        setIsLoadingOptions(true);
+        try {
+            const response = await fetch('/incoming-dvs/filter-options', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setFilterOptions(data);
+            } else {
+                console.error('Failed to fetch filter options');
+            }
+        } catch (error) {
+            console.error('Error fetching filter options:', error);
+        } finally {
+            setIsLoadingOptions(false);
+        }
+    };
 
     // Generate year options (current year and 5 years back)
     const currentYear = new Date().getFullYear();
@@ -33,15 +72,6 @@ export default function DownloadModal({ isOpen, onClose, onDownload }) {
         { value: 10, label: 'October' },
         { value: 11, label: 'November' },
         { value: 12, label: 'December' }
-    ];
-
-    // Transaction type options
-    const transactionTypes = [
-        'Personnel Services',
-        'Maintenance and Other Operating Expenses',
-        'Capital Outlay',
-        'Financial Assistance',
-        'Others'
     ];
 
     // Generate day options
@@ -224,19 +254,25 @@ export default function DownloadModal({ isOpen, onClose, onDownload }) {
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 📋 Transaction Type:
                             </label>
-                            <select
-                                value={transactionType}
-                                onChange={(e) => setTransactionType(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                required
-                            >
-                                <option value="">Select Transaction Type</option>
-                                {transactionTypes.map(type => (
-                                    <option key={type} value={type}>
-                                        {type}
-                                    </option>
-                                ))}
-                            </select>
+                            {isLoadingOptions ? (
+                                <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-center">
+                                    Loading transaction types...
+                                </div>
+                            ) : (
+                                <select
+                                    value={transactionType}
+                                    onChange={(e) => setTransactionType(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                                    required
+                                >
+                                    <option value="">Select Transaction Type</option>
+                                    {filterOptions.transaction_types.map(type => (
+                                        <option key={type} value={type}>
+                                            {type}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                         </div>
                     )}
 
@@ -247,14 +283,25 @@ export default function DownloadModal({ isOpen, onClose, onDownload }) {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     🏢 Implementing Unit:
                                 </label>
-                                <input
-                                    type="text"
-                                    value={implementingUnit}
-                                    onChange={(e) => setImplementingUnit(e.target.value)}
-                                    placeholder="Enter implementing unit name"
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                    required
-                                />
+                                {isLoadingOptions ? (
+                                    <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-center">
+                                        Loading implementing units...
+                                    </div>
+                                ) : (
+                                    <select
+                                        value={implementingUnit}
+                                        onChange={(e) => setImplementingUnit(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                                        required
+                                    >
+                                        <option value="">Select Implementing Unit</option>
+                                        {filterOptions.implementing_units.map(unit => (
+                                            <option key={unit} value={unit}>
+                                                {unit}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">
@@ -331,14 +378,25 @@ export default function DownloadModal({ isOpen, onClose, onDownload }) {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     👤 Payee:
                                 </label>
-                                <input
-                                    type="text"
-                                    value={payee}
-                                    onChange={(e) => setPayee(e.target.value)}
-                                    placeholder="Enter payee name (e.g., PLDT)"
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
-                                    required
-                                />
+                                {isLoadingOptions ? (
+                                    <div className="w-full p-2 border border-gray-300 rounded-lg bg-gray-50 text-center">
+                                        Loading payees...
+                                    </div>
+                                ) : (
+                                    <select
+                                        value={payee}
+                                        onChange={(e) => setPayee(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500"
+                                        required
+                                    >
+                                        <option value="">Select Payee</option>
+                                        {filterOptions.payees.map(payeeName => (
+                                            <option key={payeeName} value={payeeName}>
+                                                {payeeName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                             
                             <div className="grid grid-cols-2 gap-4">

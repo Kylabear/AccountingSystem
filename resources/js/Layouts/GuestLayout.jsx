@@ -65,28 +65,50 @@ export default function GuestLayout({ children, backgroundImage = null }) {
                 {/* Content */}
                 <div className="relative z-10 flex flex-col justify-center items-center w-full px-12 text-white transform group-hover:scale-105 transition-all duration-700">
                     {/* DA Logo */}
-                    <div className="mb-8 transform hover:rotate-6 hover:scale-110 transition-all duration-500 animate-glow">
+                    <div className="mb-4 transform hover:rotate-6 hover:scale-110 transition-all duration-500 animate-glow">
                         <img 
                             src="/DALOGO.png" 
                             alt="DA Logo" 
-                            className="w-32 h-32 object-contain drop-shadow-xl filter hover:brightness-110 transition-all duration-300"
+                            className="w-24 h-24 object-contain drop-shadow-xl filter hover:brightness-110 transition-all duration-300"
                         />
                     </div>
                     
+                    {/* Animated Accounting Icon - replacing green circle */}
+                    <div className="mb-4 animate-bounce-slow">
+                        <div className="relative">
+                            {/* Main accounting calculator icon */}
+                            <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 animate-pulse-slow">
+                                <svg className="w-16 h-16 text-white animate-float" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 4a1 1 0 011 1v6a1 1 0 11-2 0V9a1 1 0 011-1zM7 8a1 1 0 000 2h2a1 1 0 100-2H7zm0 4a1 1 0 100 2h2a1 1 0 100-2H7z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            {/* Floating dollar signs around the main icon */}
+                            <div className="absolute -top-2 -right-2 text-yellow-300 animate-float-delayed">
+                                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <div className="absolute -bottom-2 -left-2 text-green-300 animate-float">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    
                     {/* Department Title */}
-                    <div className="text-center mb-8 animate-slide-in-left">
-                        <h1 className="text-4xl font-bold mb-4 tracking-wide transform hover:scale-105 transition-all duration-300 animate-text-shimmer">
+                    <div className="text-center mb-4 animate-slide-in-left">
+                        <h1 className="text-2xl font-bold mb-2 tracking-wide transform hover:scale-105 transition-all duration-300 animate-text-shimmer">
                             ACCOUNTING DEPARTMENT
                         </h1>
-                        <div className="w-24 h-1 bg-white/60 mx-auto mb-6 transform hover:w-32 transition-all duration-500"></div>
+                        <div className="w-20 h-1 bg-white/60 mx-auto mb-3 transform hover:w-28 transition-all duration-500"></div>
                     </div>
                     
                     {/* Encoded Text Pattern (mimicking the design) */}
                     <div className="text-xs font-mono opacity-30 text-center leading-tight tracking-wider animate-fade-in-up hover:opacity-50 transition-opacity duration-500">
                         JHVMGJRJVSKDJNHCSJDVMVSIHHHIJHIHIJHHECDJVHSDJKDNV<br/>
                         NJKJFQADJKYFBSDSHNFHFNVIMTGBBBDJKFGFPQMSGJDNGVNG<br/>
-                        NJMVVKSLDKWDJGNCJK.SDJVPDIJHGXYVMCYVOGJXRNG<br/>
-                        VNMKFGMVVAHGDVEKSDNPGDGYNKCIMFMJNJKGYGV
+                        NJMVVKSLDKWDJGNCJK.SDJVPDIJHGXYVMCYVOGJXRNG
                     </div>
                 </div>
             </div>
@@ -97,33 +119,33 @@ export default function GuestLayout({ children, backgroundImage = null }) {
                 <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-green-50 opacity-50 group-hover:opacity-70 transition-opacity duration-1000"></div>
                 
                 {/* Mobile Logo (shown only on small screens) */}
-                <div className="lg:hidden absolute top-8 left-1/2 transform -translate-x-1/2 animate-bounce-gentle">
+                <div className="lg:hidden absolute top-2 left-1/2 transform -translate-x-1/2 animate-bounce-gentle">
                     <img 
                         src="/DALOGO.png" 
                         alt="DA Logo" 
-                        className="w-16 h-16 object-contain"
+                        className="w-10 h-10 object-contain"
                     />
                 </div>
                 
                 {/* Form Container */}
-                <div className="w-full max-w-md px-8 py-12 lg:py-8 relative z-10">
+                <div className="w-full max-w-md px-8 py-4 lg:py-2 relative z-10">
                     {/* System Branding Header */}
-                    <div className="text-center mb-8 animate-slide-in-right">
-                        <div className="flex items-center justify-center mb-4">
-                            {/* Accounting Tracker Logo */}
+                    <div className="text-center mb-4 animate-slide-in-right">
+                        <div className="flex items-center justify-center mb-2">
+                            {/* Accounting Tracker Logo - reduced size */}
                             <img 
                                 src="/APPLOGO.png" 
                                 alt="Accounting Tracker" 
-                                className="h-16 object-contain transform hover:scale-110 hover:rotate-3 transition-all duration-500"
+                                className="h-10 object-contain transform hover:scale-110 hover:rotate-3 transition-all duration-500"
                             />
                         </div>
-                        <h2 className="text-3xl font-bold text-green-800 mb-2 transform hover:scale-105 transition-all duration-300">
+                        <h2 className="text-xl font-bold text-green-800 mb-1 transform hover:scale-105 transition-all duration-300">
                             WELCOME TO DA-CAR
                         </h2>
-                        <h3 className="text-lg font-semibold text-green-700 mb-1 animate-slide-in-right-delayed">
+                        <h3 className="text-sm font-semibold text-green-700 mb-1 animate-slide-in-right-delayed">
                             ACCOUNTING SECTION
                         </h3>
-                        <h4 className="text-lg font-semibold text-green-700 animate-slide-in-right-delayed">
+                        <h4 className="text-sm font-semibold text-green-700 animate-slide-in-right-delayed">
                             MONITORING SYSTEM
                         </h4>
                     </div>
@@ -284,12 +306,28 @@ export default function GuestLayout({ children, backgroundImage = null }) {
                     animation: glow 3s ease-in-out infinite;
                 }
                 
-                .animate-text-shimmer {
-                    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-                    background-size: 200% 100%;
-                    animation: textShimmer 3s ease-in-out infinite;
-                    -webkit-background-clip: text;
-                    background-clip: text;
+                @keyframes accountingPulse {
+                    0%, 100% { 
+                        transform: scale(1) rotate(0deg);
+                        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+                    }
+                    50% { 
+                        transform: scale(1.1) rotate(5deg);
+                        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+                    }
+                }
+                
+                @keyframes calculatorBlink {
+                    0%, 90%, 100% { opacity: 1; }
+                    95% { opacity: 0.3; }
+                }
+                
+                .animate-accounting-pulse {
+                    animation: accountingPulse 3s ease-in-out infinite;
+                }
+                
+                .animate-calculator-blink {
+                    animation: calculatorBlink 4s ease-in-out infinite;
                 }
             `}</style>
         </div>

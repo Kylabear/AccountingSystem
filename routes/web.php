@@ -49,6 +49,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
     Route::get('/statistics/export', [StatisticsController::class, 'export'])->name('statistics.export');
     
+    // Test export route (temporary for debugging)
+    Route::get('/test-export', function() {
+        return response('Test file content', 200, [
+            'Content-Type' => 'text/plain',
+            'Content-Disposition' => 'attachment; filename="test.txt"',
+        ]);
+    })->name('test.export');
+    
     // Incoming DVs routes
     Route::get('/incoming-dvs', [IncomingDvController::class, 'index'])->name('incoming-dvs');
     Route::get('/incoming-dvs/new', fn () => Inertia::render('IncomingDvForm'))->name('incoming-dvs.new');
@@ -68,6 +76,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/incoming-dvs/{dv}/cdj', [IncomingDvController::class, 'updateCdj'])->name('incoming-dvs.cdj');
     Route::post('/incoming-dvs/{dv}/lddap-certify', [IncomingDvController::class, 'certifyLddap'])->name('incoming-dvs.lddap-certify');
     Route::post('/incoming-dvs/{id}/reallocate-cash', [IncomingDvController::class, 'reallocateCash'])->name('incoming-dvs.reallocate-cash');
+    Route::get('/incoming-dvs/filter-options', [IncomingDvController::class, 'getFilterOptions'])->name('incoming-dvs.filter-options');
+    Route::get('/download-processed-dvs', [IncomingDvController::class, 'downloadProcessedDvs'])->name('download.processed-dvs');
     Route::get('/dv/{dv}/details', [IncomingDvController::class, 'showDetails'])->name('dv.details');
     Route::get('/incoming-dvs/{dv}/download', [IncomingDvController::class, 'downloadDv'])->name('incoming-dvs.download');
     

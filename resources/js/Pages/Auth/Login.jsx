@@ -25,10 +25,10 @@ export default function Login({ status, canResetPassword }) {
         <GuestLayout backgroundImage="LOG_BG.webp">
             <Head title="Log in" />
 
-            <div className="space-y-6">
+            <div className="space-y-4">
                 {/* Page Title */}
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-green-800 mb-2">
+                    <h2 className="text-xl font-bold text-green-800 mb-1">
                         Login
                     </h2>
                     <p className="text-gray-600 text-sm">
@@ -47,7 +47,7 @@ export default function Login({ status, canResetPassword }) {
                     </div>
                 )}
 
-                <form onSubmit={submit} className="space-y-6">
+                <form onSubmit={submit} className="space-y-4">
                     <div>
                         <InputLabel htmlFor="email" value="E-MAIL ADDRESS" className="text-gray-600 font-medium text-sm mb-2 block" />
                         <TextInput

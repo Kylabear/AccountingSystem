@@ -226,6 +226,10 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
                                         <p className="text-gray-800">{dv.transaction_type}</p>
                                     </div>
                                     <div>
+                                        <p className="text-sm font-medium text-gray-600">Implementing Unit</p>
+                                        <p className="text-gray-800">{dv.implementing_unit || 'N/A'}</p>
+                                    </div>
+                                    <div>
                                         <p className="text-sm font-medium text-gray-600">Current Net Amount</p>
                                         <p className="text-gray-800 font-semibold">{formatAmount(dv.net_amount || dv.amount)}</p>
                                     </div>

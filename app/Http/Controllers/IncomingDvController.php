@@ -1242,4 +1242,320 @@ class IncomingDvController extends Controller
             return response()->json(['error' => 'Internal server error: ' . $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Get filter options for download modal
+     */
+    public function getFilterOptions()
+    {
+        try {
+            // Get distinct transaction types from processed DVs
+            $transactionTypes = IncomingDv::where('status', 'processed')
+                ->distinct()
+                ->whereNotNull('transaction_type')
+                ->orderBy('transaction_type')
+                ->pluck('transaction_type');
+
+            // Get distinct implementing units from processed DVs
+            $implementingUnits = IncomingDv::where('status', 'processed')
+                ->distinct()
+                ->whereNotNull('implementing_unit')
+                ->orderBy('implementing_unit')
+                ->pluck('implementing_unit');
+
+            // Get distinct payees from processed DVs
+            $payees = IncomingDv::where('status', 'processed')
+                ->distinct()
+                ->whereNotNull('payee')
+                ->orderBy('payee')
+                ->pluck('payee');
+
+            return response()->json([
+                'transaction_types' => $transactionTypes,
+                'implementing_units' => $implementingUnits,
+                'payees' => $payees
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error("Error fetching filter options: " . $e->getMessage());
+            return response()->json(['error' => 'Failed to fetch filter options'], 500);
+        }
+    }
+
+    /**
+     * Download processed DVs with filters
+     */
+    public function downloadProcessedDvs(Request $request)
+    {
+        try {
+            $filterType = $request->get('filter_type', 'day');
+            $fileType = $request->get('file_type', 'excel');
+            
+            // Build query for processed DVs
+            $query = IncomingDv::where('status', 'processed')->with('orsEntries');
+            
+            // Apply filters based on filter type
+            switch ($filterType) {
+                case 'day':
+                    if ($date = $request->get('date')) {
+                        $query->whereDate('processed_date', $date);
+                    }
+                    break;
+                    
+                case 'month':
+                    if ($month = $request->get('month')) {
+                        $query->whereMonth('processed_date', $month);
+                    }
+                    if ($year = $request->get('year')) {
+                        $query->whereYear('processed_date', $year);
+                    }
+                    break;
+                    
+                case 'transaction_type':
+                    if ($transactionType = $request->get('transaction_type')) {
+                        $query->where('transaction_type', $transactionType);
+                    }
+                    break;
+                    
+                case 'implementing_unit':
+                    if ($implementingUnit = $request->get('implementing_unit')) {
+                        $query->where('implementing_unit', $implementingUnit);
+                    }
+                    // Add month/year filter for implementing unit
+                    if ($month = $request->get('month')) {
+                        $query->whereMonth('processed_date', $month);
+                    }
+                    if ($year = $request->get('year')) {
+                        $query->whereYear('processed_date', $year);
+                    }
+                    // Add specific day filter if requested
+                    if ($request->get('include_day') && $request->get('day_in_month')) {
+                        $query->whereDay('processed_date', $request->get('day_in_month'));
+                    }
+                    break;
+                    
+                case 'payee':
+                    if ($payee = $request->get('payee')) {
+                        $query->where('payee', $payee);
+                    }
+                    // Add month/year filter for payee
+                    if ($month = $request->get('month')) {
+                        $query->whereMonth('processed_date', $month);
+                    }
+                    if ($year = $request->get('year')) {
+                        $query->whereYear('processed_date', $year);
+                    }
+                    // Add specific day filter if requested
+                    if ($request->get('include_day') && $request->get('day_in_month')) {
+                        $query->whereDay('processed_date', $request->get('day_in_month'));
+                    }
+                    break;
+            }
+            
+            // Get the filtered DVs
+            $dvs = $query->orderBy('processed_date', 'desc')->get();
+            
+            if ($dvs->isEmpty()) {
+                return redirect()->back()->with('error', 'No processed DVs found for the selected criteria.');
+            }
+            
+            // Generate filename based on filter
+            $filename = $this->generateDownloadFilename($filterType, $request, $fileType);
+            
+            // Return the appropriate file format
+            switch ($fileType) {
+                case 'pdf':
+                    return $this->downloadDvsAsPdf($dvs, $filename);
+                case 'docx':
+                    return $this->downloadDvsAsDocx($dvs, $filename);
+                case 'excel':
+                default:
+                    return $this->downloadDvsAsExcel($dvs, $filename);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error("Error downloading processed DVs: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Error generating download: ' . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Generate filename based on filter criteria
+     */
+    private function generateDownloadFilename($filterType, $request, $fileType)
+    {
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $extension = $fileType === 'excel' ? 'csv' : $fileType;
+        
+        switch ($filterType) {
+            case 'day':
+                $date = $request->get('date', now()->toDateString());
+                return "Processed_DVs_Daily_{$date}_{$timestamp}.{$extension}";
+                
+            case 'month':
+                $month = $request->get('month', now()->month);
+                $year = $request->get('year', now()->year);
+                $monthPadded = str_pad($month, 2, '0', STR_PAD_LEFT);
+                return "Processed_DVs_Monthly_{$year}-{$monthPadded}_{$timestamp}.{$extension}";
+                
+            case 'transaction_type':
+                $type = str_replace(' ', '_', $request->get('transaction_type', 'Unknown'));
+                return "Processed_DVs_TransactionType_{$type}_{$timestamp}.{$extension}";
+                
+            case 'implementing_unit':
+                $unit = str_replace(' ', '_', $request->get('implementing_unit', 'Unknown'));
+                return "Processed_DVs_Unit_{$unit}_{$timestamp}.{$extension}";
+                
+            case 'payee':
+                $payee = str_replace(' ', '_', $request->get('payee', 'Unknown'));
+                return "Processed_DVs_Payee_{$payee}_{$timestamp}.{$extension}";
+                
+            default:
+                return "Processed_DVs_{$timestamp}.{$extension}";
+        }
+    }
+    
+    /**
+     * Download multiple DVs as Excel/CSV
+     */
+    private function downloadDvsAsExcel($dvs, $filename)
+    {
+        $csvData = [];
+        
+        // Headers
+        $csvData[] = [
+            'DV Number',
+            'Payee',
+            'Transaction Type',
+            'Implementing Unit',
+            'Account Number',
+            'Original Amount',
+            'Net Amount',
+            'Cash Allocation Number',
+            'Cash Allocation Date',
+            'Processed Date',
+            'Particulars',
+            'Fund Sources',
+            'ORS Numbers'
+        ];
+        
+        // Data rows
+        foreach ($dvs as $dv) {
+            // Get ORS data
+            $fundSources = $dv->orsEntries->pluck('fund_source')->filter()->implode('; ');
+            $orsNumbers = $dv->orsEntries->pluck('ors_number')->filter()->implode('; ');
+            
+            $csvData[] = [
+                $dv->dv_number,
+                $dv->payee,
+                $dv->transaction_type,
+                $dv->implementing_unit ?? 'N/A',
+                $dv->account_number ?? 'N/A',
+                number_format($dv->amount, 2),
+                $dv->net_amount ? number_format($dv->net_amount, 2) : 'N/A',
+                $dv->cash_allocation_number ?? 'N/A',
+                $dv->cash_allocation_date ? $dv->cash_allocation_date->format('Y-m-d') : 'N/A',
+                $dv->processed_date ? $dv->processed_date->format('Y-m-d') : 'N/A',
+                $dv->particulars ?? 'N/A',
+                $fundSources ?: 'N/A',
+                $orsNumbers ?: 'N/A'
+            ];
+        }
+        
+        $callback = function() use ($csvData) {
+            $file = fopen('php://output', 'w');
+            foreach ($csvData as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+        
+        return response()->stream($callback, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+    
+    /**
+     * Download multiple DVs as PDF
+     */
+    private function downloadDvsAsPdf($dvs, $filename)
+    {
+        $pdf = Pdf::loadView('dvs-report', compact('dvs'));
+        return $pdf->download($filename);
+    }
+    
+    /**
+     * Download multiple DVs as Word document
+     */
+    private function downloadDvsAsDocx($dvs, $filename)
+    {
+        // Create new Word document
+        $phpWord = new \PhpOffice\PhpWord\PhpWord();
+        
+        // Set document properties
+        $properties = $phpWord->getDocInfo();
+        $properties->setCreator('DA-CAR Accounting System');
+        $properties->setTitle('Processed DVs Report');
+        $properties->setSubject('DVs Report');
+        
+        // Add section
+        $section = $phpWord->addSection();
+        
+        // Add header
+        $headerStyle = ['bold' => true, 'size' => 16, 'color' => '000080'];
+        $section->addText('PROCESSED DISBURSEMENT VOUCHERS REPORT', $headerStyle, ['alignment' => 'center']);
+        $section->addText('Generated: ' . now()->format('F j, Y g:i A'), null, ['alignment' => 'center']);
+        $section->addTextBreak(2);
+        
+        // Add summary
+        $section->addText('Total DVs: ' . $dvs->count(), ['bold' => true]);
+        $section->addText('Total Amount: ₱' . number_format($dvs->sum('amount'), 2), ['bold' => true]);
+        $section->addText('Total Net Amount: ₱' . number_format($dvs->whereNotNull('net_amount')->sum('net_amount'), 2), ['bold' => true]);
+        $section->addTextBreak(2);
+        
+        // Add DVs table
+        $tableStyle = [
+            'borderSize' => 6,
+            'borderColor' => '000000',
+            'cellMargin' => 50,
+            'width' => 100 * 50
+        ];
+        $phpWord->addTableStyle('DVsTable', $tableStyle);
+        
+        $table = $section->addTable('DVsTable');
+        
+        // Table headers
+        $boldStyle = ['bold' => true];
+        $table->addRow();
+        $table->addCell(2000)->addText('DV Number', $boldStyle);
+        $table->addCell(2500)->addText('Payee', $boldStyle);
+        $table->addCell(2000)->addText('Amount', $boldStyle);
+        $table->addCell(2000)->addText('Net Amount', $boldStyle);
+        $table->addCell(1500)->addText('Processed Date', $boldStyle);
+        
+        // Table data
+        foreach ($dvs as $dv) {
+            $table->addRow();
+            $table->addCell(2000)->addText($dv->dv_number);
+            $table->addCell(2500)->addText($dv->payee);
+            $table->addCell(2000)->addText('₱' . number_format($dv->amount, 2));
+            $table->addCell(2000)->addText($dv->net_amount ? '₱' . number_format($dv->net_amount, 2) : 'N/A');
+            $table->addCell(1500)->addText($dv->processed_date ? $dv->processed_date->format('Y-m-d') : 'N/A');
+        }
+        
+        // Generate filename
+        $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+        
+        // Set headers for download
+        $headers = [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+            'Cache-Control' => 'max-age=0',
+        ];
+        
+        return response()->stream(function() use ($objWriter) {
+            $objWriter->save('php://output');
+        }, 200, $headers);
+    }
 }
