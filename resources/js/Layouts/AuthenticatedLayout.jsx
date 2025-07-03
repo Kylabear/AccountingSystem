@@ -171,6 +171,80 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             <main>{children}</main>
+
+            {/* Footer */}
+            <footer className="bg-green-800 text-white py-8 mt-12">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Department Info */}
+                        <div className="text-center md:text-left">
+                            <div className="flex items-center justify-center md:justify-start mb-4">
+                                <img 
+                                    src="/DALOGO.png" 
+                                    alt="DA Logo" 
+                                    className="w-12 h-12 mr-3 object-contain"
+                                />
+                                <h3 className="text-lg font-bold text-yellow-400">DA-CAR</h3>
+                            </div>
+                            <p className="text-green-200 text-sm leading-relaxed">
+                                Department of Agriculture - Cordillera Administrative Region
+                            </p>
+                            <p className="text-green-200 text-sm mt-2">
+                                Accounting Section Monitoring System
+                            </p>
+                        </div>
+
+                        {/* Quick Links */}
+                        <div className="text-center">
+                            <h4 className="text-lg font-semibold text-yellow-400 mb-4">Quick Links</h4>
+                            <div className="space-y-2">
+                                <Link 
+                                    href={route('dashboard')}
+                                    className="block text-green-200 hover:text-white transition-colors duration-300 text-sm"
+                                >
+                                    Dashboard
+                                </Link>
+                                <Link 
+                                    href="/statistics"
+                                    className="block text-green-200 hover:text-white transition-colors duration-300 text-sm"
+                                >
+                                    Statistics
+                                </Link>
+                                <Link 
+                                    href={route('profile.edit')}
+                                    className="block text-green-200 hover:text-white transition-colors duration-300 text-sm"
+                                >
+                                    Profile
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="text-center md:text-right">
+                            <h4 className="text-lg font-semibold text-yellow-400 mb-4">Contact Information</h4>
+                            <div className="space-y-2 text-green-200 text-sm">
+                                <p>📧 accounting@da-car.gov.ph</p>
+                                <p>📞 (074) 444-4444</p>
+                                <p>📍 DA-CAR Regional Office</p>
+                                <p>Benguet State University Compound</p>
+                                <p>La Trinidad, Benguet</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Footer */}
+                    <div className="border-t border-green-700 mt-8 pt-6 text-center">
+                        <div className="flex flex-col md:flex-row justify-between items-center">
+                            <p className="text-green-200 text-sm">
+                                © {new Date().getFullYear()} Department of Agriculture - CAR. All rights reserved.
+                            </p>
+                            <p className="text-green-200 text-sm mt-2 md:mt-0">
+                                Developed with ❤️ for efficient financial monitoring
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
         </div>
     );
 }

@@ -92,6 +92,29 @@ export default function Dashboard() {
                             ))}
                         </div>
                     </div>
+
+                    {/* Enhanced CSS animations */}
+                    <style jsx>{`
+                        @keyframes float {
+                            0%, 100% { transform: translateY(0px) rotate(0deg); }
+                            33% { transform: translateY(-20px) rotate(1deg); }
+                            66% { transform: translateY(10px) rotate(-1deg); }
+                        }
+                        
+                        @keyframes float-delayed {
+                            0%, 100% { transform: translateY(0px) rotate(0deg); }
+                            33% { transform: translateY(15px) rotate(-1deg); }
+                            66% { transform: translateY(-25px) rotate(1deg); }
+                        }
+                        
+                        .animate-float {
+                            animation: float 8s ease-in-out infinite;
+                        }
+                        
+                        .animate-float-delayed {
+                            animation: float-delayed 10s ease-in-out infinite;
+                        }
+                    `}</style>
                 </div>
             </div>
         </>

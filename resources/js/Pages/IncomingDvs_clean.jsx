@@ -145,6 +145,7 @@ export default function IncomingDvs() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
+                    reallocation_date: new Date().toISOString().split('T')[0],
                     reallocation_reason: 'Returned by cashiering for reallocation'
                 })
             });
@@ -199,9 +200,8 @@ export default function IncomingDvs() {
                 // For Approval tab shows DVs in for_approval status with any approval_status
                 matchesStatus = dv.status === 'for_approval';
             } else if (activeTab === 'for_cash_allocation') {
-                // For Cash Allocation tab shows DVs in for_cash_allocation status (excluding reallocated ones)
-                // Reallocated DVs are now handled in their own section
-                matchesStatus = dv.status === 'for_cash_allocation' && !dv.is_reallocated;
+                // For Cash Allocation tab shows DVs in for_cash_allocation status (including reallocated ones)
+                matchesStatus = dv.status === 'for_cash_allocation';
             } else if (activeTab === 'for_payment') {
                 // For Payment tab shows DVs in for_payment OR out_to_cashiering status
                 matchesStatus = ['for_payment', 'out_to_cashiering'].includes(dv.status);
@@ -227,63 +227,6 @@ export default function IncomingDvs() {
         ? [...filteredDvs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         : filteredDvs;
 
-    // Filter reallocated DVs for cash allocation tab
-    const reallocatedDvs = activeTab === 'for_cash_allocation' ? dvs.filter((dv) => {
-        // Only show reallocated DVs in for_cash_allocation status
-        const isReallocated = dv.status === 'for_cash_allocation' && dv.is_reallocated;
-        
-        // Apply search filter to reallocated DVs too
-        const normalizedSearchTerm = normalizeForSearch(searchTerm);
-        const matchesSearch = normalizedSearchTerm === '' || 
-            normalizeForSearch(dv.dv_number).includes(normalizedSearchTerm) ||
-            normalizeForSearch(dv.payee).includes(normalizedSearchTerm) ||
-            normalizeForSearch(dv.transaction_type).includes(normalizedSearchTerm) ||
-            normalizeForSearch(dv.account_number).includes(normalizedSearchTerm) ||
-            normalizeForSearch(dv.particulars).includes(normalizedSearchTerm);
-        
-        return isReallocated && matchesSearch;
-    }) : [];
-
-    // Debug logging for cash allocation tab to check PLHHH and Frenzel Atuan
-    if (activeTab === 'for_cash_allocation') {
-        console.log('🔍 For Cash Allocation Debug:');
-        console.log('Total DVs:', dvs.length);
-        console.log('DVs with for_cash_allocation status:', dvs.filter(dv => dv.status === 'for_cash_allocation').length);
-        console.log('New allocations (not reallocated):', sortedDvs.length);
-        console.log('Reallocated DVs (is_reallocated=true):', reallocatedDvs.length);
-        
-        // Look specifically for PLHHH and Frenzel Atuan
-        const plhhhDv = dvs.find(dv => dv.payee && dv.payee.toLowerCase().includes('plhhh'));
-        const frenzelDv = dvs.find(dv => dv.payee && dv.payee.toLowerCase().includes('frenzel'));
-        
-        console.log('PLHHH DV found:', plhhhDv ? {
-            id: plhhhDv.id,
-            payee: plhhhDv.payee,
-            status: plhhhDv.status,
-            reallocation_date: plhhhDv.reallocation_date,
-            reallocation_reason: plhhhDv.reallocation_reason,
-            is_reallocated: plhhhDv.is_reallocated
-        } : 'Not found');
-        
-        console.log('Frenzel DV found:', frenzelDv ? {
-            id: frenzelDv.id,
-            payee: frenzelDv.payee,
-            status: frenzelDv.status,
-            reallocation_date: frenzelDv.reallocation_date,
-            reallocation_reason: frenzelDv.reallocation_reason,
-            is_reallocated: frenzelDv.is_reallocated
-        } : 'Not found');
-        
-        // Show all DVs with is_reallocated=true
-        const allReallocatedDvs = dvs.filter(dv => dv.is_reallocated);
-        console.log('All DVs with is_reallocated=true:', allReallocatedDvs.map(dv => ({
-            id: dv.id,
-            payee: dv.payee,
-            status: dv.status,
-            is_reallocated: dv.is_reallocated
-        })));
-    }
-
     // Get current status color for the right border
     const getCurrentStatusColor = (status) => {
         const statusObj = statuses.find(s => s.key === status);
@@ -306,24 +249,14 @@ export default function IncomingDvs() {
     const handleDvClick = (dv) => {
         setSelectedDv(dv);
         
-        // Use specific modals based on DV status
-        if (dv.status === 'processed') {
-            setIsProcessedModalOpen(true);
-        }
-        // Use CashAllocationModal for cash allocation status (dedicated for cash allocation)
-        else if (dv.status === 'for_cash_allocation') {
-            setIsCashAllocationModalOpen(true);
+        // Use DV Details modal for cash allocation status (has progressive summary)
+        if (dv.status === 'for_cash_allocation') {
+            setIsModalOpen(true);
         }
         // Use DV Details modal for box c status (has progressive summary)
         else if (dv.status === 'for_box_c') {
             setIsModalOpen(true);
         }
-        // For review statuses might need RTS/NORSA modal in some cases
-        else if (dv.status === 'for_rts_in' || dv.status === 'for_norsa_in') {
-            // Check if it's part of RTS/NORSA cycle, otherwise use regular modal
-            setIsRtsNorsaModalOpen(true);
-        }
-        // Default to DV Details modal for all other statuses
         else {
             setIsModalOpen(true);
         }
@@ -353,6 +286,12 @@ export default function IncomingDvs() {
                     >
                         📊 <span className="hidden sm:inline ml-1">Statistics</span>
                     </Link>
+                    <button
+                        onClick={() => setIsDownloadModalOpen(true)}
+                        className="bg-blue-600 text-white px-3 py-2 lg:px-4 lg:py-2 rounded text-sm hover:bg-blue-700 transition-colors duration-200"
+                    >
+                        📥 <span className="hidden sm:inline ml-1">Download</span>
+                    </button>
                     <Link
                         href="/logout"
                         method="post"
@@ -427,7 +366,7 @@ export default function IncomingDvs() {
                             </h3>
                             
                             {/* Main Process Statuses */}
-                            <div className="space-y-2">
+                            <div className="space-y-2 mb-20">{/* Added bottom margin for scrolling */}
                                 {statuses.map((status) => {
                                     let count;
                                     if (status.key === 'recents') {
@@ -448,11 +387,6 @@ export default function IncomingDvs() {
                                             (dv.status === 'for_rts_in' && dv.rts_origin === 'box_c') ||
                                             (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c')
                                         ).length;
-                                    } else if (status.key === 'for_payment') {
-                                        // Count DVs in for_payment OR out_to_cashiering status
-                                        count = dvs.filter(dv => ['for_payment', 'out_to_cashiering'].includes(dv.status)).length;                    } else if (status.key === 'for_cash_allocation') {
-                        // Count DVs in for_cash_allocation status (excluding reallocated ones)
-                        count = dvs.filter(dv => dv.status === 'for_cash_allocation' && !dv.is_reallocated).length;
                                     } else {
                                         // Count DVs with this specific status
                                         count = dvs.filter(dv => dv.status === status.key).length;
@@ -494,28 +428,12 @@ export default function IncomingDvs() {
                                 })}
                             </div>
                         </div>
-
-                        {/* Action Buttons Section */}
-                        <div className="p-4 border-t border-gray-200 bg-gray-50">
-                            <h3 className="text-md font-bold text-gray-700 mb-3 uppercase tracking-wide">
-                                ⚡ Quick Actions
-                            </h3>
-                            
-                            {/* Download Button */}
-                            <button
-                                onClick={() => setIsDownloadModalOpen(true)}
-                                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center text-sm font-medium transition-colors duration-200"
-                            >
-                                <span className="mr-2">📥</span>
-                                Download Reports
-                            </button>
-                        </div>
                     </div>
 
                     {/* Main Content Area - Simple responsive design */}
                     <div className={`flex-1 p-6 ${isMobile ? '' : 'ml-64'}`}>
                         {/* Search Bar and Add Button */}
-                        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-end">
+                        <div className="flex flex-col sm:flex-row gap-4 mb-6">
                             <div className="flex-1 max-w-lg">
                                 <div className="relative">
                                     <input
@@ -545,17 +463,13 @@ export default function IncomingDvs() {
                                     )}
                                 </div>
                             </div>
-                            
-                            {/* Add Incoming DV Button - Aligned to the right */}
-                            <div className="flex-shrink-0">
-                                <Link
-                                    href="/incoming-dvs/new"
-                                    className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 flex items-center text-lg font-bold transition-all duration-200 hover:scale-[1.02] shadow-lg whitespace-nowrap"
-                                >
-                                    <span className="mr-3 text-2xl">+</span>
-                                    Add Incoming DV
-                                </Link>
-                            </div>
+                            <Link
+                                href="/incoming-dvs/new"
+                                className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 flex items-center text-lg font-bold transition-all duration-200 hover:scale-105 shadow-md"
+                            >
+                                <span className="mr-3 text-2xl">+</span>
+                                Add Incoming DV
+                            </Link>
                         </div>
 
                         {/* Current Tab Title */}
@@ -581,12 +495,6 @@ export default function IncomingDvs() {
                                 {searchTerm && (
                                     <span className="ml-2 text-green-600 font-medium">
                                         for "{searchTerm}"
-                                    </span>
-                                )}
-                                {/* Show breakdown for cash allocation */}
-                                {activeTab === 'for_cash_allocation' && (
-                                    <span className="ml-4 text-gray-500 text-xs">
-                                        ({sortedDvs.length} new allocation{sortedDvs.length !== 1 ? 's' : ''}{reallocatedDvs.length > 0 ? `, ${reallocatedDvs.length} for reallocation` : ''})
                                     </span>
                                 )}
                             </p>
@@ -627,7 +535,7 @@ export default function IncomingDvs() {
                                             </div>
                                             <div className="text-right">
                                                 <div className="flex flex-col items-end space-y-2">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statuses.find(s => s.key === dv.status)?.color || 'text-white'}`}
+                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium text-white`}
                                                           style={{ backgroundColor: statuses.find(s => s.key === dv.status)?.bgColor || '#6B7280' }}>
                                                         {statuses.find(s => s.key === dv.status)?.label || dv.status}
                                                     </span>
@@ -657,108 +565,6 @@ export default function IncomingDvs() {
                                 </p>
                             )}
                         </div>
-
-                        {/* For Cash Reallocation Section - Only show in Cash Allocation tab */}
-                        {activeTab === 'for_cash_allocation' && (
-                            <div className="mt-12">
-                                {/* Section Header */}
-                                <div className="mb-6 border-t pt-8">
-                                    <h2 className="text-2xl font-bold text-orange-800 mb-2 flex items-center">
-                                        <span className="mr-3 text-3xl">🔄</span>
-                                        For Cash Reallocation
-                                    </h2>
-                                    {reallocatedDvs.length > 0 ? (
-                                        <p className="text-orange-600 text-sm">
-                                            {reallocatedDvs.length} {reallocatedDvs.length === 1 ? 'DV' : 'DVs'} returned by cashiering for reallocation
-                                            {searchTerm && (
-                                                <span className="ml-2 text-orange-700 font-medium">
-                                                    matching "{searchTerm}"
-                                                </span>
-                                            )}
-                                        </p>
-                                    ) : (
-                                        <p className="text-orange-500 text-sm italic">
-                                            No reallocated DVs at the moment. DVs will appear here when returned by cashiering for reallocation.
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Reallocated DV Cards */}
-                                {reallocatedDvs.length > 0 && (
-                                    <div className="space-y-4">
-                                        {reallocatedDvs.map((dv) => (
-                                            <div 
-                                                key={`realloc-${dv.id}`}
-                                                className="bg-orange-50 border-l-4 border-orange-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                                onClick={() => handleDvClick(dv)}
-                                            >
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
-                                                            {dv.payee}
-                                                            {/* Reallocation status tag */}
-                                                            <span className="ml-2 px-3 py-1 bg-orange-200 text-orange-800 text-xs rounded-full border border-orange-300 font-semibold">
-                                                                🔄 Returned by Cashiering – Reallocate Cash
-                                                            </span>
-                                                        </h3>
-                                                        <p className="text-gray-600 text-sm mb-1">
-                                                            {dv.dv_number}
-                                                        </p>
-                                                        <p className="text-gray-600 text-sm mb-2 italic">
-                                                            {dv.particulars && dv.particulars.length > 50 
-                                                                ? dv.particulars.substring(0, 50) + '...'
-                                                                : dv.particulars || 'No particulars specified'}
-                                                        </p>
-                                                        {/* Show reallocation info */}
-                                                        {dv.reallocation_reason && (
-                                                            <p className="text-orange-700 text-xs mb-2 italic font-medium">
-                                                                Return Reason: {dv.reallocation_reason}
-                                                            </p>
-                                                        )}
-                                                        {dv.reallocation_date && (
-                                                            <p className="text-orange-600 text-xs mb-2">
-                                                                Returned on: {new Date(dv.reallocation_date).toLocaleDateString()}
-                                                            </p>
-                                                        )}
-                                                        <p className="text-gray-800 font-medium">
-                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                                minimumFractionDigits: 2,
-                                                                maximumFractionDigits: 2
-                                                            })}
-                                                            {dv.net_amount && (
-                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                                                            )}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="flex flex-col items-end space-y-2">
-                                                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-orange-500">
-                                                                For Reallocation
-                                                            </span>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedDv(dv);
-                                                                    setIsEditModalOpen(true);
-                                                                }}
-                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                            >
-                                                                Edit
-                                                            </button>
-                                                        </div>
-                                                        {dv.created_at && (
-                                                            <p className="text-xs text-gray-500 mt-2">
-                                                                Original: {new Date(dv.created_at).toLocaleDateString()}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
@@ -788,11 +594,6 @@ export default function IncomingDvs() {
                 onClose={() => {
                     setIsCashAllocationModalOpen(false);
                     setSelectedDv(null);
-                }}
-                onUpdate={() => {
-                    setIsCashAllocationModalOpen(false);
-                    setSelectedDv(null);
-                    window.location.reload();
                 }}
             />
 

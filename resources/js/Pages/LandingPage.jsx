@@ -219,12 +219,12 @@ export default function LandingPage() {
 
                 <div className="relative z-10 max-w-6xl mx-auto px-8 py-8">
                     {/* Welcome section with APP logo and greeting */}
-                    <div className="text-center mb-12">
-                        <div className="inline-flex items-center justify-center mb-4">
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center mb-2">
                             <img 
                                 src="/APPLOGO.png" 
                                 alt="DA App Logo" 
-                                className="w-48 h-48 object-contain hover:scale-105 transition-transform duration-500 drop-shadow-lg"
+                                className="w-58 h-58 object-contain hover:scale-105 transition-transform duration-500 drop-shadow-lg"
                             />
                         </div>
                         
@@ -352,6 +352,83 @@ export default function LandingPage() {
                     cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23059669"><circle cx="12" cy="12" r="6" opacity="0.5"/><circle cx="12" cy="12" r="2"/></svg>'), auto;
                 }
             `}</style>
+             {/* Modern Glassy Footer - Landing Page Only */}
+            <footer className="relative mt-8 bg-gradient-to-r from-white/10 via-white/5 to-white/10 backdrop-blur-md border-t border-white/20 shadow-2xl">
+                {/* Animated background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 via-blue-50/20 to-purple-50/30 animate-gradient"></div>
+                
+                <div className="relative z-10 max-w-5xl mx-auto px-6 py-6">
+                    <div className="flex justify-center">
+                        {/* DA-CAR Info and Contact - Centered */}
+                        <div className="space-y-4 max-w-lg">
+                            {/* DA-CAR Info */}
+                            <div className="flex items-center group">
+                                <img 
+                                    src="/DALOGO.png" 
+                                    alt="DA Logo" 
+                                    className="w-16 h-16 mr-4 object-contain drop-shadow-lg group-hover:rotate-12 group-hover:scale-110 transition-all duration-500"
+                                />
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-800 group-hover:text-green-700 transition-colors duration-300">
+                                        DA-CAR Accounting Section
+                                    </h3>
+                                    <p className="text-gray-600 font-medium">Monitoring System</p>
+                                </div>
+                            </div>
+
+                            {/* Contact Information */}
+                            <div className="space-y-3">
+                                <h4 className="text-base font-semibold text-gray-800 flex items-center">
+                                    <span className="mr-2">📞</span>
+                                    Contact Information
+                                </h4>
+                                
+                                {/* Emails */}
+                                <div className="space-y-2">
+                                    <a 
+                                        href="mailto:accounting@car.da.gov.ph" 
+                                        className="flex items-center text-gray-700 hover:text-green-600 transition-all duration-300 transform hover:scale-105 hover:translate-x-2 group"
+                                        title="Send email to accounting@car.da.gov.ph"
+                                    >
+                                        <span className="mr-3 text-green-600 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">✉️</span>
+                                        <span className="font-medium text-sm">accounting@car.da.gov.ph</span>
+                                    </a>
+                                    <a 
+                                        href="mailto:darfocaracctg@gmail.com" 
+                                        className="flex items-center text-gray-700 hover:text-green-600 transition-all duration-300 transform hover:scale-105 hover:translate-x-2 group"
+                                        title="Send email to darfocaracctg@gmail.com"
+                                    >
+                                        <span className="mr-3 text-green-600 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300">✉️</span>
+                                        <span className="font-medium text-sm">darfocaracctg@gmail.com</span>
+                                    </a>
+                                </div>
+
+                                {/* Location */}
+                                <a 
+                                    href="https://maps.app.goo.gl/WM4hep4sA7ZALhBE7" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-start text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-105 hover:translate-x-2 group"
+                                    title="View location on Google Maps"
+                                >
+                                    <span className="mr-3 text-blue-600 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 mt-1">📍</span>
+                                    <div>
+                                        <div className="font-medium text-sm">CHFQ+989, Easter Rd</div>
+                                        <div className="text-xs text-gray-600">Baguio, 2600 Benguet</div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Copyright Section */}
+                    <div className="mt-6 pt-4 border-t border-white/20 text-center">
+                        <p className="text-gray-600 text-xs font-medium">
+                            © 2025 DA-CAR Accounting Section. All rights reserved.
+                        </p>
+                    </div>
+                </div>  
+            </footer>
         </div>
     );
 }

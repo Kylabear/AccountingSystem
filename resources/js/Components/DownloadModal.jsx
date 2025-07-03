@@ -202,7 +202,7 @@ export default function DownloadModal({ isOpen, onClose, onDownload }) {
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         >
                             <option value="excel">📊 Excel (.xlsx)</option>
-                            <option value="csv">📋 CSV (.csv)</option>
+                            <option value="docx">� Word Document (.docx)</option>
                             <option value="pdf">📄 PDF (.pdf)</option>
                         </select>
                     </div>

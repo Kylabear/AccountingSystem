@@ -469,6 +469,22 @@ class IncomingDvController extends Controller
             ]
         ];
 
+        // For reallocated DVs, add reallocation info to transaction history
+        if ($dv->is_reallocated) {
+            $transactionHistory[] = [
+                'action' => 'Cash Reallocation Completed',
+                'user' => $currentUser,
+                'date' => now()->toDateString(),
+                'details' => [
+                    'new_cash_allocation_number' => $validated['cash_allocation_number'],
+                    'new_net_amount' => $validated['net_amount'],
+                    'original_amount' => $dv->amount,
+                    'reallocation_date' => $dv->reallocation_date,
+                    'reallocation_reason' => $dv->reallocation_reason
+                ]
+            ];
+        }
+
         $dv->update([
             'cash_allocation_date' => $validated['cash_allocation_date'],
             'cash_allocation_number' => $validated['cash_allocation_number'],
@@ -476,6 +492,7 @@ class IncomingDvController extends Controller
             'allocated_by' => $currentUser,
             'transaction_history' => $transactionHistory,
             'status' => 'for_box_c', // Move to next status after cash allocation
+            'is_reallocated' => false, // Clear reallocated flag to allow normal workflow progression
         ]);
 
         return redirect()->back()->with('success', 'Cash allocation completed successfully.');
@@ -1184,6 +1201,8 @@ class IncomingDvController extends Controller
             $updateData = [
                 'status' => 'for_cash_allocation',
                 'is_reallocated' => true,
+                'reallocation_date' => now()->toDateString(),
+                'reallocation_reason' => $request->input('reallocation_reason', 'DV returned from cashiering for reallocation'),
                 'cash_allocation_date' => null,
                 'cash_allocation_number' => null,
                 'net_amount' => null,

@@ -462,181 +462,175 @@ export default function StatisticsPage() {
                     </div>
 
                     {/* Processing Time Analysis Chart with Enhanced Filters */}
-                    <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 mb-8 transform hover:scale-[1.01] transition-all duration-500 border border-gray-200 hover:border-green-300 hover:shadow-green-100 group overflow-hidden relative">
-                        {/* Animated background gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-green-50/30 via-blue-50/20 to-purple-50/30 opacity-0 group-hover:opacity-100 transition-all duration-700"></div>
-                        
-                        <div className="relative z-10 flex flex-col xl:flex-row xl:items-start xl:justify-between mb-6">
-                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 flex flex-col sm:flex-row sm:items-center mb-4 xl:mb-0">
-                                <div className="flex items-center mb-2 sm:mb-0">
-                                    <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mr-3 text-3xl sm:text-4xl animate-pulse">📈</span>
-                                    <span className="bg-gradient-to-r from-gray-800 via-green-700 to-blue-700 bg-clip-text text-transparent">Processing Time Analysis</span>
-                                </div>
-                                <span className="ml-0 sm:ml-4 text-xs sm:text-sm bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 animate-bounce">
-                                    ✨ Live Data
-                                </span>
-                            </h2>
+                    <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200 hover:border-green-300 hover:shadow-xl transition-all duration-300">
+                        {/* Header Section */}
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+                            <div className="mb-4 lg:mb-0">
+                                <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 flex items-center">
+                                    <span className="mr-3 text-2xl">📈</span>
+                                    <span className="bg-gradient-to-r from-gray-800 to-green-700 bg-clip-text text-transparent">Processing Time Analysis</span>
+                                </h2>
+                                <p className="text-sm text-gray-600 mt-1">Live data analysis and trends</p>
+                            </div>
                             
-                            {/* Enhanced Filter Controls */}
-                            <div className="flex flex-col gap-4 w-full xl:w-auto">
-                                <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
-                                    {/* Base Time Period Filter */}
-                                    <div className="group transform hover:scale-105 transition-all duration-300">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-green-600 transition-colors">
-                                            🕐 Base Time Period
-                                        </label>
-                                        <select 
-                                            value={selectedPeriod}
-                                            onChange={(e) => {
-                                                setSelectedPeriod(e.target.value);
-                                                setSelectedDrillPeriod(''); // Reset drill-down when base period changes
-                                            }}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-300 bg-white hover:border-green-400 hover:shadow-lg text-sm sm:text-base"
-                                        >
-                                            <option value="daily">📅 Daily</option>
-                                            <option value="weekly">📊 Weekly</option>
-                                            <option value="monthly">📆 Monthly</option>
-                                            <option value="quarterly">📈 Quarterly</option>
-                                            <option value="yearly">🗓️ Yearly</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Intelligent Drill-down Filter */}
-                                    {getAvailableDrillPeriods().length > 0 && (
-                                        <div className="group transform hover:scale-105 transition-all duration-300">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-purple-600 transition-colors">
-                                                🔍 Compare With
-                                            </label>
-                                            <select 
-                                                value={selectedDrillPeriod}
-                                                onChange={(e) => setSelectedDrillPeriod(e.target.value)}
-                                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 bg-white hover:border-purple-400 hover:shadow-lg text-sm sm:text-base"
-                                            >
-                                                <option value="">❌ No Comparison</option>
-                                                {getAvailableDrillPeriods().map((option) => (
-                                                    <option key={option.value} value={option.value}>
-                                                        🔄 {option.label}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    )}
-
-                                    {/* Category Filter for Chart */}
-                                    <div className="group transform hover:scale-105 transition-all duration-300">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2 group-hover:text-blue-600 transition-colors">
-                                            🏷️ Category Filter
-                                        </label>
-                                        <select 
-                                            value={selectedChartCategory}
-                                            onChange={(e) => setSelectedChartCategory(e.target.value)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-white hover:border-blue-400 hover:shadow-lg text-sm sm:text-base"
-                                        >
-                                            <option value="all">🌐 All Categories</option>
-                                            <option value="implementing-unit">🏢 Implementing Unit</option>
-                                            <option value="fund-source">💰 Fund Source</option>
-                                            <option value="type-disbursement">📋 Disbursement Type</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                
-                                {/* Reset Filters Button */}
-                                <div className="flex justify-center sm:justify-end">
-                                    <button
-                                        onClick={() => {
-                                            setSelectedPeriod('monthly');
+                            {/* Filter Controls */}
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                {/* Base Time Period Filter */}
+                                <div className="min-w-0 sm:min-w-[200px]">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Time Period
+                                    </label>
+                                    <select 
+                                        value={selectedPeriod}
+                                        onChange={(e) => {
+                                            setSelectedPeriod(e.target.value);
                                             setSelectedDrillPeriod('');
-                                            setSelectedChartCategory('all');
                                         }}
-                                        className="px-6 py-3 text-sm bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-300 transform hover:scale-110 hover:shadow-lg flex items-center group"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white text-sm"
                                     >
-                                        <span className="mr-2 group-hover:rotate-180 transition-transform duration-500">🔄</span>
-                                        <span className="font-medium">Reset Filters</span>
-                                    </button>
+                                        <option value="daily">📅 Daily</option>
+                                        <option value="weekly">📊 Weekly</option>
+                                        <option value="monthly">📆 Monthly</option>
+                                        <option value="quarterly">📈 Quarterly</option>
+                                        <option value="yearly">🗓️ Yearly</option>
+                                    </select>
                                 </div>
+
+                                {/* Category Filter */}
+                                <div className="min-w-0 sm:min-w-[200px]">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Category Filter
+                                    </label>
+                                    <select 
+                                        value={selectedChartCategory}
+                                        onChange={(e) => setSelectedChartCategory(e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white text-sm"
+                                    >
+                                        <option value="all">🌐 All Categories</option>
+                                        <option value="implementing-unit">🏢 Implementing Unit</option>
+                                        <option value="fund-source">💰 Fund Source</option>
+                                        <option value="type-disbursement">📋 Disbursement Type</option>
+                                    </select>
+                                </div>
+
+                                {/* Drill-down Filter */}
+                                {getAvailableDrillPeriods().length > 0 && (
+                                    <div className="min-w-0 sm:min-w-[200px]">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Compare With
+                                        </label>
+                                        <select 
+                                            value={selectedDrillPeriod}
+                                            onChange={(e) => setSelectedDrillPeriod(e.target.value)}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 bg-white text-sm"
+                                        >
+                                            <option value="">❌ No Comparison</option>
+                                            {getAvailableDrillPeriods().map((option) => (
+                                                <option key={option.value} value={option.value}>
+                                                    🔄 {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
                         </div>
+
+                        {/* Reset Button */}
+                        <div className="flex justify-end mb-4">
+                            <button
+                                onClick={() => {
+                                    setSelectedPeriod('monthly');
+                                    setSelectedDrillPeriod('');
+                                    setSelectedChartCategory('all');
+                                }}
+                                className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center"
+                            >
+                                <span className="mr-2">🔄</span>
+                                Reset Filters
+                            </button>
+                        </div>
                         
-                        {/* Filter Summary */}
-                        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 via-purple-50 to-green-50 rounded-xl border-l-4 border-blue-500 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-[1.01]">
+                        {/* Active Filters Summary */}
+                        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border-l-4 border-blue-500">
                             <div className="flex flex-wrap items-center gap-2 text-sm">
                                 <span className="font-semibold text-gray-800 flex items-center">
                                     <span className="mr-2">🎯</span>
                                     Active Filters:
                                 </span>
-                                <span className="bg-gradient-to-r from-green-400 to-green-600 text-white px-3 py-1 rounded-full shadow-sm transform hover:scale-110 transition-all duration-300 font-medium">
+                                <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                                     📊 {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)}
                                 </span>
                                 {selectedDrillPeriod && (
-                                    <span className="bg-gradient-to-r from-purple-400 to-purple-600 text-white px-3 py-1 rounded-full shadow-sm transform hover:scale-110 transition-all duration-300 font-medium">
+                                    <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                                         🔄 vs {selectedDrillPeriod.charAt(0).toUpperCase() + selectedDrillPeriod.slice(1)}
                                     </span>
                                 )}
                                 {selectedChartCategory !== 'all' && (
-                                    <span className="bg-gradient-to-r from-blue-400 to-blue-600 text-white px-3 py-1 rounded-full shadow-sm transform hover:scale-110 transition-all duration-300 font-medium">
+                                    <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                                         🏷️ {selectedChartCategory.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                     </span>
                                 )}
                             </div>
                         </div>
                         
-                        {/* Enhanced Chart Container */}
-                        <div className="h-[500px] sm:h-[600px] lg:h-[700px] xl:h-[800px] bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 sm:p-6 shadow-inner border border-gray-100 hover:border-gray-200 transition-all duration-500 group">
-                            <div className="h-full transform group-hover:scale-[1.01] transition-all duration-500">
+                        {/* Chart Container */}
+                        <div className="h-96 lg:h-[500px] bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            <div className="h-full">
                                 <Scatter data={chartData} options={chartOptions} />
                             </div>
                         </div>
                         
-                        {/* Enhanced Statistics Summary */}
-                        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                            <div className="p-4 bg-gradient-to-br from-blue-50 via-green-50 to-blue-100 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 border border-blue-200 hover:border-blue-300">
+                        {/* Statistics Summary */}
+                        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 hover:shadow-md transition-shadow duration-200">
                                 <div className="text-sm text-gray-600 mb-1 flex items-center">
                                     <span className="mr-2">⏱️</span>
                                     Current Period Average
                                 </div>
-                                <div className="text-xl sm:text-2xl font-bold text-green-700">{averageProcessingTime.toFixed(1)} days</div>
+                                <div className="text-xl font-bold text-green-700">{averageProcessingTime.toFixed(1)} days</div>
                                 <div className="w-full bg-green-200 rounded-full h-2 mt-2">
-                                    <div className="bg-gradient-to-r from-green-500 to-green-700 h-2 rounded-full animate-pulse" style={{ width: '75%' }}></div>
+                                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '75%' }}></div>
                                 </div>
                             </div>
                             
-                            <div className="p-4 bg-gradient-to-br from-green-50 via-blue-50 to-green-100 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 border border-green-200 hover:border-green-300">
+                            <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 hover:shadow-md transition-shadow duration-200">
                                 <div className="text-sm text-gray-600 mb-1 flex items-center">
                                     <span className="mr-2">📊</span>
                                     Total Data Points
                                 </div>
-                                <div className="text-xl sm:text-2xl font-bold text-blue-700">{filteredData.length}</div>
+                                <div className="text-xl font-bold text-blue-700">{filteredData.length}</div>
                                 <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-                                    <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-2 rounded-full animate-pulse" style={{ width: '90%' }}></div>
+                                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '90%' }}></div>
                                 </div>
                             </div>
                             
                             {drillDownData && (
                                 <>
-                                    <div className="p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 border border-purple-200 hover:border-purple-300">
+                                    <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 hover:shadow-md transition-shadow duration-200">
                                         <div className="text-sm text-gray-600 mb-1 flex items-center">
                                             <span className="mr-2">🔄</span>
                                             {selectedDrillPeriod} Average
                                         </div>
-                                        <div className="text-xl sm:text-2xl font-bold text-purple-700">{drillDownAverageTime.toFixed(1)} days</div>
+                                        <div className="text-xl font-bold text-purple-700">{drillDownAverageTime.toFixed(1)} days</div>
                                         <div className="w-full bg-purple-200 rounded-full h-2 mt-2">
-                                            <div className="bg-gradient-to-r from-purple-500 to-purple-700 h-2 rounded-full animate-pulse" style={{ width: '85%' }}></div>
+                                            <div className="bg-purple-500 h-2 rounded-full" style={{ width: '85%' }}></div>
                                         </div>
                                     </div>
                                     
-                                    <div className="p-4 bg-gradient-to-br from-pink-50 via-purple-50 to-pink-100 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 border border-pink-200 hover:border-pink-300">
+                                    <div className="p-4 bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg border border-pink-200 hover:shadow-md transition-shadow duration-200">
                                         <div className="text-sm text-gray-600 mb-1 flex items-center">
                                             <span className="mr-2">📈</span>
                                             Comparison
                                         </div>
-                                        <div className={`text-xl sm:text-2xl font-bold flex items-center ${averageProcessingTime < drillDownAverageTime ? 'text-green-700' : 'text-red-700'}`}>
-                                            <span className="mr-2 text-2xl">
+                                        <div className={`text-xl font-bold flex items-center ${averageProcessingTime < drillDownAverageTime ? 'text-green-700' : 'text-red-700'}`}>
+                                            <span className="mr-2 text-xl">
                                                 {averageProcessingTime < drillDownAverageTime ? '🔻' : '🔺'}
                                             </span>
                                             {Math.abs(averageProcessingTime - drillDownAverageTime).toFixed(1)} days
                                         </div>
                                         <div className={`w-full rounded-full h-2 mt-2 ${averageProcessingTime < drillDownAverageTime ? 'bg-green-200' : 'bg-red-200'}`}>
-                                            <div className={`h-2 rounded-full animate-pulse ${averageProcessingTime < drillDownAverageTime ? 'bg-gradient-to-r from-green-500 to-green-700' : 'bg-gradient-to-r from-red-500 to-red-700'}`} style={{ width: '70%' }}></div>
+                                            <div className={`h-2 rounded-full ${averageProcessingTime < drillDownAverageTime ? 'bg-green-500' : 'bg-red-500'}`} style={{ width: '70%' }}></div>
                                         </div>
                                     </div>
                                 </>
@@ -1019,6 +1013,7 @@ export default function StatisticsPage() {
                     transform: rotate(12deg) scale(1.1);
                 }
             `}</style>
+            
         </div>
     );
-}
+};
