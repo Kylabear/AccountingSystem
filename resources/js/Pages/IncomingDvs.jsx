@@ -170,6 +170,87 @@ export default function IncomingDvs() {
         }
     };
 
+    // Handle sending DV out for approval
+    const handleSendForApproval = async (dv) => {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+
+            const response = await fetch(`/incoming-dvs/${dv.id}/approval-out`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    out_date: new Date().toISOString().split('T')[0] // Today's date
+                })
+            });
+
+            const responseData = await response.json();
+
+            if (response.ok) {
+                alert('✅ DV successfully sent out for approval! Page will refresh.');
+                // Force page refresh to show updated DV status
+                window.location.reload();
+            } else {
+                alert(`❌ Error sending DV for approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
+            }
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                alert('❌ Network error: Could not connect to server. Please check if the server is running.');
+            } else {
+                alert(`❌ Error sending DV for approval: ${error.message}`);
+            }
+        }
+    };
+
+    // Handle DV returned from approval
+    const handleApprovalIn = async (dv) => {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+
+            const response = await fetch(`/incoming-dvs/${dv.id}/approval-in`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    in_date: new Date().toISOString().split('T')[0], // Today's date
+                    approval_status: 'approved' // Default to approved, could be made configurable
+                })
+            });
+
+            const responseData = await response.json();
+
+            if (response.ok) {
+                alert('✅ DV successfully marked as returned from approval! Page will refresh.');
+                // Force page refresh to show updated DV status
+                window.location.reload();
+            } else {
+                alert(`❌ Error marking DV as returned from approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
+            }
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                alert('❌ Network error: Could not connect to server. Please check if the server is running.');
+            } else {
+                alert(`❌ Error marking DV as returned from approval: ${error.message}`);
+            }
+        }
+    };
+
     // Helper function to normalize text for searching (case-insensitive, trim whitespace)
     const normalizeForSearch = (text) => {
         return text ? text.toString().trim().toLowerCase() : '';
@@ -196,8 +277,9 @@ export default function IncomingDvs() {
                     (dv.status === 'for_rts_in' && dv.rts_origin === 'box_c') ||
                     (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c');
             } else if (activeTab === 'for_approval') {
-                // For Approval tab shows DVs in for_approval status with any approval_status
-                matchesStatus = dv.status === 'for_approval';
+                // For Approval tab shows DVs in for_approval status that haven't been sent out yet
+                // DVs that have been sent out will be shown in a separate "Out for Approval" section
+                matchesStatus = dv.status === 'for_approval' && !dv.approval_out_date;
             } else if (activeTab === 'for_cash_allocation') {
                 // For Cash Allocation tab shows DVs in for_cash_allocation status (excluding reallocated ones)
                 // Reallocated DVs are now handled in their own section
@@ -242,6 +324,23 @@ export default function IncomingDvs() {
             normalizeForSearch(dv.particulars).includes(normalizedSearchTerm);
         
         return isReallocated && matchesSearch;
+    }) : [];
+
+    // Filter approval DVs into two groups for approval tab
+    const approvalOutDvs = activeTab === 'for_approval' ? dvs.filter((dv) => {
+        // Show DVs that have been sent out for approval (have approval_out_date but no approval_in_date)
+        const isSentOut = dv.status === 'for_approval' && dv.approval_out_date && !dv.approval_in_date;
+        
+        // Apply search filter to sent out DVs too
+        const normalizedSearchTerm = normalizeForSearch(searchTerm);
+        const matchesSearch = normalizedSearchTerm === '' || 
+            normalizeForSearch(dv.dv_number).includes(normalizedSearchTerm) ||
+            normalizeForSearch(dv.payee).includes(normalizedSearchTerm) ||
+            normalizeForSearch(dv.transaction_type).includes(normalizedSearchTerm) ||
+            normalizeForSearch(dv.account_number).includes(normalizedSearchTerm) ||
+            normalizeForSearch(dv.particulars).includes(normalizedSearchTerm);
+        
+        return isSentOut && matchesSearch;
     }) : [];
 
     // Debug logging for cash allocation tab to check PLHHH and Frenzel Atuan
@@ -589,6 +688,12 @@ export default function IncomingDvs() {
                                         ({sortedDvs.length} new allocation{sortedDvs.length !== 1 ? 's' : ''}{reallocatedDvs.length > 0 ? `, ${reallocatedDvs.length} for reallocation` : ''})
                                     </span>
                                 )}
+                                {/* Show breakdown for approval */}
+                                {activeTab === 'for_approval' && (
+                                    <span className="ml-4 text-gray-500 text-xs">
+                                        ({sortedDvs.length} waiting to be sent{approvalOutDvs.length > 0 ? `, ${approvalOutDvs.length} out for approval` : ''})
+                                    </span>
+                                )}
                             </p>
                         </div>
 
@@ -631,16 +736,30 @@ export default function IncomingDvs() {
                                                           style={{ backgroundColor: statuses.find(s => s.key === dv.status)?.bgColor || '#6B7280' }}>
                                                         {statuses.find(s => s.key === dv.status)?.label || dv.status}
                                                     </span>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedDv(dv);
-                                                            setIsEditModalOpen(true);
-                                                        }}
-                                                        className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                    >
-                                                        Edit
-                                                    </button>
+                                                    <div className="flex space-x-2">
+                                                        {/* Show "Out" button for approval tab */}
+                                                        {activeTab === 'for_approval' && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleSendForApproval(dv);
+                                                                }}
+                                                                className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
+                                                            >
+                                                                Out
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedDv(dv);
+                                                                setIsEditModalOpen(true);
+                                                            }}
+                                                            className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 {dv.created_at && (
                                                     <p className="text-xs text-gray-500 mt-2">
@@ -745,6 +864,114 @@ export default function IncomingDvs() {
                                                             >
                                                                 Edit
                                                             </button>
+                                                        </div>
+                                                        {dv.created_at && (
+                                                            <p className="text-xs text-gray-500 mt-2">
+                                                                Original: {new Date(dv.created_at).toLocaleDateString()}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Out for Approval Section - Only show in Approval tab */}
+                        {activeTab === 'for_approval' && (
+                            <div className="mt-12">
+                                {/* Section Header */}
+                                <div className="mb-6 border-t pt-8">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+                                        <span className="mr-3 text-3xl">📤</span>
+                                        Out for Approval
+                                    </h2>
+                                    {approvalOutDvs.length > 0 ? (
+                                        <p className="text-gray-600 text-sm">
+                                            {approvalOutDvs.length} {approvalOutDvs.length === 1 ? 'DV' : 'DVs'} currently out for approval
+                                            {searchTerm && (
+                                                <span className="ml-2 text-green-600 font-medium">
+                                                    matching "{searchTerm}"
+                                                </span>
+                                            )}
+                                        </p>
+                                    ) : (
+                                        <p className="text-gray-500 text-sm italic">
+                                            No DVs currently out for approval. DVs will appear here when sent out for approval.
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Approval Out DV Cards */}
+                                {approvalOutDvs.length > 0 && (
+                                    <div className="space-y-4">
+                                        {approvalOutDvs.map((dv) => (
+                                            <div 
+                                                key={`approval-out-${dv.id}`}
+                                                className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                onClick={() => handleDvClick(dv)}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
+                                                            {dv.payee}
+                                                            {/* Approval out status tag */}
+                                                            <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded-full border border-gray-300 font-semibold">
+                                                                📤 Out for Approval
+                                                            </span>
+                                                        </h3>
+                                                        <p className="text-gray-600 text-sm mb-1">
+                                                            {dv.dv_number}
+                                                        </p>
+                                                        <p className="text-gray-600 text-sm mb-2 italic">
+                                                            {dv.particulars && dv.particulars.length > 50 
+                                                                ? dv.particulars.substring(0, 50) + '...'
+                                                                : dv.particulars || 'No particulars specified'}
+                                                        </p>
+                                                        {/* Show approval out info */}
+                                                        {dv.approval_out_date && (
+                                                            <p className="text-gray-600 text-xs mb-2">
+                                                                Sent out on: {new Date(dv.approval_out_date).toLocaleDateString()}
+                                                            </p>
+                                                        )}
+                                                        <p className="text-gray-800 font-medium">
+                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2
+                                                            })}
+                                                            {dv.net_amount && (
+                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-gray-500">
+                                                                Out for Approval
+                                                            </span>
+                                                            <div className="flex space-x-2">
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleApprovalIn(dv);
+                                                                    }}
+                                                                    className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
+                                                                >
+                                                                    In
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setSelectedDv(dv);
+                                                                        setIsEditModalOpen(true);
+                                                                    }}
+                                                                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                                >
+                                                                    Edit
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                         {dv.created_at && (
                                                             <p className="text-xs text-gray-500 mt-2">
