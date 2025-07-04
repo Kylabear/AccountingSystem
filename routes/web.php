@@ -48,6 +48,7 @@ Route::middleware(['auth'])->group(function () {
     // Statistics page
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
     Route::get('/statistics/export', [StatisticsController::class, 'export'])->name('statistics.export');
+    Route::get('/statistics/implementing-unit-analysis', [StatisticsController::class, 'getImplementingUnitAnalysis'])->name('statistics.implementing-unit-analysis');
     
     // Test export route (temporary for debugging)
     Route::get('/test-export', function() {

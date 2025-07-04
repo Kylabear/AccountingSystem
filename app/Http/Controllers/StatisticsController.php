@@ -528,4 +528,183 @@ class StatisticsController extends Controller
 
         return $statusMap[$status] ?? 'DV Updated';
     }
+
+    /**
+     * Get implementing unit analysis data with processing duration calculations
+     */
+    public function getImplementingUnitAnalysis(Request $request)
+    {
+        $timePeriod = $request->get('time_period', 'monthly');
+        
+        // Build the base query with time period filter
+        $query = IncomingDv::query();
+        $this->applyTimePeriodFilter($query, $timePeriod);
+
+        // Get all implementing units
+        $implementingUnits = (clone $query)
+            ->whereNotNull('implementing_unit')
+            ->where('implementing_unit', '!=', '')
+            ->select('implementing_unit')
+            ->distinct()
+            ->pluck('implementing_unit');
+
+        $analysisData = [];
+
+        foreach ($implementingUnits as $unit) {
+            $unitQuery = (clone $query)->where('implementing_unit', $unit);
+            
+            // Get unit statistics
+            $unitReceived = $unitQuery->count();
+            $unitProcessed = (clone $unitQuery)->whereIn('status', ['approved', 'completed', 'processed'])->count();
+            $unitProgressRate = $unitReceived > 0 ? round(($unitProcessed / $unitReceived) * 100, 2) : 0;
+
+            // Calculate processing durations for the unit
+            $processedDvs = (clone $unitQuery)->whereIn('status', ['approved', 'completed', 'processed'])->get();
+            $unitDurations = $this->calculateUnitProcessingDurations($processedDvs);
+
+            // Get transaction type breakdown for this unit
+            $transactionTypes = (clone $unitQuery)
+                ->whereNotNull('transaction_type')
+                ->where('transaction_type', '!=', '')
+                ->selectRaw("
+                    transaction_type,
+                    COUNT(*) as received,
+                    SUM(CASE WHEN status IN ('approved', 'completed', 'processed') THEN 1 ELSE 0 END) as processed,
+                    ROUND(
+                        (SUM(CASE WHEN status IN ('approved', 'completed', 'processed') THEN 1 ELSE 0 END) * 100.0 / COUNT(*)), 
+                        2
+                    ) as progress_percentage
+                ")
+                ->groupBy('transaction_type')
+                ->orderBy('received', 'desc')
+                ->get()
+                ->map(function ($item) use ($unitQuery) {
+                    // Calculate processing durations for this transaction type within this unit
+                    $typeProcessedDvs = (clone $unitQuery)
+                        ->where('transaction_type', $item->transaction_type)
+                        ->whereIn('status', ['approved', 'completed', 'processed'])
+                        ->get();
+                    
+                    $typeDurations = $this->calculateUnitProcessingDurations($typeProcessedDvs);
+
+                    return [
+                        'transaction_type' => $item->transaction_type,
+                        'received' => (int) $item->received,
+                        'processed' => (int) $item->processed,
+                        'progress_percentage' => (float) $item->progress_percentage,
+                        'avg_inside_days' => $typeDurations['avg_inside_days'],
+                        'avg_outside_days' => $typeDurations['avg_outside_days'],
+                        'avg_total_days' => $typeDurations['avg_total_days'],
+                    ];
+                });
+
+            $analysisData[] = [
+                'implementing_unit' => $unit,
+                'received' => $unitReceived,
+                'processed' => $unitProcessed,
+                'progress_rate' => $unitProgressRate,
+                'avg_inside_days' => $unitDurations['avg_inside_days'],
+                'avg_outside_days' => $unitDurations['avg_outside_days'],
+                'avg_total_days' => $unitDurations['avg_total_days'],
+                'transaction_types' => $transactionTypes
+            ];
+        }
+
+        return response()->json([
+            'implementing_units' => $analysisData,
+            'time_period' => $timePeriod,
+            'generated_at' => now()->toISOString()
+        ]);
+    }
+
+    /**
+     * Calculate processing durations for a collection of DVs
+     */
+    private function calculateUnitProcessingDurations($dvs)
+    {
+        if ($dvs->isEmpty()) {
+            return [
+                'avg_inside_days' => 0,
+                'avg_outside_days' => 0,
+                'avg_total_days' => 0
+            ];
+        }
+
+        $totalInsideDays = 0;
+        $totalOutsideDays = 0;
+        $totalTotalDays = 0;
+        $count = 0;
+
+        foreach ($dvs as $dv) {
+            $durations = $this->calculateIndividualDvDurations($dv);
+            $totalInsideDays += $durations['inside_days'];
+            $totalOutsideDays += $durations['outside_days'];
+            $totalTotalDays += $durations['total_days'];
+            $count++;
+        }
+
+        return [
+            'avg_inside_days' => $count > 0 ? round($totalInsideDays / $count, 1) : 0,
+            'avg_outside_days' => $count > 0 ? round($totalOutsideDays / $count, 1) : 0,
+            'avg_total_days' => $count > 0 ? round($totalTotalDays / $count, 1) : 0
+        ];
+    }
+
+    /**
+     * Calculate processing durations for an individual DV
+     * Using the same logic as ProcessedDvModal.jsx
+     */
+    private function calculateIndividualDvDurations($dv)
+    {
+        $createdDate = $dv->created_at;
+        $completedDate = $dv->lddap_date ?? $dv->cdj_date ?? $dv->engas_date ?? $dv->processed_date;
+        
+        if (!$completedDate || !$createdDate) {
+            return [
+                'inside_days' => 0,
+                'outside_days' => 0,
+                'total_days' => 0
+            ];
+        }
+
+        // Calculate total duration
+        $totalDays = max(1, $createdDate->diffInDays($completedDate));
+
+        // Calculate outside accounting duration
+        $outsideDays = 0;
+
+        // For RTS duration (Cash Allocation)
+        if ($dv->ca_rts_out_date && $dv->ca_rts_in_date) {
+            $outsideDays += max(0, $dv->ca_rts_out_date->diffInDays($dv->ca_rts_in_date));
+        }
+
+        // For NORSA duration (Cash Allocation)
+        if ($dv->ca_norsa_out_date && $dv->ca_norsa_in_date) {
+            $outsideDays += max(0, $dv->ca_norsa_out_date->diffInDays($dv->ca_norsa_in_date));
+        }
+
+        // For RTS duration (Box C)
+        if ($dv->bc_rts_out_date && $dv->bc_rts_in_date) {
+            $outsideDays += max(0, $dv->bc_rts_out_date->diffInDays($dv->bc_rts_in_date));
+        }
+
+        // For NORSA duration (Box C)
+        if ($dv->bc_norsa_out_date && $dv->bc_norsa_in_date) {
+            $outsideDays += max(0, $dv->bc_norsa_out_date->diffInDays($dv->bc_norsa_in_date));
+        }
+
+        // For Approval duration (out for approval)
+        if ($dv->approval_out_date && $dv->approval_in_date) {
+            $outsideDays += max(0, $dv->approval_out_date->diffInDays($dv->approval_in_date));
+        }
+
+        // Inside accounting duration = total - outside
+        $insideDays = max(0, $totalDays - $outsideDays);
+
+        return [
+            'inside_days' => $insideDays,
+            'outside_days' => $outsideDays,
+            'total_days' => $totalDays
+        ];
+    }
 }

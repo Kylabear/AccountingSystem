@@ -43,11 +43,10 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
             };
         }
 
-        const history = dv.transaction_history || [];
-        const createdDate = dv.created_at;
-        const completedDate = dv.lddap_date || dv.cdj_date || dv.engas_date;
+        const createdDate = new Date(dv.created_at);
+        const completedDate = new Date(dv.lddap_date || dv.cdj_date || dv.engas_date);
         
-        if (!completedDate) {
+        if (!completedDate || !createdDate) {
             return {
                 totalDuration: '0 days',
                 insideDuration: '0 days',
@@ -59,7 +58,45 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
             };
         }
 
-        // Find reallocation points
+        // Calculate total duration
+        const totalDays = Math.ceil((completedDate - createdDate) / (1000 * 60 * 60 * 24));
+
+        // Calculate outside accounting duration
+        let outsideDays = 0;
+
+        // For RTS duration
+        if (dv.rts_out_date && dv.rts_in_date) {
+            const rtsOutDate = new Date(dv.rts_out_date);
+            const rtsInDate = new Date(dv.rts_in_date);
+            outsideDays += Math.ceil((rtsInDate - rtsOutDate) / (1000 * 60 * 60 * 24));
+        }
+
+        // For NORSA duration
+        if (dv.norsa_out_date && dv.norsa_in_date) {
+            const norsaOutDate = new Date(dv.norsa_out_date);
+            const norsaInDate = new Date(dv.norsa_in_date);
+            outsideDays += Math.ceil((norsaInDate - norsaOutDate) / (1000 * 60 * 60 * 24));
+        }
+
+        // For Approval duration (out for approval)
+        if (dv.approval_out_date && dv.approval_in_date) {
+            const approvalOutDate = new Date(dv.approval_out_date);
+            const approvalInDate = new Date(dv.approval_in_date);
+            outsideDays += Math.ceil((approvalInDate - approvalOutDate) / (1000 * 60 * 60 * 24));
+        }
+
+        // For Cashiering duration (out to cashiering)
+        if (dv.cashiering_out_date && dv.cashiering_in_date) {
+            const cashieringOutDate = new Date(dv.cashiering_out_date);
+            const cashieringInDate = new Date(dv.cashiering_in_date);
+            outsideDays += Math.ceil((cashieringInDate - cashieringOutDate) / (1000 * 60 * 60 * 24));
+        }
+
+        // Inside accounting duration = total - outside
+        const insideDays = Math.max(0, totalDays - outsideDays);
+
+        // Find reallocation points for cycles
+        const history = dv.transaction_history || [];
         const reallocationPoints = history
             .filter(entry => entry.action.includes('Cash Reallocation'))
             .map(entry => ({
@@ -103,43 +140,13 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
             });
         }
 
-        // Calculate inside vs outside accounting duration
-        let insideAccountingDuration = 0;
-        let outsideAccountingDuration = 0;
-        
-        // Process transaction history to calculate inside/outside durations
-        for (let i = 0; i < history.length - 1; i++) {
-            const currentEntry = history[i];
-            const nextEntry = history[i + 1];
-            const duration = calculateDuration(currentEntry.date, nextEntry.date);
-            
-            if (isOutsideAccounting(currentEntry.action)) {
-                outsideAccountingDuration += duration;
-            } else {
-                insideAccountingDuration += duration;
-            }
-        }
-
-        // Handle the last entry to completion
-        if (history.length > 0) {
-            const lastEntry = history[history.length - 1];
-            const finalDuration = calculateDuration(lastEntry.date, completedDate);
-            
-            if (isOutsideAccounting(lastEntry.action)) {
-                outsideAccountingDuration += finalDuration;
-            } else {
-                insideAccountingDuration += finalDuration;
-            }
-        }
-
-        const totalDuration = cycles.reduce((sum, cycle) => sum + cycle.duration, 0);
         const currentCycleDuration = cycles.filter(c => c.type === 'current')[0]?.duration || 0;
         const previousCyclesDuration = cycles.filter(c => c.type === 'completed').reduce((sum, cycle) => sum + cycle.duration, 0);
 
         return {
-            totalDuration: formatDuration(totalDuration),
-            insideDuration: formatDuration(insideAccountingDuration),
-            outsideDuration: formatDuration(outsideAccountingDuration),
+            totalDuration: formatDuration(totalDays),
+            insideDuration: formatDuration(insideDays),
+            outsideDuration: formatDuration(outsideDays),
             currentCycleDuration: formatDuration(currentCycleDuration),
             previousCyclesDuration: formatDuration(previousCyclesDuration),
             hasReallocation,
@@ -894,24 +901,32 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
                                     <span className="text-xs font-medium text-blue-700">Completed</span>
                                     <span className="text-xs text-blue-800">{formatDate(dv.lddap_date || dv.cdj_date || dv.engas_date)}</span>
                                 </div>
-                                <div className="flex justify-between items-center border-t border-blue-200 pt-2">
-                                    <span className="text-xs font-semibold text-blue-700">Total Duration</span>
-                                    <span className="text-xs font-semibold text-blue-800">
-                                        {(() => {
-                                            try {
-                                                const metrics = calculateDurationMetrics();
-                                                return metrics.totalDuration;
-                                            } catch (error) {
-                                                console.error('Duration calculation error:', error);
-                                                const start = new Date(dv.created_at);
-                                                const end = new Date(dv.lddap_date || dv.cdj_date || dv.engas_date);
-                                                const diffTime = Math.abs(end - start);
-                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                                return diffDays === 1 ? '1 day' : `${diffDays} days`;
-                                            }
-                                        })()}
-                                    </span>
-                                </div>
+                                
+                                {/* Duration Breakdown */}
+                                {(() => {
+                                    const metrics = calculateDurationMetrics();
+                                    return (
+                                        <div className="border-t border-blue-200 pt-2 space-y-2">
+                                            {/* Inside Accounting Duration */}
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-medium text-green-700">📊 Inside Accounting</span>
+                                                <span className="text-xs font-semibold text-green-800">{metrics.insideDuration}</span>
+                                            </div>
+                                            
+                                            {/* Outside Accounting Duration */}
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-medium text-orange-700">🌐 Outside Accounting</span>
+                                                <span className="text-xs font-semibold text-orange-800">{metrics.outsideDuration}</span>
+                                            </div>
+                                            
+                                            {/* Total Duration */}
+                                            <div className="flex justify-between items-center border-t border-blue-200 pt-2">
+                                                <span className="text-xs font-semibold text-blue-700">⏱️ Total Duration</span>
+                                                <span className="text-xs font-semibold text-blue-800">{metrics.totalDuration}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </div>
 
