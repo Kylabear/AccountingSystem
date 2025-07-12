@@ -210,6 +210,47 @@ export default function IncomingDvs() {
         }
     };
 
+    // Handle LDDAP certification
+    const handleLddapCertification = async (data) => {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+
+            const response = await fetch(`/incoming-dvs/${selectedDv.id}/lddap-certify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    lddap_date: data.lddap_date
+                })
+            });
+
+            if (response.ok) {
+                alert('✅ LDDAP certification completed successfully! DV is now processed.');
+                // Close modal and refresh page to show updated DV status
+                setIsLddapModalOpen(false);
+                setSelectedDv(null);
+                window.location.reload();
+            } else {
+                const responseData = await response.json();
+                alert(`❌ Error certifying LDDAP: ${responseData.message || responseData.error || 'Unknown server error'}`);
+            }
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                alert('❌ Network error: Could not connect to server. Please check if the server is running.');
+            } else {
+                alert(`❌ Error certifying LDDAP: ${error.message}`);
+            }
+        }
+    };
+
     // Handle DV returned from approval
     const handleApprovalIn = async (dv) => {
         try {
@@ -287,6 +328,9 @@ export default function IncomingDvs() {
             } else if (activeTab === 'for_payment') {
                 // For Payment tab shows DVs in for_payment OR out_to_cashiering status
                 matchesStatus = ['for_payment', 'out_to_cashiering'].includes(dv.status);
+            } else if (activeTab === 'for_lddap') {
+                // For LDDAP tab shows DVs in for_lddap status
+                matchesStatus = dv.status === 'for_lddap';
             } else {
                 matchesStatus = dv.status === activeTab;
             }
@@ -341,6 +385,23 @@ export default function IncomingDvs() {
             normalizeForSearch(dv.particulars).includes(normalizedSearchTerm);
         
         return isSentOut && matchesSearch;
+    }) : [];
+
+    // Filter LDDAP DVs for LDDAP tab
+    const lddapDvs = activeTab === 'for_lddap' ? dvs.filter((dv) => {
+        // Show DVs in for_lddap status
+        const isLddap = dv.status === 'for_lddap';
+        
+        // Apply search filter to LDDAP DVs too
+        const normalizedSearchTerm = normalizeForSearch(searchTerm);
+        const matchesSearch = normalizedSearchTerm === '' || 
+            normalizeForSearch(dv.dv_number).includes(normalizedSearchTerm) ||
+            normalizeForSearch(dv.payee).includes(normalizedSearchTerm) ||
+            normalizeForSearch(dv.transaction_type).includes(normalizedSearchTerm) ||
+            normalizeForSearch(dv.account_number).includes(normalizedSearchTerm) ||
+            normalizeForSearch(dv.particulars).includes(normalizedSearchTerm);
+        
+        return isLddap && matchesSearch;
     }) : [];
 
     // Debug logging for cash allocation tab to check PLHHH and Frenzel Atuan
@@ -421,6 +482,10 @@ export default function IncomingDvs() {
         else if (dv.status === 'for_rts_in' || dv.status === 'for_norsa_in') {
             // Check if it's part of RTS/NORSA cycle, otherwise use regular modal
             setIsRtsNorsaModalOpen(true);
+        }
+        // For LDDAP certification, open LDDAP modal
+        else if (dv.status === 'for_lddap') {
+            setIsLddapModalOpen(true);
         }
         // Default to DV Details modal for all other statuses
         else {
@@ -552,6 +617,9 @@ export default function IncomingDvs() {
                                         count = dvs.filter(dv => ['for_payment', 'out_to_cashiering'].includes(dv.status)).length;                    } else if (status.key === 'for_cash_allocation') {
                         // Count DVs in for_cash_allocation status (excluding reallocated ones)
                         count = dvs.filter(dv => dv.status === 'for_cash_allocation' && !dv.is_reallocated).length;
+                                    } else if (status.key === 'for_lddap') {
+                                        // Count DVs in for_lddap status
+                                        count = dvs.filter(dv => dv.status === 'for_lddap').length;
                                     } else {
                                         // Count DVs with this specific status
                                         count = dvs.filter(dv => dv.status === status.key).length;
@@ -594,21 +662,7 @@ export default function IncomingDvs() {
                             </div>
                         </div>
 
-                        {/* Action Buttons Section */}
-                        <div className="p-4 border-t border-gray-200 bg-gray-50">
-                            <h3 className="text-md font-bold text-gray-700 mb-3 uppercase tracking-wide">
-                                ⚡ Quick Actions
-                            </h3>
-                            
-                            {/* Download Button */}
-                            <button
-                                onClick={() => setIsDownloadModalOpen(true)}
-                                className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center text-sm font-medium transition-colors duration-200"
-                            >
-                                <span className="mr-2">📥</span>
-                                Download Reports
-                            </button>
-                        </div>
+
                     </div>
 
                     {/* Main Content Area - Simple responsive design */}
@@ -694,6 +748,12 @@ export default function IncomingDvs() {
                                         ({sortedDvs.length} waiting to be sent{approvalOutDvs.length > 0 ? `, ${approvalOutDvs.length} out for approval` : ''})
                                     </span>
                                 )}
+                                {/* Show breakdown for LDDAP */}
+                                {activeTab === 'for_lddap' && (
+                                    <span className="ml-4 text-gray-500 text-xs">
+                                        ({lddapDvs.length} DVs for LDDAP certification)
+                                    </span>
+                                )}
                             </p>
                         </div>
 
@@ -747,6 +807,19 @@ export default function IncomingDvs() {
                                                                 className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
                                                             >
                                                                 Out
+                                                            </button>
+                                                        )}
+                                                        {/* Show "Certify" button for LDDAP tab */}
+                                                        {activeTab === 'for_lddap' && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsLddapModalOpen(true);
+                                                                }}
+                                                                className="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors duration-200"
+                                                            >
+                                                                Certify
                                                             </button>
                                                         )}
                                                         <button
@@ -986,6 +1059,103 @@ export default function IncomingDvs() {
                                 )}
                             </div>
                         )}
+
+                        {/* For LDDAP Certification Section - Only show in LDDAP tab */}
+                        {activeTab === 'for_lddap' && (
+                            <div className="mt-12">
+                                {/* Section Header */}
+                                <div className="mb-6 border-t pt-8">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+                                        <span className="mr-3 text-3xl">🔒</span>
+                                        For LDDAP Certification
+                                    </h2>
+                                    {lddapDvs.length > 0 ? (
+                                        <p className="text-gray-600 text-sm">
+                                            {lddapDvs.length} {lddapDvs.length === 1 ? 'DV' : 'DVs'} currently awaiting LDDAP certification
+                                            {searchTerm && (
+                                                <span className="ml-2 text-gray-600 font-medium">
+                                                    matching "{searchTerm}"
+                                                </span>
+                                            )}
+                                        </p>
+                                    ) : (
+                                        <p className="text-gray-500 text-sm italic">
+                                            No DVs currently awaiting LDDAP certification. DVs will appear here when they are ready for certification.
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* LDDAP DV Cards */}
+                                {lddapDvs.length > 0 && (
+                                    <div className="space-y-4">
+                                        {lddapDvs.map((dv) => (
+                                            <div 
+                                                key={`lddap-${dv.id}`}
+                                                className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                onClick={() => handleDvClick(dv)}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
+                                                            {dv.payee}
+                                                            {/* LDDAP status tag */}
+                                                            <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded-full border border-gray-300 font-semibold">
+                                                                🔒 Awaiting LDDAP Certification
+                                                            </span>
+                                                        </h3>
+                                                        <p className="text-gray-600 text-sm mb-1">
+                                                            {dv.dv_number}
+                                                        </p>
+                                                        <p className="text-gray-600 text-sm mb-2 italic">
+                                                            {dv.particulars && dv.particulars.length > 50 
+                                                                ? dv.particulars.substring(0, 50) + '...'
+                                                                : dv.particulars || 'No particulars specified'}
+                                                        </p>
+                                                        {/* Show LDDAP info */}
+                                                        {dv.lddap_date && (
+                                                            <p className="text-gray-600 text-xs mb-2">
+                                                                Awaiting LDDAP on: {new Date(dv.lddap_date).toLocaleDateString()}
+                                                            </p>
+                                                        )}
+                                                        <p className="text-gray-800 font-medium">
+                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                                minimumFractionDigits: 2,
+                                                                maximumFractionDigits: 2
+                                                            })}
+                                                            {dv.net_amount && (
+                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="flex flex-col items-end space-y-2">
+                                                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-gray-500">
+                                                                Awaiting LDDAP
+                                                            </span>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedDv(dv);
+                                                                    setIsLddapModalOpen(true);
+                                                                }}
+                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                            >
+                                                                Certify
+                                                            </button>
+                                                        </div>
+                                                        {dv.created_at && (
+                                                            <p className="text-xs text-gray-500 mt-2">
+                                                                Original: {new Date(dv.created_at).toLocaleDateString()}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -998,6 +1168,42 @@ export default function IncomingDvs() {
                     setIsModalOpen(false);
                     setSelectedDv(null);
                 }}
+                onStatusUpdate={async (dvId, newStatus, additionalData = {}) => {
+                    try {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                        
+                        if (!csrfToken) {
+                            alert('CSRF token not found. Please refresh the page and try again.');
+                            return;
+                        }
+
+                        const response = await fetch(`/incoming-dvs/${dvId}/status`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                status: newStatus,
+                                ...additionalData
+                            })
+                        });
+
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            const responseData = await response.json();
+                            alert(`❌ Error updating status: ${responseData.message || responseData.error || 'Unknown server error'}`);
+                        }
+                    } catch (error) {
+                        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                            alert('❌ Network error: Could not connect to server. Please check if the server is running.');
+                        } else {
+                            alert(`❌ Error updating status: ${error.message}`);
+                        }
+                    }
+                }}
             />
 
             <RtsNorsaModal
@@ -1006,6 +1212,11 @@ export default function IncomingDvs() {
                 onClose={() => {
                     setIsRtsNorsaModalOpen(false);
                     setSelectedDv(null);
+                }}
+                onUpdate={() => {
+                    setIsRtsNorsaModalOpen(false);
+                    setSelectedDv(null);
+                    window.location.reload();
                 }}
             />
 
@@ -1030,6 +1241,11 @@ export default function IncomingDvs() {
                     setIsIndexingModalOpen(false);
                     setSelectedDv(null);
                 }}
+                onSubmit={() => {
+                    setIsIndexingModalOpen(false);
+                    setSelectedDv(null);
+                    window.location.reload();
+                }}
             />
 
             <PaymentMethodModal
@@ -1038,6 +1254,11 @@ export default function IncomingDvs() {
                 onClose={() => {
                     setIsPaymentMethodModalOpen(false);
                     setSelectedDv(null);
+                }}
+                onSubmit={() => {
+                    setIsPaymentMethodModalOpen(false);
+                    setSelectedDv(null);
+                    window.location.reload();
                 }}
             />
 
@@ -1048,6 +1269,11 @@ export default function IncomingDvs() {
                     setIsEngasModalOpen(false);
                     setSelectedDv(null);
                 }}
+                onSubmit={() => {
+                    setIsEngasModalOpen(false);
+                    setSelectedDv(null);
+                    window.location.reload();
+                }}
             />
 
             <CdjModal
@@ -1056,6 +1282,11 @@ export default function IncomingDvs() {
                 onClose={() => {
                     setIsCdjModalOpen(false);
                     setSelectedDv(null);
+                }}
+                onSubmit={() => {
+                    setIsCdjModalOpen(false);
+                    setSelectedDv(null);
+                    window.location.reload();
                 }}
             />
 
@@ -1066,6 +1297,7 @@ export default function IncomingDvs() {
                     setIsLddapModalOpen(false);
                     setSelectedDv(null);
                 }}
+                onSubmit={handleLddapCertification}
             />
 
             <EditDvModal

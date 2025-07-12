@@ -7,6 +7,72 @@ export default function RtsNorsaModal({ dv, isOpen, onClose, onUpdate }) {
         norsa_number: ''
     });
     const [processing, setProcessing] = useState(false);
+    const [errors, setErrors] = useState({});
+
+    // NORSA number validation and formatting
+    const handleNorsaNumberChange = (e) => {
+        let value = e.target.value;
+        
+        // Remove any non-digit characters
+        let digitsOnly = value.replace(/[^0-9]/g, '');
+        
+        // Limit to maximum 10 digits (4 year + 2 month + 4 serial)
+        if (digitsOnly.length > 10) {
+            digitsOnly = digitsOnly.slice(0, 10);
+        }
+        
+        // Auto-format based on length
+        let formattedValue = '';
+        
+        if (digitsOnly.length <= 4) {
+            // Just the year part
+            formattedValue = digitsOnly;
+        } else if (digitsOnly.length <= 6) {
+            // Year + month
+            formattedValue = digitsOnly.slice(0, 4) + '-' + digitsOnly.slice(4);
+        } else {
+            // Year + month + serial number (up to 4 digits)
+            formattedValue = digitsOnly.slice(0, 4) + '-' + digitsOnly.slice(4, 6) + '-' + digitsOnly.slice(6, 10);
+        }
+        
+        setFormData(prev => ({ ...prev, norsa_number: formattedValue }));
+        
+        // Clear error when user starts typing
+        if (errors.norsa_number) {
+            setErrors(prev => ({ ...prev, norsa_number: '' }));
+        }
+    };
+
+    const validateNorsaNumber = (value) => {
+        if (!value) return '';
+        
+        // Pattern: YYYY-MM-XXXX (where XXXX is exactly 4 digits)
+        const pattern = /^(\d{4})-(\d{2})-(\d{4})$/;
+        const match = value.match(pattern);
+        
+        if (!match) {
+            return 'Format must be YYYY-MM-XXXX (e.g., 2025-01-5436)';
+        }
+        
+        const [, yearStr, monthStr, numberStr] = match;
+        const year = parseInt(yearStr);
+        const month = parseInt(monthStr);
+        const number = parseInt(numberStr);
+        
+        if (year < 2020 || year > 2030) {
+            return 'Year must be between 2020 and 2030';
+        }
+        
+        if (month < 1 || month > 12) {
+            return 'Month must be between 01 and 12';
+        }
+        
+        if (number === 0) {
+            return 'Serial number cannot be 0000';
+        }
+        
+        return '';
+    };
 
     // Get current date in YYYY-MM-DD format
     const getCurrentDate = () => {
@@ -40,6 +106,15 @@ export default function RtsNorsaModal({ dv, isOpen, onClose, onUpdate }) {
     const mode = getInteractionMode();
 
     const handleSubmit = (action) => {
+        // Validate NORSA number if sending to NORSA
+        if (action === 'send_to_norsa' || action === 'mark_as_norsa') {
+            const norsaError = validateNorsaNumber(formData.norsa_number);
+            if (norsaError) {
+                setErrors(prev => ({ ...prev, norsa_number: norsaError }));
+                return;
+            }
+        }
+
         setProcessing(true);
         
         const currentDate = getCurrentDate();
@@ -358,10 +433,18 @@ export default function RtsNorsaModal({ dv, isOpen, onClose, onUpdate }) {
                                     <input
                                         type="text"
                                         value={formData.norsa_number}
-                                        onChange={(e) => setFormData({...formData, norsa_number: e.target.value})}
-                                        className="w-full p-3 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none"
-                                        placeholder="Enter NORSA number"
+                                        onChange={handleNorsaNumberChange}
+                                        className={`w-full p-3 border rounded-lg focus:outline-none ${
+                                            errors.norsa_number 
+                                                ? 'border-red-500 focus:border-red-500' 
+                                                : 'border-gray-300 focus:border-green-500'
+                                        }`}
+                                        placeholder="YYYY-MM-XXXX (e.g., 2025-01-5436)"
+                                        maxLength={12}
                                     />
+                                    {errors.norsa_number && (
+                                        <p className="text-red-500 text-xs mt-1">{errors.norsa_number}</p>
+                                    )}
                                 </div>
                             </div>
 

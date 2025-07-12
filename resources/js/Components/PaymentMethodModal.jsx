@@ -3,9 +3,78 @@ import { useState, useEffect } from 'react';
 export default function PaymentMethodModal({ dv, isOpen, onClose, onSubmit }) {
     const [paymentMethod, setPaymentMethod] = useState('');
     const [lddapNumber, setLddapNumber] = useState('');
+    const [errors, setErrors] = useState({});
+
+    // LDDAP number validation and formatting
+    const handleLddapNumberChange = (e) => {
+        let value = e.target.value;
+        
+        // Remove any non-digit characters
+        let digitsOnly = value.replace(/[^0-9]/g, '');
+        
+        // Limit to maximum 11 digits (3 + 2 + 3 + 4)
+        if (digitsOnly.length > 12) {
+            digitsOnly = digitsOnly.slice(0, 12);
+        }
+        
+        // Auto-format based on length
+        let formattedValue = '';
+        
+        if (digitsOnly.length <= 3) {
+            // Just the first part
+            formattedValue = digitsOnly;
+        } else if (digitsOnly.length <= 5) {
+            // First + second part
+            formattedValue = digitsOnly.slice(0, 3) + '-' + digitsOnly.slice(3);
+        } else if (digitsOnly.length <= 8) {
+            // First + second + third part
+            formattedValue = digitsOnly.slice(0, 3) + '-' + digitsOnly.slice(3, 5) + '-' + digitsOnly.slice(5);
+        } else {
+            // Complete format
+            formattedValue = digitsOnly.slice(0, 3) + '-' + digitsOnly.slice(3, 5) + '-' + digitsOnly.slice(5, 8) + '-' + digitsOnly.slice(8, 12);
+        }
+        
+        setLddapNumber(formattedValue);
+        
+        // Clear error when user starts typing
+        if (errors.lddapNumber) {
+            setErrors(prev => ({ ...prev, lddapNumber: '' }));
+        }
+    };
+
+    const validateLddapNumber = (value) => {
+        if (!value) return '';
+        
+        // Pattern: NNN-MM-SRN-YYYY (where NNN=3 digits, MM=2 digits, SRN=3 digits, YYYY=4 digits)
+        const pattern = /^(\d{3})-(\d{2})-(\d{3})-(\d{4})$/;
+        const match = value.match(pattern);
+        
+        if (!match) {
+            return 'Format must be NNN-MM-SRN-YYYY (e.g., 101-06-456-2025)';
+        }
+        
+        const [, firstPart, secondPart, thirdPart, yearStr] = match;
+        const year = parseInt(yearStr);
+        
+        if (year < 2020 || year > 2030) {
+            return 'Year must be between 2020 and 2030';
+        }
+        
+        return '';
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // Validate LDDAP number if LDDAP payment method is selected
+        if (paymentMethod === 'lddap') {
+            const lddapError = validateLddapNumber(lddapNumber);
+            if (lddapError) {
+                setErrors(prev => ({ ...prev, lddapNumber: lddapError }));
+                return;
+            }
+        }
+        
         const data = {
             payment_method: paymentMethod
         };
@@ -355,11 +424,19 @@ export default function PaymentMethodModal({ dv, isOpen, onClose, onSubmit }) {
                                         <input
                                             type="text"
                                             value={lddapNumber}
-                                            onChange={(e) => setLddapNumber(e.target.value)}
-                                            className="w-full border border-gray-300 rounded-lg p-2 focus:border-payment focus:outline-none"
-                                            placeholder="Enter LDDAP number"
+                                            onChange={handleLddapNumberChange}
+                                            className={`w-full border rounded-lg p-2 focus:outline-none ${
+                                                errors.lddapNumber 
+                                                    ? 'border-red-500 focus:border-red-500' 
+                                                    : 'border-gray-300 focus:border-payment'
+                                            }`}
+                                            placeholder="NNN-MM-SRN-YYYY (e.g., 101-06-456-2025)"
+                                            maxLength={15}
                                             required
                                         />
+                                        {errors.lddapNumber && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.lddapNumber}</p>
+                                        )}
                                     </div>
                                 )}
 
@@ -371,6 +448,23 @@ export default function PaymentMethodModal({ dv, isOpen, onClose, onSubmit }) {
                                     >
                                         💳 Set Payment Method
                                     </button>
+                                    {paymentMethod && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (confirm('Send this DV out to cashiering?')) {
+                                                    onSubmit({
+                                                        payment_method: paymentMethod,
+                                                        lddap_number: paymentMethod === 'lddap' ? lddapNumber : undefined,
+                                                        action: 'out_to_cashiering'
+                                                    });
+                                                }
+                                            }}
+                                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                        >
+                                            📤 Out to Cashiering
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </form>

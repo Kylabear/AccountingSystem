@@ -44,7 +44,7 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
         }
 
         const createdDate = new Date(dv.created_at);
-        const completedDate = new Date(dv.lddap_date || dv.cdj_date || dv.engas_date);
+        const completedDate = new Date(dv.processed_date || dv.lddap_certified_date || dv.lddap_date || dv.cdj_date || dv.engas_date);
         
         if (!completedDate || !createdDate) {
             return {
@@ -59,7 +59,7 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
         }
 
         // Calculate total duration
-        const totalDays = Math.ceil((completedDate - createdDate) / (1000 * 60 * 60 * 24));
+        const totalDays = Math.max(0, Math.ceil((completedDate - createdDate) / (1000 * 60 * 60 * 24)));
 
         // Calculate outside accounting duration
         let outsideDays = 0;
@@ -68,28 +68,28 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
         if (dv.rts_out_date && dv.rts_in_date) {
             const rtsOutDate = new Date(dv.rts_out_date);
             const rtsInDate = new Date(dv.rts_in_date);
-            outsideDays += Math.ceil((rtsInDate - rtsOutDate) / (1000 * 60 * 60 * 24));
+            outsideDays += Math.max(0, Math.ceil((rtsInDate - rtsOutDate) / (1000 * 60 * 60 * 24)));
         }
 
         // For NORSA duration
         if (dv.norsa_out_date && dv.norsa_in_date) {
             const norsaOutDate = new Date(dv.norsa_out_date);
             const norsaInDate = new Date(dv.norsa_in_date);
-            outsideDays += Math.ceil((norsaInDate - norsaOutDate) / (1000 * 60 * 60 * 24));
+            outsideDays += Math.max(0, Math.ceil((norsaInDate - norsaOutDate) / (1000 * 60 * 60 * 24)));
         }
 
         // For Approval duration (out for approval)
         if (dv.approval_out_date && dv.approval_in_date) {
             const approvalOutDate = new Date(dv.approval_out_date);
             const approvalInDate = new Date(dv.approval_in_date);
-            outsideDays += Math.ceil((approvalInDate - approvalOutDate) / (1000 * 60 * 60 * 24));
+            outsideDays += Math.max(0, Math.ceil((approvalInDate - approvalOutDate) / (1000 * 60 * 60 * 24)));
         }
 
         // For Cashiering duration (out to cashiering)
         if (dv.cashiering_out_date && dv.cashiering_in_date) {
             const cashieringOutDate = new Date(dv.cashiering_out_date);
             const cashieringInDate = new Date(dv.cashiering_in_date);
-            outsideDays += Math.ceil((cashieringInDate - cashieringOutDate) / (1000 * 60 * 60 * 24));
+            outsideDays += Math.max(0, Math.ceil((cashieringInDate - cashieringOutDate) / (1000 * 60 * 60 * 24)));
         }
 
         // Inside accounting duration = total - outside

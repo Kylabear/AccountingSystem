@@ -22,6 +22,8 @@ export default {
                 'engas': '#EA3680',
                 'cdj': '#784315',
                 'lddap': '#000000',
+                'lddap-light': '#f3f4f6',
+                'lddap-dark': '#1f2937',
             },
             borderColor: {
                 'recents': '#73FBFD',

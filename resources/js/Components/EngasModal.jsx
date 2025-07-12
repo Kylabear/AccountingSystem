@@ -36,15 +36,15 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-    const placeholder = `${year}-${month}-00001`;
+    const placeholder = `${year}-${month}-000001`;
 
     const validateEngasNumber = (value) => {
-        // Pattern: YYYY-MM-XXXXX (where XXXXX is exactly 5 digits)
-        const pattern = /^(\d{4})-(\d{2})-(\d{5})$/;
+        // Pattern: YYYY-MM-XXXXXX (where XXXXXX is exactly 6 digits)
+        const pattern = /^(\d{4})-(\d{2})-(\d{6})$/;
         const match = value.match(pattern);
         
         if (!match) {
-            return 'Format must be YYYY-MM-XXXXX (e.g., 2025-06-00001)';
+            return 'Format must be YYYY-MM-XXXXXX (e.g., 2025-07-000457)';
         }
         
         const [, yearStr, monthStr, numberStr] = match;
@@ -61,14 +61,14 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
         }
         
         if (number === 0) {
-            return 'Serial number cannot be 00000';
+            return 'Serial number cannot be 000000';
         }
         
         return '';
     };
 
     const isValidFormat = (value) => {
-        const pattern = /^(\d{4})-(\d{2})-(\d{5})$/;
+        const pattern = /^(\d{4})-(\d{2})-(\d{6})$/;
         const match = value.match(pattern);
         
         if (!match) return false;
@@ -89,9 +89,9 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
         // Remove any non-digit characters
         let digitsOnly = value.replace(/[^0-9]/g, '');
         
-        // Limit to maximum 11 digits (4 year + 2 month + 5 serial)
-        if (digitsOnly.length > 11) {
-            digitsOnly = digitsOnly.slice(0, 11);
+        // Limit to maximum 12 digits (4 year + 2 month + 6 serial)
+        if (digitsOnly.length > 12) {
+            digitsOnly = digitsOnly.slice(0, 12);
         }
         
         // Auto-format based on length
@@ -104,8 +104,8 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
             // Year + month
             formattedValue = digitsOnly.slice(0, 4) + '-' + digitsOnly.slice(4);
         } else {
-            // Year + month + serial number (up to 5 digits)
-            formattedValue = digitsOnly.slice(0, 4) + '-' + digitsOnly.slice(4, 6) + '-' + digitsOnly.slice(6, 11);
+            // Year + month + serial number (up to 6 digits)
+            formattedValue = digitsOnly.slice(0, 4) + '-' + digitsOnly.slice(4, 6) + '-' + digitsOnly.slice(6, 12);
         }
         
         setEngasNumber(formattedValue);
@@ -476,14 +476,14 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
                                                 error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-engas'
                                             }`}
                                             placeholder={placeholder}
-                                            maxLength="13"
+                                            maxLength="14"
                                             required
                                         />
                                         {error && (
                                             <p className="text-red-500 text-xs mt-1">{error}</p>
                                         )}
                                         <p className="text-gray-500 text-xs mt-1">
-                                            Format: YYYY-MM-XXXXX (e.g., {placeholder})
+                                            Format: YYYY-MM-XXXXXX (e.g., {placeholder})
                                         </p>
                                         {engasNumber && !error && isValidFormat(engasNumber) && (
                                             <p className="text-green-600 text-xs mt-1">✓ Valid format</p>
@@ -515,6 +515,23 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
                                         >
                                             🌐 Record E-NGAS
                                         </button>
+                                        {isFormValid && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (confirm('Proceed to CDJ Recording?')) {
+                                                        onSubmit({
+                                                            engas_number: engasNumber,
+                                                            engas_date: engasDate,
+                                                            action: 'proceed_to_cdj'
+                                                        });
+                                                    }
+                                                }}
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                                📊 Proceed to CDJ
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
