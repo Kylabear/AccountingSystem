@@ -449,21 +449,38 @@ export default function PaymentMethodModal({ dv, isOpen, onClose, onSubmit }) {
                                         💳 Set Payment Method
                                     </button>
                                     {paymentMethod && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (confirm('Send this DV out to cashiering?')) {
-                                                    onSubmit({
-                                                        payment_method: paymentMethod,
-                                                        lddap_number: paymentMethod === 'lddap' ? lddapNumber : undefined,
-                                                        action: 'out_to_cashiering'
-                                                    });
-                                                }
-                                            }}
-                                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                                        >
-                                            📤 Out to Cashiering
-                                        </button>
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (confirm('Send this DV out to cashiering?')) {
+                                                        onSubmit({
+                                                            payment_method: paymentMethod,
+                                                            lddap_number: paymentMethod === 'lddap' ? lddapNumber : undefined,
+                                                            action: 'out_to_cashiering'
+                                                        });
+                                                    }
+                                                }}
+                                                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                            >
+                                                📤 Out to Cashiering
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (confirm('Send this DV for E-NGAS recording?')) {
+                                                        onSubmit({
+                                                            payment_method: paymentMethod,
+                                                            lddap_number: paymentMethod === 'lddap' ? lddapNumber : undefined,
+                                                            action: 'for_engas'
+                                                        });
+                                                    }
+                                                }}
+                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                                🌐 For E-NGAS
+                                            </button>
+                                        </>
                                     )}
                                 </div>
                             </div>

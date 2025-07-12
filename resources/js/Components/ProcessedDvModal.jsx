@@ -196,6 +196,11 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
 
     if (!isOpen || !dv) return null;
 
+    // Check for invalid date order
+    const createdDate = new Date(dv.created_at);
+    const completedDate = new Date(dv.processed_date || dv.lddap_certified_date || dv.lddap_date || dv.cdj_date || dv.engas_date);
+    const invalidDateOrder = completedDate < createdDate;
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '60px', paddingBottom: '20px' }}>
             <div className="bg-white rounded-lg w-full max-w-7xl max-h-screen overflow-hidden m-4 flex flex-col">
@@ -214,6 +219,11 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
                     <div className="flex-1 space-y-6">
                             {/* Disbursement Voucher Information */}
                             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                {invalidDateOrder && (
+                                    <div className="mb-4 p-3 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 rounded">
+                                        <strong>Warning:</strong> The processing completed date is before the DV creation date. Please check the transaction history for possible data entry errors. Duration is set to 0 days.
+                                    </div>
+                                )}
                                 <h3 className="text-lg font-semibold mb-4 text-green-800">📋 Disbursement Voucher Information</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>

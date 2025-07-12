@@ -519,17 +519,17 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    if (confirm('Proceed to CDJ Recording?')) {
+                                                    if (confirm('Send this DV for CDJ recording?')) {
                                                         onSubmit({
                                                             engas_number: engasNumber,
                                                             engas_date: engasDate,
-                                                            action: 'proceed_to_cdj'
+                                                            action: 'for_cdj'
                                                         });
                                                     }
                                                 }}
                                                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                                             >
-                                                📊 Proceed to CDJ
+                                                📊 For CDJ Recording
                                             </button>
                                         )}
                                     </div>

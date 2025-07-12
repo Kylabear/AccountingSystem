@@ -408,16 +408,16 @@ export default function CdjModal({ dv, isOpen, onClose, onSubmit }) {
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                if (confirm('Proceed to LDDAP Certification?')) {
+                                                if (confirm('Send this DV for LDDAP certification?')) {
                                                     onSubmit({
                                                         cdj_date: cdjDate,
-                                                        action: 'proceed_to_lddap'
+                                                        action: 'for_lddap'
                                                     });
                                                 }
                                             }}
                                             className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
                                         >
-                                            🔒 Proceed to LDDAP
+                                            🔒 For LDDAP Certification
                                         </button>
                                     </div>
                                 </div>

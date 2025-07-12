@@ -1,6 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import DvDetailsModal from '../Components/DvDetailsModal';
+    // Handler to update DV status using PUT
+    const handleStatusUpdate = (dvId, newStatus, extraData = {}) => {
+        router.put(`/incoming-dvs/${dvId}/status`, {
+            status: newStatus,
+            ...extraData
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsModalOpen(false);
+                setSelectedDv(null);
+            },
+            onError: (errors) => {
+                alert('❌ Error updating status: ' + (errors.status || 'Unknown error'));
+            }
+        });
+    };
 import RtsNorsaModal from '../Components/RtsNorsaModal';
 import CashAllocationModal from '../Components/CashAllocationModal';
 import IndexingModal from '../Components/IndexingModal';
@@ -535,20 +551,62 @@ export default function IncomingDvs() {
                                             </div>
                                             <div className="text-right">
                                                 <div className="flex flex-col items-end space-y-2">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium text-white`}
-                                                          style={{ backgroundColor: statuses.find(s => s.key === dv.status)?.bgColor || '#6B7280' }}>
-                                                        {statuses.find(s => s.key === dv.status)?.label || dv.status}
-                                                    </span>
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedDv(dv);
-                                                            setIsEditModalOpen(true);
-                                                        }}
-                                                        className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                    >
-                                                        Edit
-                                                    </button>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium text-white`}
+                      style={{ backgroundColor: statuses.find(s => s.key === dv.status)?.bgColor || '#6B7280' }}>
+                    {statuses.find(s => s.key === dv.status)?.label || dv.status}
+                </span>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDv(dv);
+                        setIsEditModalOpen(true);
+                    }}
+                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                >
+                    Edit
+                </button>
+                {/* Payment Modal Trigger: Only for for_payment or out_to_cashiering */}
+                {(dv.status === 'for_payment' || dv.status === 'out_to_cashiering') && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDv(dv);
+                            setIsPaymentMethodModalOpen(true);
+                        }}
+                        className="bg-purple-600 text-white px-3 py-1 rounded text-xs hover:bg-purple-700 transition-colors duration-200"
+                        style={{ marginTop: '2px' }}
+                    >
+                        Payment
+                    </button>
+                )}
+                {/* E-NGAS Modal Trigger: Only for for_engas */}
+                {dv.status === 'for_engas' && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDv(dv);
+                            setIsEngasModalOpen(true);
+                        }}
+                        className="bg-pink-600 text-white px-3 py-1 rounded text-xs hover:bg-pink-700 transition-colors duration-200"
+                        style={{ marginTop: '2px' }}
+                    >
+                        E-NGAS
+                    </button>
+                )}
+                {/* CDJ Modal Trigger: Only for for_cdj */}
+                {dv.status === 'for_cdj' && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDv(dv);
+                            setIsCdjModalOpen(true);
+                        }}
+                        className="bg-yellow-700 text-white px-3 py-1 rounded text-xs hover:bg-yellow-800 transition-colors duration-200"
+                        style={{ marginTop: '2px' }}
+                    >
+                        CDJ
+                    </button>
+                )}
                                                 </div>
                                                 {dv.created_at && (
                                                     <p className="text-xs text-gray-500 mt-2">
@@ -577,6 +635,7 @@ export default function IncomingDvs() {
                     setIsModalOpen(false);
                     setSelectedDv(null);
                 }}
+                onStatusUpdate={handleStatusUpdate}
             />
 
             <RtsNorsaModal
