@@ -5,6 +5,47 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
   const [rtsReason, setRtsReason] = useState('');
   const [rtsDate, setRtsDate] = useState('');
   const [norsaNumber, setNorsaNumber] = useState('');
+  const [norsaError, setNorsaError] = useState('');
+  // Strict NORSA number input handler (auto-format as YYYY-MM-NNNNN)
+  const handleNorsaNumberChange = (e) => {
+    let value = e.target.value.replace(/\D/g, ''); // Only digits
+    value = value.slice(0, 11); // Max 11 digits (4 year + 2 month + 5 serial)
+    let formatted = '';
+    if (value.length > 0) {
+      formatted = value.slice(0, 4);
+      if (value.length > 4) {
+        formatted += '-' + value.slice(4, 6);
+        if (value.length > 6) {
+          formatted += '-' + value.slice(6);
+        }
+      }
+    }
+    setNorsaNumber(formatted);
+    // Validate as user types
+    if (formatted.length === 12) {
+      const norsaPattern = /^\d{4}-\d{2}-\d{5}$/;
+      if (!norsaPattern.test(formatted)) {
+        setNorsaError('Format: YYYY-MM-NNNNN');
+      } else {
+        // Validate year and month
+        const [year, month, serial] = formatted.split('-');
+        const yearNum = parseInt(year);
+        const monthNum = parseInt(month);
+        const currentYear = new Date().getFullYear();
+        if (yearNum < 2020 || yearNum > currentYear + 1) {
+          setNorsaError(`Year must be 2020-${currentYear + 1}`);
+        } else if (monthNum < 1 || monthNum > 12) {
+          setNorsaError('Month must be 01-12');
+        } else {
+          setNorsaError('');
+        }
+      }
+    } else if (formatted.length > 0) {
+      setNorsaError('Format: YYYY-MM-NNNNN');
+    } else {
+      setNorsaError('');
+    }
+  };
   const [norsaDate, setNorsaDate] = useState('');
   
   // Cash allocation state variables
@@ -91,11 +132,29 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
   };
 
   const handleNORSA = () => {
+    const norsaPattern = /^\d{4}-\d{2}-\d{5}$/;
     if (!norsaNumber.trim() || !norsaDate) {
-      alert('Please fill in both NORSA number and date.');
+      setNorsaError('Please fill in both NORSA number and date.');
       return;
     }
-    
+    if (!norsaPattern.test(norsaNumber)) {
+      setNorsaError('Format: YYYY-MM-NNNNN');
+      return;
+    }
+    // Validate year and month
+    const [year, month, serial] = norsaNumber.split('-');
+    const yearNum = parseInt(year);
+    const monthNum = parseInt(month);
+    const currentYear = new Date().getFullYear();
+    if (yearNum < 2020 || yearNum > currentYear + 1) {
+      setNorsaError(`Year must be 2020-${currentYear + 1}`);
+      return;
+    }
+    if (monthNum < 1 || monthNum > 12) {
+      setNorsaError('Month must be 01-12');
+      return;
+    }
+    setNorsaError('');
     if (confirm('Process NORSA for this DV?')) {
       onStatusUpdate(dv.id, 'for_norsa_in', {
         norsa_number: norsaNumber,
@@ -1360,11 +1419,15 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                         <input
                           type="text"
                           value={norsaNumber}
-                          onChange={(e) => setNorsaNumber(e.target.value)}
-                          placeholder="Enter NORSA number..."
-                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                          onChange={handleNorsaNumberChange}
+                          placeholder="YYYY-MM-NNNNN"
+                          className={`w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none ${norsaError ? 'border-red-500' : ''}`}
+                          maxLength={12}
                           required
                         />
+                        {norsaError && (
+                          <p className="text-red-500 text-xs mt-1">{norsaError}</p>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         <button
