@@ -351,21 +351,34 @@ export default function IncomingDvs() {
     };
 
     // Handle status update
-    const handleStatusUpdate = (dvId, newStatus, additionalData = {}) => {
-        router.put(`/incoming-dvs/${dvId}/status`, {
-            status: newStatus,
-            ...additionalData
-        }, {
-            onSuccess: () => {
-                // The page will automatically refresh with updated data
+    const handleStatusUpdate = async (dvId, newStatus, additionalData = {}) => {
+        try {
+            const response = await fetch(`/incoming-dvs/${dvId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({
+                    status: newStatus,
+                    ...additionalData
+                })
+            });
+
+            if (response.ok) {
                 setIsModalOpen(false);
                 setSelectedDv(null);
-            },
-            onError: (errors) => {
-                console.error('Error updating status:', errors);
-                alert('Error updating DV status. Please try again.');
+                // Force page refresh to show updated data
+                window.location.reload();
+            } else {
+                const error = await response.json();
+                console.error('Error updating status:', error);
+                alert(`Error updating DV status: ${error.message || 'Please try again.'}`);
             }
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error updating DV status. Please try again.');
+        }
     };
 
     // Handle indexing
