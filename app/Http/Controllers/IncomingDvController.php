@@ -316,7 +316,7 @@ class IncomingDvController extends Controller
             'norsa_number' => [
                 'nullable',
                 'string',
-                'regex:/^\d{4}-\d{2}-\d{4}$/',
+                'regex:/^\d{4}-\d{2}-\d{5}$/',
                 function ($attribute, $value, $fail) {
                     if ($value) {
                         $parts = explode('-', $value);
@@ -378,7 +378,7 @@ class IncomingDvController extends Controller
             'transaction_history' => $transactionHistory,
         ]);
 
-        return redirect()->back()->with('success', 'DV status updated successfully.');
+        return response()->json(['success' => true, 'message' => 'DV status updated successfully.']);
     }
 
     public function updateRtsNorsa(Request $request, $id)
@@ -456,7 +456,7 @@ class IncomingDvController extends Controller
 
         $dv->update($updateData);
 
-        return redirect()->back()->with('success', 'DV RTS/NORSA status updated successfully.');
+        return response()->json(['success' => true, 'message' => 'DV RTS/NORSA status updated successfully.']);
     }
 
     public function updateCashAllocation(Request $request, $id)
@@ -511,7 +511,7 @@ class IncomingDvController extends Controller
             'is_reallocated' => false, // Clear reallocated flag to allow normal workflow progression
         ]);
 
-        return redirect()->back()->with('success', 'Cash allocation completed successfully.');
+        return response()->json(['success' => true, 'message' => 'Cash allocation completed successfully.']);
     }
 
     public function updateBoxCStatus(Request $request, $id)
@@ -606,7 +606,7 @@ class IncomingDvController extends Controller
                 break;
         }
 
-        return redirect()->back()->with('success', 'Box C action completed successfully.');
+        return response()->json(['success' => true, 'message' => 'Box C action completed successfully.']);
     }
 
     public function initializeTransactionHistory()

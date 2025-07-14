@@ -1422,7 +1422,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                           onChange={handleNorsaNumberChange}
                           placeholder="YYYY-MM-NNNNN"
                           className={`w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none ${norsaError ? 'border-red-500' : ''}`}
-                          maxLength={12}
+                          maxLength={13}
                           required
                         />
                         {norsaError && (
