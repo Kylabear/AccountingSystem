@@ -359,38 +359,35 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Payee</label>
-                  <p className="text-lg font-semibold">{dv.payee}</p>
+                  <p className="text-lg font-semibold">{dv.payee || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">DV Number</label>
-                  <p className="text-lg font-semibold">{dv.dv_number}</p>
+                  <p className="text-lg font-semibold">{dv.dv_number || 'N/A'}</p>
                 </div>
-                {(dv.status === 'for_review' || dv.status === 'for_cash_allocation') && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Receive Date</label>
-                    <p className="text-sm">{dv.created_at ? new Date(dv.created_at).toLocaleDateString() : 'N/A'}</p>
-                  </div>
-                )}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Receive Date</label>
+                  <p className="text-sm">{dv.created_at ? new Date(dv.created_at).toLocaleDateString() : 'N/A'}</p>
+                </div>
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-gray-700">Particulars</label>
-                  <p className="text-sm">{dv.particulars}</p>
+                  <p className="text-sm">{dv.particulars || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Amount as stated by DV</label>
                   <p className="text-lg font-semibold text-green-600">
-                    PHP {parseFloat(dv.amount).toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
+                    {dv.amount !== undefined && dv.amount !== null && dv.amount !== '' && !isNaN(parseFloat(dv.amount))
+                      ? `PHP ${parseFloat(dv.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      : 'N/A'}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Transaction Type</label>
-                  <p className="text-sm">{dv.transaction_type}</p>
+                  <p className="text-sm">{dv.transaction_type || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Implementing Unit</label>
-                  <p className="text-sm">{dv.implementing_unit}</p>
+                  <p className="text-sm">{dv.implementing_unit || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Account Number</label>
@@ -399,28 +396,44 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
               
               {/* ORS Details */}
-              {dv.ors_entries && dv.ors_entries.length > 0 && (
-                <div className="mt-4">
-                  <label className="text-sm font-medium text-gray-700">ORS Details</label>
+              <div className="mt-4">
+                {/* Removed 'ORS Details' label as requested */}
+                {dv.ors_entries && dv.ors_entries.length > 0 ? (
                   <div className="space-y-2 mt-2">
                     {dv.ors_entries.map((ors, index) => (
                       <div key={index} className="text-sm">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                           <div>
-                            <span className="font-medium">ORS No.:</span> {ors.ors_number || 'various'}
+                            <span className="font-medium">ORS No.:</span> {ors.ors_number ? ors.ors_number : 'N/A'}
                           </div>
                           <div>
-                            <span className="font-medium">Fund Source:</span> {ors.fund_source || 'various'}
+                            <span className="font-medium">Fund Source:</span> {ors.fund_source ? ors.fund_source : 'N/A'}
                           </div>
                           <div>
-                            <span className="font-medium">UACS/Object of Expenditure:</span> {ors.uacs || 'various'}
+                            <span className="font-medium">UACS/Object of Expenditure:</span> {ors.uacs ? ors.uacs : 'N/A'}
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-2 mt-2">
+                    <div className="text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div>
+                          <span className="font-medium">ORS No.:</span> N/A
+                        </div>
+                        <div>
+                          <span className="font-medium">Fund Source:</span> N/A
+                        </div>
+                        <div>
+                          <span className="font-medium">UACS/Object of Expenditure:</span> N/A
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* RTS Information - Only show if there are actual RTS records */}
