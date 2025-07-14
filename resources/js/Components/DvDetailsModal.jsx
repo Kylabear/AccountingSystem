@@ -130,16 +130,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
 
   const handleCertify = () => {
     if (confirm('Certify this DV?')) {
-      fetch(`/incoming-dvs/${dv.id}/box-c`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-        },
-        body: JSON.stringify({ action: 'certify' })
-      }).then(() => {
-        window.location.reload();
-      });
+      onStatusUpdate(dv.id, 'certified', { action: 'certify' });
       onClose();
     }
   };
@@ -149,21 +140,11 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
       alert('Please fill in both RTS date and reason.');
       return;
     }
-    
     if (confirm('Return this DV to sender from Box C?')) {
-      fetch(`/incoming-dvs/${dv.id}/box-c`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-        },
-        body: JSON.stringify({
-          action: 'rts',
-          rts_out_date: rtsDate,
-          rts_reason: rtsReason
-        })
-      }).then(() => {
-        window.location.reload();
+      onStatusUpdate(dv.id, 'for_rts_in', {
+        action: 'rts',
+        rts_out_date: rtsDate,
+        rts_reason: rtsReason
       });
       onClose();
       setActiveAction(null);
@@ -177,21 +158,11 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
       alert('Please fill in both NORSA number and date.');
       return;
     }
-    
     if (confirm('Process NORSA for this DV from Box C?')) {
-      fetch(`/incoming-dvs/${dv.id}/box-c`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-        },
-        body: JSON.stringify({
-          action: 'norsa',
-          norsa_date: norsaDate,
-          norsa_number: norsaNumber
-        })
-      }).then(() => {
-        window.location.reload();
+      onStatusUpdate(dv.id, 'for_norsa_in', {
+        action: 'norsa',
+        norsa_date: norsaDate,
+        norsa_number: norsaNumber
       });
       onClose();
       setActiveAction(null);
@@ -205,22 +176,9 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
       alert('Please select a date for indexing.');
       return;
     }
-    
     if (confirm('Process indexing for this DV?')) {
-      fetch(`/incoming-dvs/${dv.id}/indexing`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
-        },
-        body: JSON.stringify({
-          indexing_date: indexingDate
-        })
-      }).then(() => {
-        window.location.reload();
-      }).catch(error => {
-        console.error('Error processing indexing:', error);
-        alert('Error processing indexing. Please try again.');
+      onStatusUpdate(dv.id, 'for_indexing', {
+        indexing_date: indexingDate
       });
       onClose();
       setActiveAction(null);

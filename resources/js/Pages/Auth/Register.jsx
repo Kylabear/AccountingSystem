@@ -33,10 +33,12 @@ export default function Register() {
         'Accountant I',
         'Accountant II',
         'Accountant III',
-        'Administrative Assistant I-III',
-        'Administrative Assistant I-III (COS)',
-        'Financial Analyst I-III (COS)',
-        'Financial Analyst I-III (PRDP)',
+        'Administrative Assistant I',
+        'Administrative Assistant II',
+        'Administrative Assistant III',
+        'Administrative Assistant III (COS)',
+        'Financial Analyst (COS)',
+        'Financial Analyst (PRDP)',
     ];
 
     return (

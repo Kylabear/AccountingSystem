@@ -263,18 +263,11 @@ export default function IncomingDvs() {
 
     // Handle DV card click
     const handleDvClick = (dv) => {
-        setSelectedDv(dv);
-        
-        // Use DV Details modal for cash allocation status (has progressive summary)
-        if (dv.status === 'for_cash_allocation') {
+        if (dv && dv.id) {
+            setSelectedDv(dv);
             setIsModalOpen(true);
-        }
-        // Use DV Details modal for box c status (has progressive summary)
-        else if (dv.status === 'for_box_c') {
-            setIsModalOpen(true);
-        }
-        else {
-            setIsModalOpen(true);
+        } else {
+            alert('Error: This DV record is invalid or missing.');
         }
     };
 
