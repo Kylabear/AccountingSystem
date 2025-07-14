@@ -313,7 +313,23 @@ class IncomingDvController extends Controller
             'rts_out_date' => 'nullable|date',
             'rts_reason' => 'nullable|string',
             'norsa_date' => 'nullable|date',
-            'norsa_number' => 'nullable|string',
+            'norsa_number' => [
+                'nullable',
+                'string',
+                'regex:/^\d{4}-\d{2}-\d{4}$/',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        $parts = explode('-', $value);
+                        if (count($parts) === 3) {
+                            $year = (int)$parts[0];
+                            $month = (int)$parts[1];
+                            if ($year < 2020 || $year > (date('Y') + 1) || $month < 1 || $month > 12) {
+                                $fail('The NORSA number has an invalid year or month.');
+                            }
+                        }
+                    }
+                }
+            ],
             'rts_origin' => 'nullable|string',
             'norsa_origin' => 'nullable|string',
         ]);
