@@ -31,57 +31,64 @@ export default function CashAllocationModal({ dv, isOpen, onClose, onUpdate }) {
             setErrors(prev => ({ ...prev, [name]: '' }));
         }
 
-        // Format cash allocation number to YYYY-MM-NNNNN (exactly 13 characters)
         if (name === 'cash_allocation_number') {
-            // Remove all non-digits first
+            // Remove all non-digits
             let numbers = value.replace(/\D/g, '');
-            // Limit to exactly 11 digits (4+2+5) for 13 total characters including dashes
+            // Limit to exactly 11 digits (4+2+5) for YYYY-MM-NNNNN format
             numbers = numbers.slice(0, 11);
             
             // Format as YYYY-MM-NNNNN
             let formattedValue = '';
             if (numbers.length > 0) {
-                if (numbers.length <= 4) {
-                    formattedValue = numbers;
-                } else if (numbers.length <= 6) {
-                    formattedValue = numbers.slice(0, 4) + '-' + numbers.slice(4);
-                } else {
-                    formattedValue = numbers.slice(0, 4) + '-' + numbers.slice(4, 6) + '-' + numbers.slice(6);
+                // First 4 digits (YYYY)
+                formattedValue = numbers.slice(0, 4);
+                if (numbers.length > 4) {
+                    // Next 2 digits (MM)
+                    formattedValue += '-' + numbers.slice(4, 6);
+                    if (numbers.length > 6) {
+                        // Last 5 digits (NNNNN)
+                        formattedValue += '-' + numbers.slice(6);
+                    }
                 }
             }
-            setFormData(prev => ({ ...prev, [name]: formattedValue }));
+
+            setFormData(prev => ({
+                ...prev,
+                [name]: formattedValue
+            }));
+            return;
         }
-        // Format net amount to allow only numbers and decimal
-        else if (name === 'net_amount') {
-            const formattedValue = value.replace(/[^\d.]/g, '');
-            // Ensure only one decimal point
-            const parts = formattedValue.split('.');
-            if (parts.length > 2) {
-                const formatted = parts[0] + '.' + parts.slice(1).join('');
-                setFormData(prev => ({ ...prev, [name]: formatted }));
-            } else {
-                setFormData(prev => ({ ...prev, [name]: formattedValue }));
-            }
-        } else {
-            setFormData(prev => ({ ...prev, [name]: value }));
-        }
+
+        // For other fields
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
     const validateForm = () => {
         const newErrors = {};
-
-        if (!formData.cash_allocation_date) {
-            newErrors.cash_allocation_date = 'Cash allocation date is required';
-        }
-
+        
+        // Validate cash allocation number format (YYYY-MM-NNNNN)
+        const cashAllocPattern = /^\d{4}-\d{2}-\d{5}$/;
         if (!formData.cash_allocation_number) {
             newErrors.cash_allocation_number = 'Cash allocation number is required';
-        } else if (formData.cash_allocation_number.length !== 13 || !/^\d{4}-\d{2}-\d{5}$/.test(formData.cash_allocation_number)) {
-            newErrors.cash_allocation_number = 'Cash allocation number must be exactly 13 characters: YYYY-MM-NNNNN (e.g., 2025-06-04734)';
+        } else if (!cashAllocPattern.test(formData.cash_allocation_number)) {
+            newErrors.cash_allocation_number = 'Must follow format: YYYY-MM-NNNNN';
+        } else {
+            // Additional validation for year and month
+            const [year, month] = formData.cash_allocation_number.split('-');
+            if (parseInt(month) < 1 || parseInt(month) > 12) {
+                newErrors.cash_allocation_number = 'Invalid month (must be 01-12)';
+            }
         }
 
-        if (!formData.net_amount || parseFloat(formData.net_amount) <= 0) {
-            newErrors.net_amount = 'Net amount must be greater than 0';
+        // Other validations...
+        if (!formData.cash_allocation_date) {
+            newErrors.cash_allocation_date = 'Date is required';
+        }
+        if (!formData.net_amount) {
+            newErrors.net_amount = 'Net amount is required';
         }
 
         setErrors(newErrors);

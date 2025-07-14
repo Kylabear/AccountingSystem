@@ -134,6 +134,7 @@ export default function EditDvModal({ dv, isOpen, onClose, onUpdate }) {
       onSuccess: () => {
         onUpdate();
         onClose();
+        window.location.reload();
       },
       onError: (errors) => {
         setErrors(errors);

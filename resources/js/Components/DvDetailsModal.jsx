@@ -5,6 +5,47 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
   const [rtsReason, setRtsReason] = useState('');
   const [rtsDate, setRtsDate] = useState('');
   const [norsaNumber, setNorsaNumber] = useState('');
+  const [norsaError, setNorsaError] = useState('');
+  // Strict NORSA number input handler (auto-format as YYYY-MM-NNNNN)
+  const handleNorsaNumberChange = (e) => {
+    let value = e.target.value.replace(/\D/g, ''); // Only digits
+    value = value.slice(0, 11); // Max 11 digits (4 year + 2 month + 5 serial)
+    let formatted = '';
+    if (value.length > 0) {
+      formatted = value.slice(0, 4);
+      if (value.length > 4) {
+        formatted += '-' + value.slice(4, 6);
+        if (value.length > 6) {
+          formatted += '-' + value.slice(6);
+        }
+      }
+    }
+    setNorsaNumber(formatted);
+    // Validate as user types
+    if (formatted.length === 12) {
+      const norsaPattern = /^\d{4}-\d{2}-\d{5}$/;
+      if (!norsaPattern.test(formatted)) {
+        setNorsaError('Format: YYYY-MM-NNNNN');
+      } else {
+        // Validate year and month
+        const [year, month, serial] = formatted.split('-');
+        const yearNum = parseInt(year);
+        const monthNum = parseInt(month);
+        const currentYear = new Date().getFullYear();
+        if (yearNum < 2020 || yearNum > currentYear + 1) {
+          setNorsaError(`Year must be 2020-${currentYear + 1}`);
+        } else if (monthNum < 1 || monthNum > 12) {
+          setNorsaError('Month must be 01-12');
+        } else {
+          setNorsaError('');
+        }
+      }
+    } else if (formatted.length > 0) {
+      setNorsaError('Format: YYYY-MM-NNNNN');
+    } else {
+      setNorsaError('');
+    }
+  };
   const [norsaDate, setNorsaDate] = useState('');
   
   // Cash allocation state variables
@@ -91,11 +132,29 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
   };
 
   const handleNORSA = () => {
+    const norsaPattern = /^\d{4}-\d{2}-\d{5}$/;
     if (!norsaNumber.trim() || !norsaDate) {
-      alert('Please fill in both NORSA number and date.');
+      setNorsaError('Please fill in both NORSA number and date.');
       return;
     }
-    
+    if (!norsaPattern.test(norsaNumber)) {
+      setNorsaError('Format: YYYY-MM-NNNNN');
+      return;
+    }
+    // Validate year and month
+    const [year, month, serial] = norsaNumber.split('-');
+    const yearNum = parseInt(year);
+    const monthNum = parseInt(month);
+    const currentYear = new Date().getFullYear();
+    if (yearNum < 2020 || yearNum > currentYear + 1) {
+      setNorsaError(`Year must be 2020-${currentYear + 1}`);
+      return;
+    }
+    if (monthNum < 1 || monthNum > 12) {
+      setNorsaError('Month must be 01-12');
+      return;
+    }
+    setNorsaError('');
     if (confirm('Process NORSA for this DV?')) {
       onStatusUpdate(dv.id, 'for_norsa_in', {
         norsa_number: norsaNumber,
@@ -317,38 +376,35 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Payee</label>
-                  <p className="text-lg font-semibold">{dv.payee}</p>
+                  <p className="text-lg font-semibold">{dv.payee || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">DV Number</label>
-                  <p className="text-lg font-semibold">{dv.dv_number}</p>
+                  <p className="text-lg font-semibold">{dv.dv_number || 'N/A'}</p>
                 </div>
-                {(dv.status === 'for_review' || dv.status === 'for_cash_allocation') && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Receive Date</label>
-                    <p className="text-sm">{dv.created_at ? new Date(dv.created_at).toLocaleDateString() : 'N/A'}</p>
-                  </div>
-                )}
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Receive Date</label>
+                  <p className="text-sm">{dv.created_at ? new Date(dv.created_at).toLocaleDateString() : 'N/A'}</p>
+                </div>
                 <div className="md:col-span-2">
                   <label className="text-sm font-medium text-gray-700">Particulars</label>
-                  <p className="text-sm">{dv.particulars}</p>
+                  <p className="text-sm">{dv.particulars || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Amount as stated by DV</label>
                   <p className="text-lg font-semibold text-green-600">
-                    PHP {parseFloat(dv.amount).toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}
+                    {dv.amount !== undefined && dv.amount !== null && dv.amount !== '' && !isNaN(parseFloat(dv.amount))
+                      ? `PHP ${parseFloat(dv.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      : 'N/A'}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Transaction Type</label>
-                  <p className="text-sm">{dv.transaction_type}</p>
+                  <p className="text-sm">{dv.transaction_type || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Implementing Unit</label>
-                  <p className="text-sm">{dv.implementing_unit}</p>
+                  <p className="text-sm">{dv.implementing_unit || 'N/A'}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700">Account Number</label>
@@ -357,28 +413,44 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
               
               {/* ORS Details */}
-              {dv.ors_entries && dv.ors_entries.length > 0 && (
-                <div className="mt-4">
-                  <label className="text-sm font-medium text-gray-700">ORS Details</label>
+              <div className="mt-4">
+                {/* Removed 'ORS Details' label as requested */}
+                {dv.ors_entries && dv.ors_entries.length > 0 ? (
                   <div className="space-y-2 mt-2">
                     {dv.ors_entries.map((ors, index) => (
                       <div key={index} className="text-sm">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                           <div>
-                            <span className="font-medium">ORS No.:</span> {ors.ors_number || 'various'}
+                            <span className="font-medium">ORS No.:</span> {ors.ors_number ? ors.ors_number : 'N/A'}
                           </div>
                           <div>
-                            <span className="font-medium">Fund Source:</span> {ors.fund_source || 'various'}
+                            <span className="font-medium">Fund Source:</span> {ors.fund_source ? ors.fund_source : 'N/A'}
                           </div>
                           <div>
-                            <span className="font-medium">UACS/Object of Expenditure:</span> {ors.uacs || 'various'}
+                            <span className="font-medium">UACS/Object of Expenditure:</span> {ors.uacs ? ors.uacs : 'N/A'}
                           </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-2 mt-2">
+                    <div className="text-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div>
+                          <span className="font-medium">ORS No.:</span> N/A
+                        </div>
+                        <div>
+                          <span className="font-medium">Fund Source:</span> N/A
+                        </div>
+                        <div>
+                          <span className="font-medium">UACS/Object of Expenditure:</span> N/A
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* RTS Information - Only show if there are actual RTS records */}
@@ -1305,11 +1377,15 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                         <input
                           type="text"
                           value={norsaNumber}
-                          onChange={(e) => setNorsaNumber(e.target.value)}
-                          placeholder="Enter NORSA number..."
-                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                          onChange={handleNorsaNumberChange}
+                          placeholder="YYYY-MM-NNNNN"
+                          className={`w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none ${norsaError ? 'border-red-500' : ''}`}
+                          maxLength={13}
                           required
                         />
+                        {norsaError && (
+                          <p className="text-red-500 text-xs mt-1">{norsaError}</p>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         <button

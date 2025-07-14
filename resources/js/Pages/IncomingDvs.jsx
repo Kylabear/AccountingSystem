@@ -493,6 +493,93 @@ export default function IncomingDvs() {
         }
     };
 
+    // Helper to render a DV card (to avoid code duplication in grouped sections)
+    function renderDvCard(dv) {
+      return (
+        <div 
+          key={dv.id} 
+          className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+          style={getBorderStyle(dv.status)}
+          onClick={() => handleDvClick(dv)}
+        >
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-800 text-lg mb-1">
+                {dv.payee}
+              </h3>
+              <p className="text-gray-600 text-sm mb-1">
+                {dv.dv_number}
+              </p>
+              <p className="text-gray-600 text-sm mb-2 italic">
+                {dv.particulars && dv.particulars.length > 50 
+                  ? dv.particulars.substring(0, 50) + '...'
+                  : dv.particulars || 'No particulars specified'}
+              </p>
+              <p className="text-gray-800 font-medium">
+                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}
+                {dv.net_amount && (
+                  <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                )}
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="flex flex-col items-end space-y-2">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${statuses.find(s => s.key === dv.status)?.color || 'text-white'}`}
+                  style={{ backgroundColor: statuses.find(s => s.key === dv.status)?.bgColor || '#6B7280' }}>
+                  {statuses.find(s => s.key === dv.status)?.label || dv.status}
+                </span>
+                <div className="flex space-x-2">
+                  {/* Show "Out" button for approval tab */}
+                  {activeTab === 'for_approval' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSendForApproval(dv);
+                      }}
+                      className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
+                    >
+                      Out
+                    </button>
+                  )}
+                  {/* Show "Certify" button for LDDAP tab */}
+                  {activeTab === 'for_lddap' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDv(dv);
+                        setIsLddapModalOpen(true);
+                      }}
+                      className="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors duration-200"
+                    >
+                      Certify
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedDv(dv);
+                      setIsEditModalOpen(true);
+                    }}
+                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+              {dv.created_at && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {new Date(dv.created_at).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Fixed Header - Simple design */}
@@ -757,98 +844,109 @@ export default function IncomingDvs() {
                             </p>
                         </div>
 
-                        {/* DV Cards - Simple clean design */}
-                        <div className="space-y-4">
+                        {/* DV Cards - Grouped by tab requirements */}
+                        {activeTab === 'for_review' && (
+                          <div className="space-y-12">
+                            {/* For Review Section */}
+                            <div>
+                              <h3 className="text-xl font-bold text-red-700 mb-4 flex items-center"><span className="mr-2">🔍</span>For Review</h3>
+                              <div className="space-y-4">
+                                {sortedDvs.filter(dv => dv.status === 'for_review').length > 0 ? (
+                                  sortedDvs.filter(dv => dv.status === 'for_review').map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No DVs in For Review</p>
+                                )}
+                              </div>
+                            </div>
+                            {/* For RTS In Section */}
+                            <div>
+                              <h3 className="text-xl font-bold text-orange-700 mb-4 flex items-center"><span className="mr-2">🔄</span>For RTS In</h3>
+                              <div className="space-y-4">
+                                {sortedDvs.filter(dv => dv.status === 'for_rts_in').length > 0 ? (
+                                  sortedDvs.filter(dv => dv.status === 'for_rts_in').map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No DVs in For RTS In</p>
+                                )}
+                              </div>
+                            </div>
+                            {/* For NORSA In Section */}
+                            <div>
+                              <h3 className="text-xl font-bold text-pink-700 mb-4 flex items-center"><span className="mr-2">📝</span>For NORSA In</h3>
+                              <div className="space-y-4">
+                                {sortedDvs.filter(dv => dv.status === 'for_norsa_in').length > 0 ? (
+                                  sortedDvs.filter(dv => dv.status === 'for_norsa_in').map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No DVs in For NORSA In</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'for_rts_in' && (
+                          <div className="space-y-12">
+                            {/* Under For Review Section */}
+                            <div>
+                              <h3 className="text-xl font-bold text-orange-700 mb-4 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
+                              <div className="space-y-4">
+                                {sortedDvs.filter(dv => dv.status === 'for_rts_in' && (!dv.rts_origin || dv.rts_origin === 'review')).length > 0 ? (
+                                  sortedDvs.filter(dv => dv.status === 'for_rts_in' && (!dv.rts_origin || dv.rts_origin === 'review')).map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No DVs under For Review</p>
+                                )}
+                              </div>
+                            </div>
+                            {/* Under For Cash Allocation Section */}
+                            <div>
+                              <h3 className="text-xl font-bold text-orange-700 mb-4 flex items-center"><span className="mr-2">💰</span>Under For Cash Allocation</h3>
+                              <div className="space-y-4">
+                                {sortedDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'cash_allocation').length > 0 ? (
+                                  sortedDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No DVs under For Cash Allocation</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'for_norsa_in' && (
+                          <div className="space-y-12">
+                            {/* Under For Review Section */}
+                            <div>
+                              <h3 className="text-xl font-bold text-pink-700 mb-4 flex items-center"><span className="mr-2">📝</span>Under For Review</h3>
+                              <div className="space-y-4">
+                                {sortedDvs.filter(dv => dv.status === 'for_norsa_in' && (!dv.norsa_origin || dv.norsa_origin === 'review')).length > 0 ? (
+                                  sortedDvs.filter(dv => dv.status === 'for_norsa_in' && (!dv.norsa_origin || dv.norsa_origin === 'review')).map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No DVs under For Review</p>
+                                )}
+                              </div>
+                            </div>
+                            {/* Under For Cash Allocation Section */}
+                            <div>
+                              <h3 className="text-xl font-bold text-pink-700 mb-4 flex items-center"><span className="mr-2">💰</span>Under For Cash Allocation</h3>
+                              <div className="space-y-4">
+                                {sortedDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'cash_allocation').length > 0 ? (
+                                  sortedDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No DVs under For Cash Allocation</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {/* Default rendering for other tabs */}
+                        {!(activeTab === 'for_review' || activeTab === 'for_rts_in' || activeTab === 'for_norsa_in') && (
+                          <div className="space-y-4">
                             {sortedDvs.length > 0 ? (
-                                sortedDvs.map((dv) => (
-                                    <div 
-                                        key={dv.id} 
-                                        className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
-                                        style={getBorderStyle(dv.status)}
-                                        onClick={() => handleDvClick(dv)}
-                                    >
-                                        <div className="flex justify-between items-start">
-                                            <div className="flex-1">
-                                                <h3 className="font-semibold text-gray-800 text-lg mb-1">
-                                                    {dv.payee}
-                                                </h3>
-                                                <p className="text-gray-600 text-sm mb-1">
-                                                    {dv.dv_number}
-                                                </p>
-                                                <p className="text-gray-600 text-sm mb-2 italic">
-                                                    {dv.particulars && dv.particulars.length > 50 
-                                                        ? dv.particulars.substring(0, 50) + '...'
-                                                        : dv.particulars || 'No particulars specified'}
-                                                </p>
-                                                <p className="text-gray-800 font-medium">
-                                                    ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                        minimumFractionDigits: 2,
-                                                        maximumFractionDigits: 2
-                                                    })}
-                                                    {dv.net_amount && (
-                                                        <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                                                    )}
-                                                </p>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="flex flex-col items-end space-y-2">
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statuses.find(s => s.key === dv.status)?.color || 'text-white'}`}
-                                                          style={{ backgroundColor: statuses.find(s => s.key === dv.status)?.bgColor || '#6B7280' }}>
-                                                        {statuses.find(s => s.key === dv.status)?.label || dv.status}
-                                                    </span>
-                                                    <div className="flex space-x-2">
-                                                        {/* Show "Out" button for approval tab */}
-                                                        {activeTab === 'for_approval' && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleSendForApproval(dv);
-                                                                }}
-                                                                className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
-                                                            >
-                                                                Out
-                                                            </button>
-                                                        )}
-                                                        {/* Show "Certify" button for LDDAP tab */}
-                                                        {activeTab === 'for_lddap' && (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedDv(dv);
-                                                                    setIsLddapModalOpen(true);
-                                                                }}
-                                                                className="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors duration-200"
-                                                            >
-                                                                Certify
-                                                            </button>
-                                                        )}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedDv(dv);
-                                                                setIsEditModalOpen(true);
-                                                            }}
-                                                            className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                        >
-                                                            Edit
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                {dv.created_at && (
-                                                    <p className="text-xs text-gray-500 mt-2">
-                                                        {new Date(dv.created_at).toLocaleDateString()}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
+                              sortedDvs.map((dv) => renderDvCard(dv))
                             ) : (
-                                <p className="text-gray-500 text-center py-8">
-                                    No DVs found {searchTerm && `for "${searchTerm}"`}
-                                </p>
+                              <p className="text-gray-500 text-center py-8">
+                                No DVs found {searchTerm && `for "${searchTerm}"`}
+                              </p>
                             )}
-                        </div>
+                          </div>
+                        )}
+
 
                         {/* For Cash Reallocation Section - Only show in Cash Allocation tab */}
                         {activeTab === 'for_cash_allocation' && (
@@ -1171,37 +1269,43 @@ export default function IncomingDvs() {
                 onStatusUpdate={async (dvId, newStatus, additionalData = {}) => {
                     try {
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                        
                         if (!csrfToken) {
-                            alert('CSRF token not found. Please refresh the page and try again.');
-                            return;
+                            throw new Error('CSRF token not found. Please refresh the page.');
                         }
+
+                        // Add the _method field to force PUT method
+                        const formData = {
+                            _method: 'PUT',
+                            status: newStatus,
+                            ...additionalData
+                        };
 
                         const response = await fetch(`/incoming-dvs/${dvId}/status`, {
-                            method: 'POST',
+                            method: 'POST', // Using POST but with _method: 'PUT' for Laravel
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken,
                                 'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
                             },
-                            body: JSON.stringify({
-                                status: newStatus,
-                                ...additionalData
-                            })
+                            body: JSON.stringify(formData)
                         });
 
-                        if (response.ok) {
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Failed to update DV status');
+                        }
+
+                        const data = await response.json();
+                        if (data.success) {
+                            setIsModalOpen(false);
+                            setSelectedDv(null);
                             window.location.reload();
                         } else {
-                            const responseData = await response.json();
-                            alert(`❌ Error updating status: ${responseData.message || responseData.error || 'Unknown server error'}`);
+                            throw new Error(data.message || 'Failed to update DV status');
                         }
                     } catch (error) {
-                        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                            alert('❌ Network error: Could not connect to server. Please check if the server is running.');
-                        } else {
-                            alert(`❌ Error updating status: ${error.message}`);
-                        }
+                        console.error('Error updating DV status:', error);
+                        alert(error.message || 'Error updating DV status. Please try again.');
                     }
                 }}
             />

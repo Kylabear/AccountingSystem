@@ -4,6 +4,11 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
     const [engasNumber, setEngasNumber] = useState('');
     const [engasDate, setEngasDate] = useState(new Date().toISOString().split('T')[0]);
     const [error, setError] = useState('');
+    const [formData, setFormData] = useState({
+        engas_number: '',
+        engas_date: ''
+    });
+    const [errors, setErrors] = useState({});
 
     // Helper functions for formatting
     const formatDate = (dateString) => {
@@ -116,6 +121,86 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
         } else {
             setError('');
         }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+
+        if (name === 'engas_number') {
+            // Remove all non-digits
+            let numbers = value.replace(/\D/g, '');
+            // Limit to exactly 12 digits (4+2+6) for YYYY-MM-NNNNNN format
+            numbers = numbers.slice(0, 12);
+            
+            // Format as YYYY-MM-NNNNNN
+            let formattedValue = '';
+            if (numbers.length > 0) {
+                // First 4 digits (YYYY)
+                formattedValue = numbers.slice(0, 4);
+                if (numbers.length > 4) {
+                    // Next 2 digits (MM)
+                    formattedValue += '-' + numbers.slice(4, 6);
+                    if (numbers.length > 6) {
+                        // Last 6 digits (NNNNNN)
+                        formattedValue += '-' + numbers.slice(6);
+                        // Pad with leading zeros if necessary
+                        while (formattedValue.split('-')[2].length < 6) {
+                            formattedValue = formattedValue.split('-')[0] + '-' + 
+                                           formattedValue.split('-')[1] + '-' + 
+                                           '0' + formattedValue.split('-')[2];
+                        }
+                    }
+                }
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                [name]: formattedValue
+            }));
+            return;
+        }
+
+        // For other fields
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        // Validate E-NGAS number format (YYYY-MM-NNNNNN)
+        const engasPattern = /^\d{4}-\d{2}-\d{6}$/;
+        if (!formData.engas_number) {
+            newErrors.engas_number = 'E-NGAS number is required';
+        } else if (!engasPattern.test(formData.engas_number)) {
+            newErrors.engas_number = 'Must follow format: YYYY-MM-NNNNNN';
+        } else {
+            // Additional validation for year and month
+            const [year, month] = formData.engas_number.split('-');
+            if (parseInt(month) < 1 || parseInt(month) > 12) {
+                newErrors.engas_number = 'Invalid month (must be 01-12)';
+            }
+            // Validate that the last part has 6 digits and starts with necessary leading zeros
+            const lastPart = formData.engas_number.split('-')[2];
+            if (lastPart.length !== 6) {
+                newErrors.engas_number = 'Last part must be exactly 6 digits';
+            }
+        }
+
+        // Other validations
+        if (!formData.engas_date) {
+            newErrors.engas_date = 'E-NGAS date is required';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = (e) => {
@@ -470,8 +555,12 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
                                         </label>
                                         <input
                                             type="text"
+                                            name="engas_number"
                                             value={engasNumber}
-                                            onChange={handleEngasNumberChange}
+                                            onChange={(e) => {
+                                                handleEngasNumberChange(e);
+                                                handleInputChange(e);
+                                            }}
                                             className={`w-full border rounded-lg p-2 focus:outline-none focus:ring-2 ${
                                                 error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-engas'
                                             }`}
@@ -496,8 +585,12 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
                                         </label>
                                         <input
                                             type="date"
+                                            name="engas_date"
                                             value={engasDate}
-                                            onChange={(e) => setEngasDate(e.target.value)}
+                                            onChange={(e) => {
+                                                setEngasDate(e.target.value);
+                                                setFormData(prev => ({ ...prev, engas_date: e.target.value }));
+                                            }}
                                             className="w-full border border-gray-300 rounded-lg p-2 focus:border-engas focus:outline-none"
                                             required
                                         />
