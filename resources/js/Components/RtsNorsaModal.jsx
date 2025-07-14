@@ -43,35 +43,73 @@ export default function RtsNorsaModal({ dv, isOpen, onClose, onUpdate }) {
         }
     };
 
-    const validateNorsaNumber = (value) => {
-        if (!value) return '';
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
         
-        // Pattern: YYYY-MM-XXXX (where XXXX is exactly 4 digits)
-        const pattern = /^(\d{4})-(\d{2})-(\d{4})$/;
-        const match = value.match(pattern);
-        
-        if (!match) {
-            return 'Format must be YYYY-MM-XXXX (e.g., 2025-01-5436)';
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
         }
-        
-        const [, yearStr, monthStr, numberStr] = match;
-        const year = parseInt(yearStr);
-        const month = parseInt(monthStr);
-        const number = parseInt(numberStr);
-        
-        if (year < 2020 || year > 2030) {
-            return 'Year must be between 2020 and 2030';
+
+        if (name === 'norsa_number') {
+            // Remove all non-digits
+            let numbers = value.replace(/\D/g, '');
+            // Limit to exactly 10 digits (4+2+4) for YYYY-MM-NNNN format
+            numbers = numbers.slice(0, 10);
+            
+            // Format as YYYY-MM-NNNN
+            let formattedValue = '';
+            if (numbers.length > 0) {
+                // First 4 digits (YYYY)
+                formattedValue = numbers.slice(0, 4);
+                if (numbers.length > 4) {
+                    // Next 2 digits (MM)
+                    formattedValue += '-' + numbers.slice(4, 6);
+                    if (numbers.length > 6) {
+                        // Last 4 digits (NNNN)
+                        formattedValue += '-' + numbers.slice(6);
+                    }
+                }
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                [name]: formattedValue
+            }));
+            return;
         }
+
+        // For other fields
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
         
-        if (month < 1 || month > 12) {
-            return 'Month must be between 01 and 12';
+        // Validate NORSA number format (YYYY-MM-NNNN)
+        const norsaPattern = /^\d{4}-\d{2}-\d{4}$/;
+        if (!formData.norsa_number) {
+            newErrors.norsa_number = 'NORSA number is required';
+        } else if (!norsaPattern.test(formData.norsa_number)) {
+            newErrors.norsa_number = 'Must follow format: YYYY-MM-NNNN';
+        } else {
+            // Additional validation for year and month
+            const [year, month] = formData.norsa_number.split('-');
+            if (parseInt(month) < 1 || parseInt(month) > 12) {
+                newErrors.norsa_number = 'Invalid month (must be 01-12)';
+            }
         }
-        
-        if (number === 0) {
-            return 'Serial number cannot be 0000';
+
+        // Validate reason
+        if (!formData.reason) {
+            newErrors.reason = 'Reason is required';
         }
-        
-        return '';
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     // Get current date in YYYY-MM-DD format

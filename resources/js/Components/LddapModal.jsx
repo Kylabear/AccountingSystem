@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 
 export default function LddapModal({ dv, isOpen, onClose, onSubmit }) {
     const [lddapDate, setLddapDate] = useState(new Date().toISOString().split('T')[0]);
+    const [formData, setFormData] = useState({
+        lddap_number: '',
+        certification_date: ''
+    });
+    const [errors, setErrors] = useState({});
 
     // Helper functions for formatting
     const formatDate = (dateString) => {
@@ -32,9 +37,87 @@ export default function LddapModal({ dv, isOpen, onClose, onSubmit }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit({
-            lddap_date: lddapDate
-        });
+        if (validateForm()) {
+            onSubmit({
+                lddap_date: lddapDate,
+                lddap_number: formData.lddap_number
+            });
+        }
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors(prev => ({ ...prev, [name]: '' }));
+        }
+
+        if (name === 'lddap_number') {
+            // Remove all non-digits
+            let numbers = value.replace(/\D/g, '');
+            // Format as NNN-MM-SRNBR-NNNNN
+            let formattedValue = '';
+            
+            if (numbers.length > 0) {
+                // First 3 digits (NNN)
+                formattedValue = numbers.slice(0, 3);
+                if (numbers.length > 3) {
+                    // Next 2 digits (MM)
+                    formattedValue += '-' + numbers.slice(3, 5);
+                    if (numbers.length > 5) {
+                        // Next digits (SRNBR)
+                        formattedValue += '-' + numbers.slice(5, 10);
+                        if (numbers.length > 10) {
+                            // Last 5 digits (NNNNN)
+                            formattedValue += '-' + numbers.slice(10, 15);
+                        }
+                    }
+                }
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                [name]: formattedValue
+            }));
+            return;
+        }
+
+        // For other fields
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        
+        // Validate LDDAP number format (NNN-MM-SRNBR-NNNNN)
+        // Note: This is a more flexible validation since incomplete numbers are allowed
+        const lddapPattern = /^\d{3}-\d{2}(-\d{1,5})?(-\d{1,5})?$/;
+        if (!formData.lddap_number) {
+            newErrors.lddap_number = 'LDDAP number is required';
+        } else if (!lddapPattern.test(formData.lddap_number)) {
+            newErrors.lddap_number = 'Must follow format: NNN-MM-SRNBR-NNNNN';
+        } else {
+            // Additional validation for month if it exists
+            const parts = formData.lddap_number.split('-');
+            if (parts.length >= 2) {
+                const month = parseInt(parts[1]);
+                if (month < 1 || month > 12) {
+                    newErrors.lddap_number = 'Invalid month (must be 01-12)';
+                }
+            }
+        }
+
+        // Other validations
+        if (!formData.certification_date) {
+            newErrors.certification_date = 'Certification date is required';
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
     };
 
     if (!isOpen || !dv) return null;
@@ -428,6 +511,26 @@ export default function LddapModal({ dv, isOpen, onClose, onSubmit }) {
                                             className="w-full border border-gray-300 rounded-lg p-2 focus:border-lddap focus:outline-none"
                                             required
                                         />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            LDDAP Number <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="lddap_number"
+                                            value={formData.lddap_number}
+                                            onChange={handleInputChange}
+                                            className={`w-full border rounded-lg p-2 focus:outline-none ${
+                                                errors.lddap_number ? 'border-red-500' : 'border-gray-300'
+                                            }`}
+                                            placeholder="NNN-MM-SRNBR-NNNNN"
+                                            required
+                                        />
+                                        {errors.lddap_number && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.lddap_number}</p>
+                                        )}
                                     </div>
 
                                     <div className="flex gap-2">
