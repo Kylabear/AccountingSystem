@@ -1171,37 +1171,43 @@ export default function IncomingDvs() {
                 onStatusUpdate={async (dvId, newStatus, additionalData = {}) => {
                     try {
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-                        
                         if (!csrfToken) {
-                            alert('CSRF token not found. Please refresh the page and try again.');
-                            return;
+                            throw new Error('CSRF token not found. Please refresh the page.');
                         }
+
+                        // Add the _method field to force PUT method
+                        const formData = {
+                            _method: 'PUT',
+                            status: newStatus,
+                            ...additionalData
+                        };
 
                         const response = await fetch(`/incoming-dvs/${dvId}/status`, {
-                            method: 'POST',
+                            method: 'POST', // Using POST but with _method: 'PUT' for Laravel
                             headers: {
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken,
                                 'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
                             },
-                            body: JSON.stringify({
-                                status: newStatus,
-                                ...additionalData
-                            })
+                            body: JSON.stringify(formData)
                         });
 
-                        if (response.ok) {
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || 'Failed to update DV status');
+                        }
+
+                        const data = await response.json();
+                        if (data.success) {
+                            setIsModalOpen(false);
+                            setSelectedDv(null);
                             window.location.reload();
                         } else {
-                            const responseData = await response.json();
-                            alert(`❌ Error updating status: ${responseData.message || responseData.error || 'Unknown server error'}`);
+                            throw new Error(data.message || 'Failed to update DV status');
                         }
                     } catch (error) {
-                        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                            alert('❌ Network error: Could not connect to server. Please check if the server is running.');
-                        } else {
-                            alert(`❌ Error updating status: ${error.message}`);
-                        }
+                        console.error('Error updating DV status:', error);
+                        alert(error.message || 'Error updating DV status. Please try again.');
                     }
                 }}
             />
