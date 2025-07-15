@@ -189,7 +189,22 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
 
   const handleCertify = () => {
     if (confirm('Certify this DV?')) {
-      onStatusUpdate(dv.id, 'certified', { action: 'certify' });
+      onStatusUpdate(
+        dv.id,
+        'certified',
+        { action: 'certify' },
+        () => {
+          // After status update, use Inertia to visit For Approval tab
+          if (typeof window !== 'undefined' && window.route) {
+            window.route.visit(window.location.pathname + '?tab=for_approval', { replace: true });
+          } else if (typeof window !== 'undefined') {
+            const url = new URL(window.location);
+            url.searchParams.set('tab', 'for_approval');
+            window.history.replaceState({}, '', url);
+            window.location.reload();
+          }
+        }
+      );
       onClose();
     }
   };
@@ -851,51 +866,6 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                 </div>
 
                 {/* For Approval Section */}
-                <div className="mb-6 p-4 border-2 border-purple-200 rounded-lg bg-purple-50">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
-                    <span className="mr-2">✅</span>
-                    For Approval
-                  </h3>
-                  
-                  {/* Approval Status */}
-                  {dv.approval_out_date && (
-                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
-                      <div className="flex flex-wrap items-center gap-4">
-                        <span className="text-sm font-medium text-green-800">
-                          Sent for approval on: {new Date(dv.approval_out_date).toLocaleDateString()}
-                        </span>
-                        {dv.approval_in_date && (
-                          <span className="text-sm font-medium text-green-800">
-                            Returned on: {new Date(dv.approval_in_date).toLocaleDateString()}
-                          </span>
-                        )}
-                        {dv.approved_by && (
-                          <span className="text-sm font-medium text-green-800">
-                            Approved by: {dv.approved_by}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Approval Details Box */}
-                  <div className="p-4 bg-purple-100 border border-purple-300 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-700">Sent Out for Approval:</span>
-                        <p className="text-gray-600">{dv.approval_out_date ? new Date(dv.approval_out_date).toLocaleDateString() : 'Not sent yet'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Returned from Approval:</span>
-                        <p className="text-gray-600">{dv.approval_in_date ? new Date(dv.approval_in_date).toLocaleDateString() : 'Not returned yet'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Approved by:</span>
-                        <p className="text-gray-600">{dv.approved_by || 'Pending'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </>
             )}
 
@@ -1180,52 +1150,6 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                   </div>
                 </div>
 
-                {/* For Approval Section */}
-                <div className="mb-6 p-4 border-2 border-purple-200 rounded-lg bg-purple-50">
-                  <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
-                    <span className="mr-2">✅</span>
-                    For Approval
-                  </h3>
-                  
-                  {/* Approval Status */}
-                  {dv.approval_out_date && (
-                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
-                      <div className="flex flex-wrap items-center gap-4">
-                        <span className="text-sm font-medium text-green-800">
-                          Sent for approval on: {new Date(dv.approval_out_date).toLocaleDateString()}
-                        </span>
-                        {dv.approval_in_date && (
-                          <span className="text-sm font-medium text-green-800">
-                            Returned on: {new Date(dv.approval_in_date).toLocaleDateString()}
-                          </span>
-                        )}
-                        {dv.approved_by && (
-                          <span className="text-sm font-medium text-green-800">
-                            Approved by: {dv.approved_by}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Approval Details Box */}
-                  <div className="p-4 bg-purple-100 border border-purple-300 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-700">Sent Out for Approval:</span>
-                        <p className="text-gray-600">{dv.approval_out_date ? new Date(dv.approval_out_date).toLocaleDateString() : 'Not sent yet'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Returned from Approval:</span>
-                        <p className="text-gray-600">{dv.approval_in_date ? new Date(dv.approval_in_date).toLocaleDateString() : 'Not returned yet'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Approved by:</span>
-                        <p className="text-gray-600">{dv.approved_by || 'Pending'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </>
             )}
 

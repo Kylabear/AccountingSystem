@@ -511,7 +511,7 @@ class IncomingDvController extends Controller
             'is_reallocated' => false, // Clear reallocated flag to allow normal workflow progression
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Cash allocation completed successfully.']);
+        return redirect()->back()->with('success', 'Cash allocation completed successfully.');
     }
 
     public function updateBoxCStatus(Request $request, $id)
