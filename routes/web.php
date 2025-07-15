@@ -1,8 +1,4 @@
-
-
 <?php
-// API endpoint for DVs with status 'for_approval'
-Route::get('/incoming-dvs/for-approval', [App\Http\Controllers\IncomingDvController::class, 'forApproval'])->name('incoming-dvs.for-approval');
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;

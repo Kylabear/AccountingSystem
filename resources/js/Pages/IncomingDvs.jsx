@@ -318,8 +318,9 @@ export default function IncomingDvs() {
                     (dv.status === 'for_rts_in' && dv.rts_origin === 'box_c') ||
                     (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c');
             } else if (activeTab === 'for_approval') {
-                // For Approval tab shows all DVs in for_approval status
-                matchesStatus = dv.status === 'for_approval';
+                // For Approval tab shows DVs in for_approval status that haven't been sent out yet
+                // DVs that have been sent out will be shown in a separate "Out for Approval" section
+                matchesStatus = dv.status === 'for_approval' && !dv.approval_out_date;
             } else if (activeTab === 'for_cash_allocation') {
                 // For Cash Allocation tab shows DVs in for_cash_allocation status (excluding reallocated ones)
                 // Reallocated DVs are now handled in their own section
@@ -1265,7 +1266,7 @@ export default function IncomingDvs() {
                     setIsModalOpen(false);
                     setSelectedDv(null);
                 }}
-                onStatusUpdate={async (dvId, newStatus, additionalData = {}, callback) => {
+                onStatusUpdate={async (dvId, newStatus, additionalData = {}) => {
                     try {
                         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
                         if (!csrfToken) {
@@ -1298,11 +1299,7 @@ export default function IncomingDvs() {
                         if (data.success) {
                             setIsModalOpen(false);
                             setSelectedDv(null);
-                            if (typeof callback === 'function') {
-                                callback();
-                            } else {
-                                window.location.reload();
-                            }
+                            window.location.reload();
                         } else {
                             throw new Error(data.message || 'Failed to update DV status');
                         }
