@@ -1,6 +1,24 @@
 import { useState, useEffect } from 'react';
 
-export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) {
+export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStatusUpdate }) {
+  // Inject mock/test data for dv if not present
+  let dv = originalDv;
+  if (process.env.NODE_ENV !== 'production' && dv && !dv.rts_history) {
+    dv = {
+      ...dv,
+      status: dv.status || 'for_rts_in',
+      rts_history: [
+        {
+          date: '2025-07-15',
+          reason: 'Missing signature on document',
+          returned_date: dv.status === 'for_review' ? '2025-07-16' : null,
+          reviewed_by: 'Test Reviewer',
+          staff_in_charge: 'Test Staff',
+          review_date: '2025-07-15',
+        }
+      ]
+    };
+  }
   const [activeAction, setActiveAction] = useState(null);
   const [rtsReason, setRtsReason] = useState('');
   const [rtsDate, setRtsDate] = useState('');
@@ -468,8 +486,8 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             </div>
 
-            {/* RTS Information - Only show if there are actual RTS records */}
-            {(dv.rts_history && dv.rts_history.length > 0) && dv.status !== 'for_cash_allocation' && dv.status !== 'for_box_c' && (
+            {/* RTS Information - Only show in for_review if at least one RTS cycle has a returned_date (came from for_rts_in) */}
+            {(dv.rts_history && dv.rts_history.length > 0 && dv.status === 'for_review' && dv.rts_history.some(rts => rts.returned_date)) && (
               <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
                 <h3 className="text-lg font-semibold text-orange-800 mb-4">RTS Information</h3>
                 {dv.rts_history.map((rts, index) => (
@@ -489,17 +507,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                       </div>
                       <div>
                         <span className="font-medium text-gray-700">Reviewed by:</span>
-                        <p>{rts.reviewed_by || '&lt;name&gt;'}</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm mt-2">
-                      <div>
-                        <span className="font-medium text-gray-700">Accounting Staff in-charge:</span>
-                        <p>{rts.staff_in_charge || '&lt;name&gt;'}</p>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">Date when review was done:</span>
-                        <p>{rts.review_date || new Date().toLocaleDateString()}</p>
+                        <p>{rts.reviewed_by || '<name>'}</p>
                       </div>
                     </div>
                   </div>
@@ -1610,26 +1618,9 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             )}
 
-            {/* Display RTS/NORSA Status for Review */}
+            {/* Display NORSA Status for Review (keep only NORSA, remove redundant RTS) */}
             {dv.status === 'for_review' && (
               <>
-                {(dv.rts_history && dv.rts_history.some(rts => !rts.origin || rts.origin === 'review')) && (
-                  <div className="mt-6 bg-orange-50 border border-orange-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-orange-800 mb-3">For RTS In (From Review)</h4>
-                    {dv.rts_history.filter(rts => !rts.origin || rts.origin === 'review').map((rts, index) => (
-                      <div key={index} className="mb-2 p-2 bg-white rounded border">
-                        <p className="text-sm"><strong>Date Out:</strong> {rts.date}</p>
-                        <p className="text-sm"><strong>Reason:</strong> {rts.reason}</p>
-                        {rts.returned_date ? (
-                          <p className="text-sm text-green-600"><strong>Returned:</strong> {rts.returned_date}</p>
-                        ) : (
-                          <p className="text-sm text-orange-600"><strong>Status:</strong> Pending Return</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
                 {(dv.norsa_history && dv.norsa_history.some(norsa => !norsa.origin || norsa.origin === 'review')) && (
                   <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h4 className="font-semibold text-blue-800 mb-3">For NORSA In (From Review)</h4>
@@ -1692,12 +1683,71 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
               </div>
             )}
 
-            {/* Indexing Actions */}
-            {(dv.status === 'for_review' || dv.status === 'for_rts_in') && (
+            {/* For RTS In Actions - Show latest RTS info and 'Returned After RTS' button */}
+            {dv.status === 'for_rts_in' && dv.rts_history && dv.rts_history.length > 0 && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4 text-orange-800">For RTS In</h3>
+                <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
+                  <h4 className="font-semibold text-orange-800 mb-3">Current RTS Cycle Details</h4>
+                  {(() => {
+                    const latestRTS = dv.rts_history[dv.rts_history.length - 1];
+                    return (
+                      <div className="bg-white p-4 rounded border mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">Date of RTS:</span>
+                            <p>{latestRTS.date}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Reason of RTS:</span>
+                            <p>{latestRTS.reason}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Date Returned After RTS:</span>
+                            <p>{latestRTS.returned_date ? latestRTS.returned_date : 'Pending'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Reviewed by:</span>
+                            <p>{latestRTS.reviewed_by || '<name>'}</p>
+                          </div>
+                        </div>
+                        {/* Removed Accounting Staff in-charge and Date when review was done */}
+                      </div>
+                    );
+                  })()}
+                  <div className="flex gap-2 mt-4 items-center">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Return Date</label>
+                      <input
+                        type="date"
+                        value={rtsDate || getTodayDate()}
+                        onChange={e => setRtsDate(e.target.value)}
+                        className="border border-gray-300 rounded-lg p-2 text-gray-700 w-36"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const dateToUse = rtsDate || getTodayDate();
+                        if (confirm('Return this DV after RTS?')) {
+                          onStatusUpdate(dv.id, 'for_review', {
+                            rts_returned_date: dateToUse
+                          });
+                          onClose();
+                        }
+                      }}
+                      className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors mt-5"
+                    >
+                      Returned After RTS
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Indexing Actions - Only show for for_indexing status */}
+            {dv.status === 'for_indexing' && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4">Indexing Actions</h3>
-                
-                {/* Indexing Form - Always shown for indexing status */}
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-semibold text-blue-800 mb-3">Process Indexing</h4>
                   <div className="space-y-3">
