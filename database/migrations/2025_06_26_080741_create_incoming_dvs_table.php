@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('ors_number')->nullable();
             $table->string('uacs')->nullable();
             $table->string('transaction_type');
-            $table->string('implementing_unit');
+            $table->string('implementing_unit')->nullable();
             $table->string('status')->default('recents'); // default tab
             $table->timestamps();
         });
