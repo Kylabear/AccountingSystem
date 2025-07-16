@@ -1,0 +1,4 @@
+/* Hide scrollbars in Chrome, Safari, Edge */
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar {
+  display: none;
+}
