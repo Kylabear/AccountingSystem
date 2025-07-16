@@ -738,49 +738,50 @@ export default function IncomingDvs() {
 
                     {/* Main Content Area - Simple responsive design */}
                     <div className={`flex-1 p-6 ${isMobile ? '' : 'ml-64'}`}>
-                        {/* Search Bar and Add Button */}
-                        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-end">
-                            <div className="flex-1 max-w-lg">
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Search by DV No., Payee, Transaction Type, Account No., or Particulars..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 text-sm transition-all duration-200"
-                                    />
-                                    <svg 
-                                        className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" 
-                                        fill="none" 
-                                        stroke="currentColor" 
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                    {searchTerm && (
-                                        <button
-                                            onClick={() => setSearchTerm('')}
-                                            className="absolute right-3 top-3 p-1 rounded-full hover:bg-gray-200 transition-colors duration-200"
-                                        >
-                                            <svg className="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                            
-                            {/* Add Incoming DV Button - Aligned to the right */}
-                            <div className="flex-shrink-0">
-                                <Link
-                                    href="/incoming-dvs/new"
-                                    className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 flex items-center text-lg font-bold transition-all duration-200 hover:scale-[1.02] shadow-lg whitespace-nowrap"
-                                >
-                                    <span className="mr-3 text-2xl">+</span>
-                                    Add Incoming DV
-                                </Link>
-                            </div>
-                        </div>
+        {/* Search Bar and Add Button - Responsive, same height, button right-aligned */}
+        <div className="mb-6 w-full flex flex-col sm:flex-row gap-4 items-stretch sm:items-stretch">
+            {/* Search Bar */}
+            <div className="flex-1 min-w-0">
+                <div className="relative h-full">
+                    <input
+                        type="text"
+                        placeholder="Search by DV No., Payee, Transaction Type, Account No., or Particulars..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base transition-all duration-200 h-full min-h-[56px]"
+                    />
+                    <svg 
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    {searchTerm && (
+                        <button
+                            onClick={() => setSearchTerm('')}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 transition-colors duration-200"
+                        >
+                            <svg className="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
+            </div>
+            {/* Add Incoming DV Button */}
+            <div className="flex-shrink-0 flex items-stretch w-full sm:w-auto">
+                <Link
+                    href="/incoming-dvs/new"
+                    className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 flex items-center justify-center text-lg font-bold transition-all duration-200 hover:scale-[1.02] shadow-lg whitespace-nowrap w-full sm:w-auto h-full min-h-[56px]"
+                    style={{ height: '100%' }}
+                >
+                    <span className="mr-3 text-2xl">+</span>
+                    Add Incoming DV
+                </Link>
+            </div>
+        </div>
 
                         {/* Current Tab Title */}
                         <div className="mb-6">
