@@ -77,3 +77,16 @@ AWS_BUCKET=
 AWS_USE_PATH_STYLE_ENDPOINT=false
 
 VITE_APP_NAME="${APP_NAME}"
+
+jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
+
+In For Mode of Payment, clicking a tile opens the modal with the summary and three payment mode selections: “Check,” “LDDAP-ADA,” and “Payroll Register (PR).” Selecting “Check” logs the payment method and moves the voucher forward. Selecting “LDDAP-ADA” opens an input for LDDAP Number before moving the voucher forward. Selecting “Payroll Register (PR)” marks the voucher as “Out to Cashiering,” moving it to that subsection. When returned, reopening the modal shows an “In” button; clicking it logs the return and moves the voucher to the next stage, updating history and returning the user to Recents.
+
+In For E‑NGAS Recording, the modal’s summary shows every completed stage. The left panel displays an input for “E-NGAS Number.” Entering the code and saving records the entry, moves the voucher to the brown For CDJ Recording tab, and redirects to Recents.
+
+In For CDJ Recording, the modal summary shows all timestamps. The left panel shows a “CDJ Recorded” button; clicking it logs the Date of CDJ Recording automatically, moves the voucher to the black For LDDAP Certification tab, and returns the user to Recents.
+
+In For LDDAP Certification, the modal shows the full summary with every processing timestamp. The left panel contains a “Certified” button; clicking it finalizes certification and opens a full‑detail view page rather than returning to Recents. This view displays all original inputs, logs, files, and statuses in one scrollable interface with a Download button for exporting the complete transaction record.
+
+Finally, the Processed tab in green lists fully certified vouchers. Clicking a tile here opens the same full‑detail view with download access. Throughout the system, the green navigation bar remains sticky, and all modal dialogs maintain a consistent layout: a top summary with timestamps, a left section for inputs or action buttons, and a right section for the complete transaction history. Please structure your mentorship around setting up the Laravel backend and MySQL connection, configuring React with Laravel via Vite, styling with Tailwind CSS, managing frontend and backend routing, building forms and modals, creating database models and migrations, fetching and updating data, and implementing every step of the Incoming DVs workflow exactly as described above.
+
