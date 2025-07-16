@@ -27,7 +27,6 @@ import LddapModal from '../Components/LddapModal';
 import EditDvModal from '../Components/EditDvModal';
 import DownloadModal from '../Components/DownloadModal';
 import ProcessedDvModal from '../Components/ProcessedDvModal';
-import GalleryModal from '../Components/GalleryModal';
 
 const statuses = [
     { key: 'recents', label: 'Recents', color: 'text-white', bgColor: '#73FBFD' },
@@ -96,7 +95,7 @@ export default function IncomingDvs() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
     const [isProcessedModalOpen, setIsProcessedModalOpen] = useState(false);
-    const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+    // Removed GalleryModal state
     
     // Save active tab to localStorage and URL when it changes
     const handleTabChange = (newTab) => {
@@ -724,10 +723,7 @@ export default function IncomingDvs() {
                 onDownload={handleDownload}
             />
 
-            <GalleryModal
-                isOpen={isGalleryModalOpen}
-                onClose={() => setIsGalleryModalOpen(false)}
-            />
+            {/* Removed GalleryModal component usage */}
         </div>
     );
 }

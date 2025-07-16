@@ -670,33 +670,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                   </h3>
                   
                   {/* Cash Allocation Date */}
-                  {dv.cash_allocation_date && (
-                    <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
-                      <div className="flex flex-wrap items-center gap-4">
-                        <span className="text-sm font-medium text-green-800">
-                          Cash allocation completed on: {new Date(dv.cash_allocation_date).toLocaleDateString()}
-                        </span>
-                        {dv.cash_allocation_processed_date && (
-                          <span className="text-sm font-medium text-green-800">
-                            Processed on: {new Date(dv.cash_allocation_processed_date).toLocaleDateString()}
-                          </span>
-                        )}
-                        {dv.cash_allocation_number && (
-                          <span className="text-sm font-medium text-green-800">
-                            CA No.: {dv.cash_allocation_number}
-                          </span>
-                        )}
-                        {dv.net_amount && (
-                          <span className="text-sm font-medium text-green-800">
-                            Net Amount: PHP {parseFloat(dv.net_amount).toLocaleString('en-US', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  {/* Removed redundant green cash allocation box */}
                   
                   {/* Cash Allocation Details Box */}
                   <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded-lg">
