@@ -465,30 +465,14 @@ export default function IncomingDvs() {
     // Handle DV card click
     const handleDvClick = (dv) => {
         setSelectedDv(dv);
-        
-        // Use specific modals based on DV status
+        // Always use unified DV Details modal except for processed, cash allocation, and LDDAP
         if (dv.status === 'processed') {
             setIsProcessedModalOpen(true);
-        }
-        // Use CashAllocationModal for cash allocation status (dedicated for cash allocation)
-        else if (dv.status === 'for_cash_allocation') {
+        } else if (dv.status === 'for_cash_allocation') {
             setIsCashAllocationModalOpen(true);
-        }
-        // Use DV Details modal for box c status (has progressive summary)
-        else if (dv.status === 'for_box_c') {
-            setIsModalOpen(true);
-        }
-        // For review statuses might need RTS/NORSA modal in some cases
-        else if (dv.status === 'for_rts_in' || dv.status === 'for_norsa_in') {
-            // Check if it's part of RTS/NORSA cycle, otherwise use regular modal
-            setIsRtsNorsaModalOpen(true);
-        }
-        // For LDDAP certification, open LDDAP modal
-        else if (dv.status === 'for_lddap') {
+        } else if (dv.status === 'for_lddap') {
             setIsLddapModalOpen(true);
-        }
-        // Default to DV Details modal for all other statuses
-        else {
+        } else {
             setIsModalOpen(true);
         }
     };
