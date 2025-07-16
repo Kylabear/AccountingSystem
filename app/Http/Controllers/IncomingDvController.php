@@ -378,6 +378,9 @@ class IncomingDvController extends Controller
             'transaction_history' => $transactionHistory,
         ]);
 
+        if ($request->inertia()) {
+            return redirect()->back()->with('success', 'DV status updated successfully.');
+        }
         return response()->json(['success' => true, 'message' => 'DV status updated successfully.']);
     }
 
@@ -456,6 +459,9 @@ class IncomingDvController extends Controller
 
         $dv->update($updateData);
 
+        if ($request->inertia()) {
+            return redirect()->back()->with('success', 'DV RTS/NORSA status updated successfully.');
+        }
         return response()->json(['success' => true, 'message' => 'DV RTS/NORSA status updated successfully.']);
     }
 
@@ -511,6 +517,9 @@ class IncomingDvController extends Controller
             'is_reallocated' => false, // Clear reallocated flag to allow normal workflow progression
         ]);
 
+        if ($request->inertia()) {
+            return redirect()->back()->with('success', 'Cash allocation completed successfully.');
+        }
         return response()->json(['success' => true, 'message' => 'Cash allocation completed successfully.']);
     }
 
@@ -606,6 +615,9 @@ class IncomingDvController extends Controller
                 break;
         }
 
+        if ($request->inertia()) {
+            return redirect()->back()->with('success', 'Box C action completed successfully.');
+        }
         return response()->json(['success' => true, 'message' => 'Box C action completed successfully.']);
     }
 

@@ -191,7 +191,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
     if (confirm('Certify this DV?')) {
       onStatusUpdate(
         dv.id,
-        'certified',
+        'for_approval',
         { action: 'certify' },
         () => {
           // After status update, use Inertia to visit For Approval tab
