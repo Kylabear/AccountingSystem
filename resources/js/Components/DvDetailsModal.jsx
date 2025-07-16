@@ -251,7 +251,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
       return;
     }
     if (confirm('Process indexing for this DV?')) {
-      onStatusUpdate(dv.id, 'for_indexing', {
+      onStatusUpdate(dv.id, 'for_payment', {
         indexing_date: indexingDate
       });
       onClose();
@@ -485,7 +485,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                       </div>
                       <div>
                         <span className="font-medium text-gray-700">Date Returned After RTS:</span>
-                        <p>{rts.returned_date || 'Pending'}</p>
+                        <p>{rts.returned_date ? rts.returned_date : 'Pending'}</p>
                       </div>
                       <div>
                         <span className="font-medium text-gray-700">Reviewed by:</span>
@@ -536,7 +536,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">RTS Returned Date:</span>
-                          <p className="text-gray-600">{dv.rts_in_date ? new Date(dv.rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                          <p className="text-gray-600">{dv.rts_in_date ? new Date(dv.rts_in_date).toLocaleDateString() : 'Pending'}</p>
                         </div>
                         {dv.rts_reason && (
                           <div>
@@ -561,7 +561,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                         </div>
                         <div>
                           <span className="font-medium text-gray-700">NORSA Completed Date:</span>
-                          <p className="text-gray-600">{dv.norsa_in_date ? new Date(dv.norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                          <p className="text-gray-600">{dv.norsa_in_date ? new Date(dv.norsa_in_date).toLocaleDateString() : 'Pending'}</p>
                         </div>
                         {dv.norsa_number && (
                           <div>
@@ -717,7 +717,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                           </div>
                           <div>
                             <span className="font-medium text-gray-700">RTS Returned Date:</span>
-                            <p className="text-gray-600">{dv.ca_rts_in_date ? new Date(dv.ca_rts_in_date).toLocaleDateString() : 'N/A'}</p>
+                            <p className="text-gray-600">{dv.ca_rts_in_date ? new Date(dv.ca_rts_in_date).toLocaleDateString() : 'Pending'}</p>
                           </div>
                           {dv.ca_rts_reason && (
                             <div>
@@ -742,7 +742,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
                           </div>
                           <div>
                             <span className="font-medium text-gray-700">NORSA Completed Date:</span>
-                            <p className="text-gray-600">{dv.ca_norsa_in_date ? new Date(dv.ca_norsa_in_date).toLocaleDateString() : 'N/A'}</p>
+                            <p className="text-gray-600">{dv.ca_norsa_in_date ? new Date(dv.ca_norsa_in_date).toLocaleDateString() : 'Pending'}</p>
                           </div>
                           {dv.ca_norsa_number && (
                             <div>
@@ -1693,7 +1693,7 @@ export default function DvDetailsModal({ dv, isOpen, onClose, onStatusUpdate }) 
             )}
 
             {/* Indexing Actions */}
-            {dv.status === 'for_indexing' && (
+            {(dv.status === 'for_review' || dv.status === 'for_rts_in') && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4">Indexing Actions</h3>
                 
