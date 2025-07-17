@@ -919,8 +919,8 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {/* Default rendering for other tabs */}
-                        {!(activeTab === 'for_review' || activeTab === 'for_rts_in' || activeTab === 'for_norsa_in') && (
+                        {/* Default rendering for other tabs, but skip for_lddap to avoid redundancy */}
+                        {!(activeTab === 'for_review' || activeTab === 'for_rts_in' || activeTab === 'for_norsa_in' || activeTab === 'for_lddap') && (
                           <div className="space-y-4">
                             {sortedDvs.length > 0 ? (
                               sortedDvs.map((dv) => renderDvCard(dv))
@@ -1143,102 +1143,6 @@ export default function IncomingDvs() {
                             </div>
                         )}
 
-                        {/* For LDDAP Certification Section - Only show in LDDAP tab */}
-                        {activeTab === 'for_lddap' && (
-                            <div className="mt-12">
-                                {/* Section Header */}
-                                <div className="mb-6 border-t pt-8">
-                                    <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center">
-                                        <span className="mr-3 text-3xl">🔒</span>
-                                        For LDDAP Certification
-                                    </h2>
-                                    {lddapDvs.length > 0 ? (
-                                        <p className="text-gray-600 text-sm">
-                                            {lddapDvs.length} {lddapDvs.length === 1 ? 'DV' : 'DVs'} currently awaiting LDDAP certification
-                                            {searchTerm && (
-                                                <span className="ml-2 text-gray-600 font-medium">
-                                                    matching "{searchTerm}"
-                                                </span>
-                                            )}
-                                        </p>
-                                    ) : (
-                                        <p className="text-gray-500 text-sm italic">
-                                            No DVs currently awaiting LDDAP certification. DVs will appear here when they are ready for certification.
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* LDDAP DV Cards */}
-                                {lddapDvs.length > 0 && (
-                                    <div className="space-y-4">
-                                        {lddapDvs.map((dv) => (
-                                            <div 
-                                                key={`lddap-${dv.id}`}
-                                                className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                                onClick={() => handleDvClick(dv)}
-                                            >
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
-                                                            {dv.payee}
-                                                            {/* LDDAP status tag */}
-                                                            <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded-full border border-gray-300 font-semibold">
-                                                                🔒 Awaiting LDDAP Certification
-                                                            </span>
-                                                        </h3>
-                                                        <p className="text-gray-600 text-sm mb-1">
-                                                            {dv.dv_number}
-                                                        </p>
-                                                        <p className="text-gray-600 text-sm mb-2 italic">
-                                                            {dv.particulars && dv.particulars.length > 50 
-                                                                ? dv.particulars.substring(0, 50) + '...'
-                                                                : dv.particulars || 'No particulars specified'}
-                                                        </p>
-                                                        {/* Show LDDAP info */}
-                                                        {dv.lddap_date && (
-                                                            <p className="text-gray-600 text-xs mb-2">
-                                                                Awaiting LDDAP on: {new Date(dv.lddap_date).toLocaleDateString()}
-                                                            </p>
-                                                        )}
-                                                        <p className="text-gray-800 font-medium">
-                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                                minimumFractionDigits: 2,
-                                                                maximumFractionDigits: 2
-                                                            })}
-                                                            {dv.net_amount && (
-                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                                                            )}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="flex flex-col items-end space-y-2">
-                                                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-gray-500">
-                                                                Awaiting LDDAP
-                                                            </span>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedDv(dv);
-                                                                    setIsLddapModalOpen(true);
-                                                                }}
-                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                            >
-                                                                Certify
-                                                            </button>
-                                                        </div>
-                                                        {dv.created_at && (
-                                                            <p className="text-xs text-gray-500 mt-2">
-                                                                Original: {new Date(dv.created_at).toLocaleDateString()}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
