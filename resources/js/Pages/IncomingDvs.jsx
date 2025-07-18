@@ -86,6 +86,8 @@ const statuses = [
 ];
 
 export default function IncomingDvs() {
+    // Add state for Box C Certification tab sections
+    const [boxCSection, setBoxCSection] = React.useState('box_c');
     const { dvs, auth } = usePage().props;
     
     // State for responsive design
@@ -621,6 +623,8 @@ export default function IncomingDvs() {
       );
     }
 
+    // Add state for cash section tab at the top of the function
+    const [cashSection, setCashSection] = React.useState('allocation');
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Fixed Header - Simple design */}
@@ -968,33 +972,56 @@ export default function IncomingDvs() {
                             </div>
                           </>
                         )}
-                        {activeTab === 'for_cash_allocation' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                        {/* Only show the unified card for allocation/reallocation in Cash Allocation tab */}
+                        {activeTab === 'for_box_c' && (
+                          <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">💰</span>For Cash Allocation</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                              <div className="flex space-x-4">
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${boxCSection === 'box_c' ? 'bg-yellow-400 text-white' : 'bg-yellow-100 text-yellow-800'}`}
+                                  onClick={() => setBoxCSection('box_c')}
+                                >
+                                  <span className="mr-2">📦</span>For Box C Certification
+                                  <span className="ml-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_box_c').length}</span>
+                                </button>
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${boxCSection === 'rts_in' ? 'bg-yellow-400 text-white' : 'bg-yellow-100 text-yellow-800'}`}
+                                  onClick={() => setBoxCSection('rts_in')}
+                                >
+                                  <span className="mr-2">🔄</span>For RTS In
+                                  <span className="ml-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
+                                </button>
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${boxCSection === 'norsa_in' ? 'bg-yellow-400 text-white' : 'bg-yellow-100 text-yellow-800'}`}
+                                  onClick={() => setBoxCSection('norsa_in')}
+                                >
+                                  <span className="mr-2">🌐</span>For NORSA In
+                                  <span className="ml-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
+                                </button>
+                              </div>
                             </div>
                             <div className="space-y-4 overflow-y-auto flex-1">
-                              {sortedDvs.length > 0 ? (
-                                sortedDvs.map((dv) => renderDvCard(dv))
-                              ) : (
-                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are awaiting cash allocation. Nothing is pending at this time.</p>
-                              )}
-                            </div>
-                          </div>
-                        )}
-                        {activeTab === 'for_box_c' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>For Box C Certification</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
-                            </div>
-                            <div className="space-y-4">
-                              {sortedDvs.length > 0 ? (
-                                sortedDvs.map((dv) => renderDvCard(dv))
-                              ) : (
-                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
-                              )}
+                              {(() => {
+                                let filtered, emptyMsg;
+                                if (boxCSection === 'box_c') {
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_box_c');
+                                  emptyMsg = "No disbursement vouchers are pending Box C certification. You're up to date.";
+                                } else if (boxCSection === 'rts_in') {
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_rts_in');
+                                  emptyMsg = "No disbursement vouchers are pending RTS In for Box C. Check back later.";
+                                } else if (boxCSection === 'norsa_in') {
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_norsa_in');
+                                  emptyMsg = "No disbursement vouchers are pending NORSA In for Box C. Check back later.";
+                                } else {
+                                  filtered = [];
+                                  emptyMsg = "No disbursement vouchers in this section. Check back later.";
+                                }
+                                return filtered.length > 0 ? (
+                                  filtered.map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">{emptyMsg}</p>
+                                );
+                              })()}
                             </div>
                           </div>
                         )}
@@ -1122,26 +1149,37 @@ export default function IncomingDvs() {
 
                         {/* For Cash Reallocation Section - Only show in Cash Allocation tab */}
                         {activeTab === 'for_cash_allocation' && (
-                            <div className="mt-12">
-                                {/* Section Header */}
-                                {reallocatedDvs.length > 0 ? (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-2xl font-bold text-orange-800 flex items-center">
-                                                <span className="mr-2 text-3xl">🔄</span>For Cash Reallocation
-                                            </h3>
-                                            <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{reallocatedDvs.length}</span>
-                                        </div>
-                                        <p className="text-orange-600 text-sm mb-4">
-                                            {reallocatedDvs.length} {reallocatedDvs.length === 1 ? 'DV' : 'DVs'} returned by cashiering for reallocation
-                                            {searchTerm && (
-                                                <span className="ml-2 text-orange-700 font-medium">
-                                                    matching "{searchTerm}"
-                                                </span>
-                                            )}
-                                        </p>
-                                        <div className="space-y-4">
-                                            {reallocatedDvs.map((dv) => (
+                            <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                                {/* Section Tabs */}
+                                <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                                    <div className="flex space-x-4">
+                                        <button
+                                            className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${cashSection === 'allocation' ? 'bg-orange-600 text-white' : 'bg-orange-200 text-orange-800'}`}
+                                            onClick={() => setCashSection('allocation')}
+                                        >
+                                            <span className="mr-2">💰</span>For Cash Allocation
+                                            <span className="ml-2 bg-orange-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                                        </button>
+                                        <button
+                                            className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${cashSection === 'reallocation' ? 'bg-orange-600 text-white' : 'bg-orange-200 text-orange-800'}`}
+                                            onClick={() => setCashSection('reallocation')}
+                                        >
+                                            <span className="mr-2">🔄</span>For Cash Reallocation
+                                            <span className="ml-2 bg-orange-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{reallocatedDvs.length}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                {/* Section Content */}
+                                <div className="flex-1 overflow-y-auto space-y-4">
+                                    {cashSection === 'allocation' ? (
+                                        sortedDvs.length > 0 ? (
+                                            sortedDvs.map((dv) => renderDvCard(dv))
+                                        ) : (
+                                            <p className="text-gray-500 text-center py-4">No disbursement vouchers are awaiting cash allocation. Nothing is pending at this time.</p>
+                                        )
+                                    ) : (
+                                        reallocatedDvs.length > 0 ? (
+                                            reallocatedDvs.map((dv) => (
                                                 <div 
                                                     key={`realloc-${dv.id}`}
                                                     className="bg-orange-50 border-l-4 border-orange-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
@@ -1151,7 +1189,6 @@ export default function IncomingDvs() {
                                                         <div className="flex-1">
                                                             <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
                                                                 {dv.payee}
-                                                                {/* Reallocation status tag */}
                                                                 <span className="ml-2 px-3 py-1 bg-orange-200 text-orange-800 text-xs rounded-full border border-orange-300 font-semibold">
                                                                     🔄 Returned by Cashiering – Reallocate Cash
                                                                 </span>
@@ -1164,7 +1201,6 @@ export default function IncomingDvs() {
                                                                     ? dv.particulars.substring(0, 50) + '...'
                                                                     : dv.particulars || 'No particulars specified'}
                                                             </p>
-                                                            {/* Show reallocation info */}
                                                             {dv.reallocation_reason && (
                                                                 <p className="text-orange-700 text-xs mb-2 italic font-medium">
                                                                     Return Reason: {dv.reallocation_reason}
@@ -1209,22 +1245,12 @@ export default function IncomingDvs() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h3 className="text-2xl font-bold text-green-700 flex items-center">
-                                                <span className="mr-2 text-3xl">🔄</span>For Cash Reallocation
-                                            </h3>
-                                            <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">0</span>
-                                        </div>
-                                        <p className="text-gray-500 text-center py-4">
-                                            No disbursement vouchers need reallocation. All funds are properly assigned.
-                                        </p>
-                                    </div>
-                                )}
+                                            ))
+                                        ) : (
+                                            <p className="text-gray-500 text-center py-4">No disbursement vouchers need reallocation. All funds are properly assigned.</p>
+                                        )
+                                    )}
+                                </div>
                             </div>
                         )}
 
