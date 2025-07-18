@@ -1,4 +1,59 @@
-import { useState, useEffect } from 'react';
+// Helper component for For Review tab with section buttons
+function ForReviewSections({ sortedDvs, renderDvCard }) {
+  const [section, setSection] = React.useState('for_review');
+  const sectionOptions = [
+    {
+      key: 'for_review',
+      label: 'For Review',
+      icon: '🔍',
+      count: sortedDvs.filter(dv => dv.status === 'for_review').length
+    },
+    {
+      key: 'for_rts_in',
+      label: 'For RTS In',
+      icon: '🔄',
+      count: sortedDvs.filter(dv => dv.status === 'for_rts_in').length
+    },
+    {
+      key: 'for_norsa_in',
+      label: 'For NORSA In',
+      icon: '📝',
+      count: sortedDvs.filter(dv => dv.status === 'for_norsa_in').length
+    }
+  ];
+  const filteredDvs = sortedDvs.filter(dv => dv.status === section);
+  return (
+    <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex space-x-2">
+          {sectionOptions.map(opt => (
+            <button
+              key={opt.key}
+              onClick={() => setSection(opt.key)}
+              className={`px-4 py-2 rounded-lg font-semibold flex items-center transition-colors duration-200 focus:outline-none ${
+                section === opt.key
+                  ? 'bg-green-600 text-white shadow'
+                  : 'bg-green-200 text-green-700 hover:bg-green-300'
+              }`}
+            >
+              <span className="mr-2">{opt.icon}</span>
+              {opt.label}
+              <span className="ml-2 bg-green-700 text-white px-2 py-1 rounded-full text-xs font-bold">{opt.count}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="space-y-4">
+        {filteredDvs.length > 0 ? (
+          filteredDvs.map((dv) => renderDvCard(dv))
+        ) : (
+          <p className="text-gray-500 text-center py-4">No disbursement vouchers in {sectionOptions.find(opt => opt.key === section)?.label}.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+import React, { useState, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import DvDetailsModal from '../Components/DvDetailsModal';
 import RtsNorsaModal from '../Components/RtsNorsaModal';
@@ -783,152 +838,235 @@ export default function IncomingDvs() {
             </div>
         </div>
 
-                        {/* Current Tab Title */}
-                        <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center">
-                                <span className="mr-3 text-3xl">
-                                    {activeTab === 'recents' && '🕐'}
-                                    {activeTab === 'for_review' && '🔍'}
-                                    {activeTab === 'for_cash_allocation' && '💰'}
-                                    {activeTab === 'for_box_c' && '📋'}
-                                    {activeTab === 'for_approval' && '✅'}
-                                    {activeTab === 'for_indexing' && '📇'}
-                                    {activeTab === 'for_payment' && '💳'}
-                                    {activeTab === 'for_engas' && '🌐'}
-                                    {activeTab === 'for_cdj' && '📊'}
-                                    {activeTab === 'for_lddap' && '🔒'}
-                                    {activeTab === 'processed' && '✨'}
-                                </span>
-                                {statuses.find(s => s.key === activeTab)?.label}
-                            </h2>
-                            <p className="text-gray-600 text-sm">
-                                {sortedDvs.length} {sortedDvs.length === 1 ? 'record' : 'records'} found
-                                {searchTerm && (
-                                    <span className="ml-2 text-green-600 font-medium">
-                                        for "{searchTerm}"
-                                    </span>
-                                )}
-                                {/* Show breakdown for cash allocation */}
-                                {activeTab === 'for_cash_allocation' && (
-                                    <span className="ml-4 text-gray-500 text-xs">
-                                        ({sortedDvs.length} new allocation{sortedDvs.length !== 1 ? 's' : ''}{reallocatedDvs.length > 0 ? `, ${reallocatedDvs.length} for reallocation` : ''})
-                                    </span>
-                                )}
-                                {/* Show breakdown for approval */}
-                                {activeTab === 'for_approval' && (
-                                    <span className="ml-4 text-gray-500 text-xs">
-                                        ({sortedDvs.length} waiting to be sent{approvalOutDvs.length > 0 ? `, ${approvalOutDvs.length} out for approval` : ''})
-                                    </span>
-                                )}
-                                {/* Show breakdown for LDDAP */}
-                                {activeTab === 'for_lddap' && (
-                                    <span className="ml-4 text-gray-500 text-xs">
-                                        ({lddapDvs.length} DVs for LDDAP certification)
-                                    </span>
-                                )}
-                            </p>
-                        </div>
+                        {/* Removed section titles outside DV cards for consistency. Only section titles inside DV cards remain. */}
 
-                        {/* DV Cards - Grouped by tab requirements */}
-                        {activeTab === 'for_review' && (
-                          <div className="space-y-12">
-                            {/* For Review Section */}
-                            <div>
-                              <h3 className="text-xl font-bold text-red-700 mb-4 flex items-center"><span className="mr-2">🔍</span>For Review</h3>
-                              <div className="space-y-4">
-                                {sortedDvs.filter(dv => dv.status === 'for_review').length > 0 ? (
-                                  sortedDvs.filter(dv => dv.status === 'for_review').map((dv) => renderDvCard(dv))
-                                ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs in For Review</p>
-                                )}
-                              </div>
+                        {/* DV Cards - All sections use green card containers with section title and count */}
+                        {activeTab === 'recents' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🕐</span>Recents</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
                             </div>
-                            {/* For RTS In Section */}
-                            <div>
-                              <h3 className="text-xl font-bold text-orange-700 mb-4 flex items-center"><span className="mr-2">🔄</span>For RTS In</h3>
-                              <div className="space-y-4">
-                                {sortedDvs.filter(dv => dv.status === 'for_rts_in').length > 0 ? (
-                                  sortedDvs.filter(dv => dv.status === 'for_rts_in').map((dv) => renderDvCard(dv))
-                                ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs in For RTS In</p>
-                                )}
-                              </div>
-                            </div>
-                            {/* For NORSA In Section */}
-                            <div>
-                              <h3 className="text-xl font-bold text-pink-700 mb-4 flex items-center"><span className="mr-2">📝</span>For NORSA In</h3>
-                              <div className="space-y-4">
-                                {sortedDvs.filter(dv => dv.status === 'for_norsa_in').length > 0 ? (
-                                  sortedDvs.filter(dv => dv.status === 'for_norsa_in').map((dv) => renderDvCard(dv))
-                                ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs in For NORSA In</p>
-                                )}
-                              </div>
+                            <div className="space-y-4 overflow-y-auto flex-1">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No recent disbursement vouchers yet. New entries will appear here once added.</p>
+                              )}
                             </div>
                           </div>
+                        )}
+                        {activeTab === 'for_review' && (
+                          <ForReviewSections sortedDvs={sortedDvs} renderDvCard={renderDvCard} />
                         )}
                         {activeTab === 'for_rts_in' && (
-                          <div className="space-y-12">
-                            {/* Under For Review Section */}
-                            <div>
-                              <h3 className="text-xl font-bold text-orange-700 mb-4 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
+                          <>
+                            <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
+                                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length}</span>
+                              </div>
                               <div className="space-y-4">
-                                {sortedDvs.filter(dv => dv.status === 'for_rts_in' && (!dv.rts_origin || dv.rts_origin === 'review')).length > 0 ? (
-                                  sortedDvs.filter(dv => dv.status === 'for_rts_in' && (!dv.rts_origin || dv.rts_origin === 'review')).map((dv) => renderDvCard(dv))
+                                {sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length > 0 ? (
+                                  sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs under For Review</p>
+                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers are under review at the moment. Check back later.</p>
                                 )}
                               </div>
                             </div>
-                            {/* Under For Box C Certification Section */}
-                            <div>
-                              <h3 className="text-xl font-bold text-orange-700 mb-4 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
+                            <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>Under For Box C Certification</h3>
+                                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length}</span>
+                              </div>
                               <div className="space-y-4">
-                                {sortedDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'cash_allocation').length > 0 ? (
-                                  sortedDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
+                                {sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length > 0 ? (
+                                  sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs under Box C Certification</p>
+                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
                                 )}
                               </div>
                             </div>
-                          </div>
+                          </>
                         )}
                         {activeTab === 'for_norsa_in' && (
-                          <div className="space-y-12">
-                            {/* Under For Review Section */}
-                            <div>
-                              <h3 className="text-xl font-bold text-pink-700 mb-4 flex items-center"><span className="mr-2">📝</span>Under For Review</h3>
+                          <>
+                            <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>Under For Review</h3>
+                                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length}</span>
+                              </div>
                               <div className="space-y-4">
-                                {sortedDvs.filter(dv => dv.status === 'for_norsa_in' && (!dv.norsa_origin || dv.norsa_origin === 'review')).length > 0 ? (
-                                  sortedDvs.filter(dv => dv.status === 'for_norsa_in' && (!dv.norsa_origin || dv.norsa_origin === 'review')).map((dv) => renderDvCard(dv))
+                                {sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length > 0 ? (
+                                  sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs under For Review</p>
+                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers are under review at the moment. Check back later.</p>
                                 )}
                               </div>
                             </div>
-                            {/* Under For Box C Certification Section */}
-                            <div>
-                              <h3 className="text-xl font-bold text-pink-700 mb-4 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
+                            <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
+                                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length}</span>
+                              </div>
                               <div className="space-y-4">
-                                {sortedDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'cash_allocation').length > 0 ? (
-                                  sortedDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
+                                {sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length > 0 ? (
+                                  sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs under Box C Certification</p>
+                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
                                 )}
                               </div>
+                            </div>
+                          </>
+                        )}
+                        {activeTab === 'for_cash_allocation' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">💰</span>For Cash Allocation</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4 overflow-y-auto flex-1">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are awaiting cash allocation. Nothing is pending at this time.</p>
+                              )}
                             </div>
                           </div>
                         )}
-                        {/* Default rendering for other tabs, but skip for_lddap to avoid redundancy */}
-                        {!(activeTab === 'for_review' || activeTab === 'for_rts_in' || activeTab === 'for_norsa_in' || activeTab === 'for_lddap') && (
-                          <div className="space-y-4">
-                            {sortedDvs.length > 0 ? (
-                              sortedDvs.map((dv) => renderDvCard(dv))
-                            ) : (
-                              <p className="text-gray-500 text-center py-8">
-                                No DVs found {searchTerm && `for "${searchTerm}"`}
-                              </p>
-                            )}
+                        {activeTab === 'for_box_c' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>For Box C Certification</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'for_approval' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">✅</span>For Approval</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are waiting for approval. All items have been reviewed.</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'for_indexing' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📇</span>For Indexing</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are queued for indexing. Everything’s been filed.</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'for_payment' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>For Mode of Payment</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending mode of payment selection. This section is clear.</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'out_to_cashiering' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">💵</span>Out to Cashiering</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are out to cashiering. All transactions are in place.</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'for_engas' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🌐</span>For E-NGAS Recording</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are waiting for E-NGAS recording. You're up to date.</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'for_cdj' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📊</span>For CDJ Recording</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending CDJ recording. All entries have been logged.</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'for_lddap' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🔒</span>For LDDAP Preparation</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are queued for LDDAP preparation. Everything’s ready.</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {activeTab === 'processed' && (
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">✨</span>Processed</h3>
+                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                            </div>
+                            <div className="space-y-4 overflow-y-auto flex-1">
+                              {sortedDvs.length > 0 ? (
+                                sortedDvs.map((dv) => renderDvCard(dv))
+                              ) : (
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers have been fully processed yet. Completed items will appear here.</p>
+                              )}
+                            </div>
                           </div>
                         )}
 
@@ -937,13 +1075,15 @@ export default function IncomingDvs() {
                         {activeTab === 'for_cash_allocation' && (
                             <div className="mt-12">
                                 {/* Section Header */}
-                                <div className="mb-6 border-t pt-8">
-                                    <h2 className="text-2xl font-bold text-orange-800 mb-2 flex items-center">
-                                        <span className="mr-3 text-3xl">🔄</span>
-                                        For Cash Reallocation
-                                    </h2>
-                                    {reallocatedDvs.length > 0 ? (
-                                        <p className="text-orange-600 text-sm">
+                                {reallocatedDvs.length > 0 ? (
+                                    <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-2xl font-bold text-orange-800 flex items-center">
+                                                <span className="mr-2 text-3xl">🔄</span>For Cash Reallocation
+                                            </h3>
+                                            <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{reallocatedDvs.length}</span>
+                                        </div>
+                                        <p className="text-orange-600 text-sm mb-4">
                                             {reallocatedDvs.length} {reallocatedDvs.length === 1 ? 'DV' : 'DVs'} returned by cashiering for reallocation
                                             {searchTerm && (
                                                 <span className="ml-2 text-orange-700 font-medium">
@@ -951,172 +1091,56 @@ export default function IncomingDvs() {
                                                 </span>
                                             )}
                                         </p>
-                                    ) : (
-                                        <p className="text-orange-500 text-sm italic">
-                                            No reallocated DVs at the moment. DVs will appear here when returned by cashiering for reallocation.
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Reallocated DV Cards */}
-                                {reallocatedDvs.length > 0 && (
-                                    <div className="space-y-4">
-                                        {reallocatedDvs.map((dv) => (
-                                            <div 
-                                                key={`realloc-${dv.id}`}
-                                                className="bg-orange-50 border-l-4 border-orange-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                                onClick={() => handleDvClick(dv)}
-                                            >
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
-                                                            {dv.payee}
-                                                            {/* Reallocation status tag */}
-                                                            <span className="ml-2 px-3 py-1 bg-orange-200 text-orange-800 text-xs rounded-full border border-orange-300 font-semibold">
-                                                                🔄 Returned by Cashiering – Reallocate Cash
-                                                            </span>
-                                                        </h3>
-                                                        <p className="text-gray-600 text-sm mb-1">
-                                                            {dv.dv_number}
-                                                        </p>
-                                                        <p className="text-gray-600 text-sm mb-2 italic">
-                                                            {dv.particulars && dv.particulars.length > 50 
-                                                                ? dv.particulars.substring(0, 50) + '...'
-                                                                : dv.particulars || 'No particulars specified'}
-                                                        </p>
-                                                        {/* Show reallocation info */}
-                                                        {dv.reallocation_reason && (
-                                                            <p className="text-orange-700 text-xs mb-2 italic font-medium">
-                                                                Return Reason: {dv.reallocation_reason}
+                                        <div className="space-y-4">
+                                            {reallocatedDvs.map((dv) => (
+                                                <div 
+                                                    key={`realloc-${dv.id}`}
+                                                    className="bg-orange-50 border-l-4 border-orange-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                    onClick={() => handleDvClick(dv)}
+                                                >
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex-1">
+                                                            <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
+                                                                {dv.payee}
+                                                                {/* Reallocation status tag */}
+                                                                <span className="ml-2 px-3 py-1 bg-orange-200 text-orange-800 text-xs rounded-full border border-orange-300 font-semibold">
+                                                                    🔄 Returned by Cashiering – Reallocate Cash
+                                                                </span>
+                                                            </h3>
+                                                            <p className="text-gray-600 text-sm mb-1">
+                                                                {dv.dv_number}
                                                             </p>
-                                                        )}
-                                                        {dv.reallocation_date && (
-                                                            <p className="text-orange-600 text-xs mb-2">
-                                                                Returned on: {new Date(dv.reallocation_date).toLocaleDateString()}
+                                                            <p className="text-gray-600 text-sm mb-2 italic">
+                                                                {dv.particulars && dv.particulars.length > 50 
+                                                                    ? dv.particulars.substring(0, 50) + '...'
+                                                                    : dv.particulars || 'No particulars specified'}
                                                             </p>
-                                                        )}
-                                                        <p className="text-gray-800 font-medium">
-                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                                minimumFractionDigits: 2,
-                                                                maximumFractionDigits: 2
-                                                            })}
-                                                            {dv.net_amount && (
-                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                            {/* Show reallocation info */}
+                                                            {dv.reallocation_reason && (
+                                                                <p className="text-orange-700 text-xs mb-2 italic font-medium">
+                                                                    Return Reason: {dv.reallocation_reason}
+                                                                </p>
                                                             )}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="flex flex-col items-end space-y-2">
-                                                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-orange-500">
-                                                                For Reallocation
-                                                            </span>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setSelectedDv(dv);
-                                                                    setIsEditModalOpen(true);
-                                                                }}
-                                                                className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                            >
-                                                                Edit
-                                                            </button>
+                                                            {dv.reallocation_date && (
+                                                                <p className="text-orange-600 text-xs mb-2">
+                                                                    Returned on: {new Date(dv.reallocation_date).toLocaleDateString()}
+                                                                </p>
+                                                            )}
+                                                            <p className="text-gray-800 font-medium">
+                                                                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                                    minimumFractionDigits: 2,
+                                                                    maximumFractionDigits: 2
+                                                                })}
+                                                                {dv.net_amount && (
+                                                                    <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                                )}
+                                                            </p>
                                                         </div>
-                                                        {dv.created_at && (
-                                                            <p className="text-xs text-gray-500 mt-2">
-                                                                Original: {new Date(dv.created_at).toLocaleDateString()}
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Out for Approval Section - Only show in Approval tab */}
-                        {activeTab === 'for_approval' && (
-                            <div className="mt-12">
-                                {/* Section Header */}
-                                <div className="mb-6 border-t pt-8">
-                                    <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center">
-                                        <span className="mr-3 text-3xl">📤</span>
-                                        Out for Approval
-                                    </h2>
-                                    {approvalOutDvs.length > 0 ? (
-                                        <p className="text-gray-600 text-sm">
-                                            {approvalOutDvs.length} {approvalOutDvs.length === 1 ? 'DV' : 'DVs'} currently out for approval
-                                            {searchTerm && (
-                                                <span className="ml-2 text-green-600 font-medium">
-                                                    matching "{searchTerm}"
-                                                </span>
-                                            )}
-                                        </p>
-                                    ) : (
-                                        <p className="text-gray-500 text-sm italic">
-                                            No DVs currently out for approval. DVs will appear here when sent out for approval.
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Approval Out DV Cards */}
-                                {approvalOutDvs.length > 0 && (
-                                    <div className="space-y-4">
-                                        {approvalOutDvs.map((dv) => (
-                                            <div 
-                                                key={`approval-out-${dv.id}`}
-                                                className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                                onClick={() => handleDvClick(dv)}
-                                            >
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
-                                                            {dv.payee}
-                                                            {/* Approval out status tag */}
-                                                            <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded-full border border-gray-300 font-semibold">
-                                                                📤 Out for Approval
-                                                            </span>
-                                                        </h3>
-                                                        <p className="text-gray-600 text-sm mb-1">
-                                                            {dv.dv_number}
-                                                        </p>
-                                                        <p className="text-gray-600 text-sm mb-2 italic">
-                                                            {dv.particulars && dv.particulars.length > 50 
-                                                                ? dv.particulars.substring(0, 50) + '...'
-                                                                : dv.particulars || 'No particulars specified'}
-                                                        </p>
-                                                        {/* Show approval out info */}
-                                                        {dv.approval_out_date && (
-                                                            <p className="text-gray-600 text-xs mb-2">
-                                                                Sent out on: {new Date(dv.approval_out_date).toLocaleDateString()}
-                                                            </p>
-                                                        )}
-                                                        <p className="text-gray-800 font-medium">
-                                                            ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                                minimumFractionDigits: 2,
-                                                                maximumFractionDigits: 2
-                                                            })}
-                                                            {dv.net_amount && (
-                                                                <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                                                            )}
-                                                        </p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="flex flex-col items-end space-y-2">
-                                                            <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-gray-500">
-                                                                Out for Approval
-                                                            </span>
-                                                            <div className="flex space-x-2">
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleApprovalIn(dv);
-                                                                    }}
-                                                                    className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
-                                                                >
-                                                                    In
-                                                                </button>
+                                                        <div className="text-right">
+                                                            <div className="flex flex-col items-end space-y-2">
+                                                                <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-orange-500">
+                                                                    For Reallocation
+                                                                </span>
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
@@ -1128,18 +1152,138 @@ export default function IncomingDvs() {
                                                                     Edit
                                                                 </button>
                                                             </div>
+                                                            {dv.created_at && (
+                                                                <p className="text-xs text-gray-500 mt-2">
+                                                                    Original: {new Date(dv.created_at).toLocaleDateString()}
+                                                                </p>
+                                                            )}
                                                         </div>
-                                                        {dv.created_at && (
-                                                            <p className="text-xs text-gray-500 mt-2">
-                                                                Original: {new Date(dv.created_at).toLocaleDateString()}
-                                                            </p>
-                                                        )}
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h3 className="text-2xl font-bold text-green-700 flex items-center">
+                                                <span className="mr-2 text-3xl">🔄</span>For Cash Reallocation
+                                            </h3>
+                                            <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">0</span>
+                                        </div>
+                                        <p className="text-gray-500 text-center py-4">
+                                            No disbursement vouchers need reallocation. All funds are properly assigned.
+                                        </p>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* Out for Approval Section - Only show in Approval tab */}
+                        {activeTab === 'for_approval' && (
+                            <div className="mt-12">
+                                {/* Section Header */}
+                                <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-2xl font-bold text-gray-800 flex items-center">
+                                            <span className="mr-2 text-3xl">📤</span>Out for Approval
+                                        </h3>
+                                        <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{approvalOutDvs.length}</span>
+                                    </div>
+                                    {approvalOutDvs.length > 0 ? (
+                                        <p className="text-gray-600 text-sm mb-4">
+                                            {approvalOutDvs.length} {approvalOutDvs.length === 1 ? 'DV' : 'DVs'} currently out for approval
+                                            {searchTerm && (
+                                                <span className="ml-2 text-green-600 font-medium">
+                                                    matching "{searchTerm}"
+                                                </span>
+                                            )}
+                                        </p>
+                                    ) : (
+                                        <p className="text-gray-500 text-sm italic mb-4">
+                                            No disbursement vouchers are currently out for approval. You’re all set.
+                                        </p>
+                                    )}
+                                    {approvalOutDvs.length > 0 && (
+                                        <div className="space-y-4">
+                                            {approvalOutDvs.map((dv) => (
+                                                <div 
+                                                    key={`approval-out-${dv.id}`}
+                                                    className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                                    onClick={() => handleDvClick(dv)}
+                                                >
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex-1">
+                                                            <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
+                                                                {dv.payee}
+                                                                {/* Approval out status tag */}
+                                                                <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded-full border border-gray-300 font-semibold">
+                                                                    📤 Out for Approval
+                                                                </span>
+                                                            </h3>
+                                                            <p className="text-gray-600 text-sm mb-1">
+                                                                {dv.dv_number}
+                                                            </p>
+                                                            <p className="text-gray-600 text-sm mb-2 italic">
+                                                                {dv.particulars && dv.particulars.length > 50 
+                                                                    ? dv.particulars.substring(0, 50) + '...'
+                                                                    : dv.particulars || 'No particulars specified'}
+                                                            </p>
+                                                            {/* Show approval out info */}
+                                                            {dv.approval_out_date && (
+                                                                <p className="text-gray-600 text-xs mb-2">
+                                                                    Sent out on: {new Date(dv.approval_out_date).toLocaleDateString()}
+                                                                </p>
+                                                            )}
+                                                            <p className="text-gray-800 font-medium">
+                                                                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                                    minimumFractionDigits: 2,
+                                                                    maximumFractionDigits: 2
+                                                                })}
+                                                                {dv.net_amount && (
+                                                                    <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                                )}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="flex flex-col items-end space-y-2">
+                                                                <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-gray-500">
+                                                                    Out for Approval
+                                                                </span>
+                                                                <div className="flex space-x-2">
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            handleApprovalIn(dv);
+                                                                        }}
+                                                                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
+                                                                    >
+                                                                        In
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            setSelectedDv(dv);
+                                                                            setIsEditModalOpen(true);
+                                                                        }}
+                                                                        className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                                    >
+                                                                        Edit
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            {dv.created_at && (
+                                                                <p className="text-xs text-gray-500 mt-2">
+                                                                    Original: {new Date(dv.created_at).toLocaleDateString()}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
