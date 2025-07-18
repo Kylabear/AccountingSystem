@@ -880,14 +880,14 @@ export default function IncomingDvs() {
                                 )}
                               </div>
                             </div>
-                            {/* Under For Cash Allocation Section */}
+                            {/* Under For Box C Certification Section */}
                             <div>
-                              <h3 className="text-xl font-bold text-orange-700 mb-4 flex items-center"><span className="mr-2">💰</span>Under For Cash Allocation</h3>
+                              <h3 className="text-xl font-bold text-orange-700 mb-4 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'cash_allocation').length > 0 ? (
                                   sortedDvs.filter(dv => dv.status === 'for_rts_in' && dv.rts_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs under For Cash Allocation</p>
+                                  <p className="text-gray-500 text-center py-4">No DVs under Box C Certification</p>
                                 )}
                               </div>
                             </div>
@@ -906,14 +906,14 @@ export default function IncomingDvs() {
                                 )}
                               </div>
                             </div>
-                            {/* Under For Cash Allocation Section */}
+                            {/* Under For Box C Certification Section */}
                             <div>
-                              <h3 className="text-xl font-bold text-pink-700 mb-4 flex items-center"><span className="mr-2">💰</span>Under For Cash Allocation</h3>
+                              <h3 className="text-xl font-bold text-pink-700 mb-4 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'cash_allocation').length > 0 ? (
                                   sortedDvs.filter(dv => dv.status === 'for_norsa_in' && dv.norsa_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No DVs under For Cash Allocation</p>
+                                  <p className="text-gray-500 text-center py-4">No DVs under Box C Certification</p>
                                 )}
                               </div>
                             </div>
