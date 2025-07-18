@@ -136,6 +136,8 @@ export default function IncomingDvs() {
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
     const [isProcessedModalOpen, setIsProcessedModalOpen] = useState(false);
     const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+    // Add missing state for For Review tab section
+    const [forReviewSection, setForReviewSection] = useState('for_review');
     
     // Save active tab to localStorage and URL when it changes
     const handleTabChange = (newTab) => {
@@ -857,7 +859,54 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_review' && (
-                          <ForReviewSections sortedDvs={sortedDvs} renderDvCard={renderDvCard} />
+                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+                            {/* Section Headers - filter logic preserved */}
+                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                              <div className="flex space-x-4">
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-green-700 text-white' : 'bg-green-200 text-green-700'}`}
+                                  onClick={() => setForReviewSection('for_review')}
+                                >
+                                  <span className="mr-2">🔄</span>For Review
+                                  <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
+                                </button>
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-green-700 text-white' : 'bg-green-200 text-green-700'}`}
+                                  onClick={() => setForReviewSection('for_rts_in')}
+                                >
+                                  <span className="mr-2">📦</span>For RTS In
+                                  <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
+                                </button>
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-green-700 text-white' : 'bg-green-200 text-green-700'}`}
+                                  onClick={() => setForReviewSection('for_norsa_in')}
+                                >
+                                  <span className="mr-2">🌐</span>For NORSA In
+                                  <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
+                                </button>
+                              </div>
+                            </div>
+                            {/* Scrollable DV Tiles Area */}
+                            <div className="space-y-4 overflow-y-auto flex-1">
+                              {(() => {
+                                let filtered;
+                                if (forReviewSection === 'for_review') {
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_review');
+                                } else if (forReviewSection === 'for_rts_in') {
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_rts_in');
+                                } else if (forReviewSection === 'for_norsa_in') {
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_norsa_in');
+                                } else {
+                                  filtered = [];
+                                }
+                                return filtered.length > 0 ? (
+                                  filtered.map((dv) => renderDvCard(dv))
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers in this section. Check back later.</p>
+                                );
+                              })()}
+                            </div>
+                          </div>
                         )}
                         {activeTab === 'for_rts_in' && (
                           <>
