@@ -1,58 +1,4 @@
 // Helper component for For Review tab with section buttons
-function ForReviewSections({ sortedDvs, renderDvCard }) {
-  const [section, setSection] = React.useState('for_review');
-  const sectionOptions = [
-    {
-      key: 'for_review',
-      label: 'For Review',
-      icon: '🔍',
-      count: sortedDvs.filter(dv => dv.status === 'for_review').length
-    },
-    {
-      key: 'for_rts_in',
-      label: 'For RTS In',
-      icon: '🔄',
-      count: sortedDvs.filter(dv => dv.status === 'for_rts_in').length
-    },
-    {
-      key: 'for_norsa_in',
-      label: 'For NORSA In',
-      icon: '📝',
-      count: sortedDvs.filter(dv => dv.status === 'for_norsa_in').length
-    }
-  ];
-  const filteredDvs = sortedDvs.filter(dv => dv.status === section);
-  return (
-    <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex space-x-2">
-          {sectionOptions.map(opt => (
-            <button
-              key={opt.key}
-              onClick={() => setSection(opt.key)}
-              className={`px-4 py-2 rounded-lg font-semibold flex items-center transition-colors duration-200 focus:outline-none ${
-                section === opt.key
-                  ? 'bg-green-600 text-white shadow'
-                  : 'bg-green-200 text-green-700 hover:bg-green-300'
-              }`}
-            >
-              <span className="mr-2">{opt.icon}</span>
-              {opt.label}
-              <span className="ml-2 bg-green-700 text-white px-2 py-1 rounded-full text-xs font-bold">{opt.count}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="space-y-4">
-        {filteredDvs.length > 0 ? (
-          filteredDvs.map((dv) => renderDvCard(dv))
-        ) : (
-          <p className="text-gray-500 text-center py-4">No disbursement vouchers in {sectionOptions.find(opt => opt.key === section)?.label}.</p>
-        )}
-      </div>
-    </div>
-  );
-}
 import React, { useState, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import DvDetailsModal from '../Components/DvDetailsModal';
@@ -71,8 +17,6 @@ import ProcessedDvModal from '../Components/ProcessedDvModal';
 const statuses = [
     { key: 'recents', label: 'Recents', color: 'text-white', bgColor: '#73FBFD' },
     { key: 'for_review', label: 'For Review', color: 'text-white', bgColor: '#D92F21' },
-    { key: 'for_rts_in', label: 'For RTS In', color: 'text-white', bgColor: '#F08784' },
-    { key: 'for_norsa_in', label: 'For NORSA In', color: 'text-white', bgColor: '#FFBAB3' },
     { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'text-white', bgColor: '#F07B1D' },
     { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
     { key: 'for_approval', label: 'For Approval', color: 'text-white', bgColor: '#6B6B6B' },
