@@ -71,14 +71,11 @@ import ProcessedDvModal from '../Components/ProcessedDvModal';
 const statuses = [
     { key: 'recents', label: 'Recents', color: 'text-white', bgColor: '#73FBFD' },
     { key: 'for_review', label: 'For Review', color: 'text-white', bgColor: '#D92F21' },
-    { key: 'for_rts_in', label: 'For RTS In', color: 'text-white', bgColor: '#F08784' },
-    { key: 'for_norsa_in', label: 'For NORSA In', color: 'text-white', bgColor: '#FFBAB3' },
     { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'text-white', bgColor: '#F07B1D' },
     { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
     { key: 'for_approval', label: 'For Approval', color: 'text-white', bgColor: '#6B6B6B' },
     { key: 'for_indexing', label: 'For Indexing', color: 'text-white', bgColor: '#0023F5' },
     { key: 'for_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#6B28E3' },
-    { key: 'out_to_cashiering', label: 'Out to Cashiering', color: 'text-white', bgColor: '#C85AFF' },
     { key: 'for_engas', label: 'For E-NGAS Recording', color: 'text-white', bgColor: '#EA3680' },
     { key: 'for_cdj', label: 'For CDJ Recording', color: 'text-white', bgColor: '#784315' },
     { key: 'for_lddap', label: 'For LDDAP Certification', color: 'text-white', bgColor: '#000000' },
@@ -625,6 +622,14 @@ export default function IncomingDvs() {
 
     // Add state for cash section tab at the top of the function
     const [cashSection, setCashSection] = React.useState('allocation');
+    // Add approvalSection state for tab logic
+    const [approvalSection, setApprovalSection] = useState('for_approval');
+    // Add paymentSection state for tab logic
+    const [paymentSection, setPaymentSection] = useState('for_payment');
+    // Define outToCashieringDvs for unified card
+    const outToCashieringDvs = Array.isArray(sortedDvs)
+      ? sortedDvs.filter(dv => dv.status === 'out_to_cashiering')
+      : [];
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Fixed Header - Simple design */}
@@ -849,10 +854,14 @@ export default function IncomingDvs() {
                         {/* DV Cards - All sections use green card containers with section title and count */}
                         {activeTab === 'recents' && (
 <div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
-                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🕐</span>Recents</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
-                            </div>
+    <div className="mb-4">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-green-700 w-fit">
+        <h3 className="text-xl font-bold text-white flex items-center m-0">
+          <span className="mr-2">🕐</span>Recents
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-600 text-white">{sortedDvs.length}</span>
+        </h3>
+      </div>
+    </div>
                             <div className="space-y-4 overflow-y-auto flex-1">
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
@@ -916,8 +925,8 @@ export default function IncomingDvs() {
                           <>
 <div className="bg-green-100 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
-                                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length}</span>
+                                <h3 className="text-xl font-bold text-blue-700 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
+                                <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length}</span>
                               </div>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length > 0 ? (
@@ -929,8 +938,8 @@ export default function IncomingDvs() {
                             </div>
 <div className="bg-green-100 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>Under For Box C Certification</h3>
-                                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length}</span>
+                                <h3 className="text-xl font-bold text-blue-700 flex items-center"><span className="mr-2">📦</span>Under For Box C Certification</h3>
+                                <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length}</span>
                               </div>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length > 0 ? (
@@ -946,8 +955,8 @@ export default function IncomingDvs() {
                           <>
 <div className="bg-green-100 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>Under For Review</h3>
-                                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length}</span>
+                                <h3 className="text-xl font-bold text-blue-700 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
+                                <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length}</span>
                               </div>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length > 0 ? (
@@ -959,8 +968,8 @@ export default function IncomingDvs() {
                             </div>
 <div className="bg-green-100 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
-                                <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length}</span>
+                                <h3 className="text-xl font-bold text-blue-700 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
+                                <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length}</span>
                               </div>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length > 0 ? (
@@ -1026,26 +1035,134 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_approval' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">✅</span>For Approval</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                          <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                              <div className="flex space-x-4">
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${approvalSection === 'for_approval' ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                  onClick={() => setApprovalSection('for_approval')}
+                                >
+                                  <span className="mr-2">✅</span>For Approval
+                                  <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                                </button>
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                  onClick={() => setApprovalSection('out_for_approval')}
+                                >
+                                  <span className="mr-2">📤</span>Out For Approval
+                                  <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm font-semibold">{approvalOutDvs.length}</span>
+                                </button>
+                              </div>
                             </div>
-                            <div className="space-y-4">
-                              {sortedDvs.length > 0 ? (
-                                sortedDvs.map((dv) => renderDvCard(dv))
-                              ) : (
-                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are waiting for approval. All items have been reviewed.</p>
-                              )}
+                            <div className="space-y-4 overflow-y-auto flex-1">
+                              {(() => {
+                                let filtered, emptyMsg;
+                                if (approvalSection === 'for_approval') {
+                                  filtered = sortedDvs;
+                                  emptyMsg = "No disbursement vouchers are waiting for approval. All items have been reviewed.";
+                                } else {
+                                  filtered = approvalOutDvs;
+                                  emptyMsg = "No disbursement vouchers are currently out for approval. You’re all set.";
+                                }
+                                return filtered.length > 0 ? (
+                                  filtered.map((dv) => {
+                                    if (approvalSection === 'out_for_approval') {
+                                      // Render Out For Approval card (copied from previous block)
+                                      return (
+                                        <div 
+                                          key={`approval-out-${dv.id}`}
+                                          className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                          onClick={() => handleDvClick(dv)}
+                                        >
+                                          <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                              <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
+                                                {dv.payee}
+                                                <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded-full border border-gray-300 font-semibold">
+                                                  📤 Out for Approval
+                                                </span>
+                                              </h3>
+                                              <p className="text-gray-600 text-sm mb-1">
+                                                {dv.dv_number}
+                                              </p>
+                                              <p className="text-gray-600 text-sm mb-2 italic">
+                                                {dv.particulars && dv.particulars.length > 50 
+                                                  ? dv.particulars.substring(0, 50) + '...'
+                                                  : dv.particulars || 'No particulars specified'}
+                                              </p>
+                                              {dv.approval_out_date && (
+                                                <p className="text-gray-600 text-xs mb-2">
+                                                  Sent out on: {new Date(dv.approval_out_date).toLocaleDateString()}
+                                                </p>
+                                              )}
+                                              <p className="text-gray-800 font-medium">
+                                                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                  minimumFractionDigits: 2,
+                                                  maximumFractionDigits: 2
+                                                })}
+                                                {dv.net_amount && (
+                                                  <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                )}
+                                              </p>
+                                            </div>
+                                            <div className="text-right">
+                                              <div className="flex flex-col items-end space-y-2">
+                                                <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-gray-500">
+                                                  Out for Approval
+                                                </span>
+                                                <div className="flex space-x-2">
+                                                  <button
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      handleApprovalIn(dv);
+                                                    }}
+                                                    className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
+                                                  >
+                                                    In
+                                                  </button>
+                                                  <button
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setSelectedDv(dv);
+                                                      setIsEditModalOpen(true);
+                                                    }}
+                                                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                  >
+                                                    Edit
+                                                  </button>
+                                                </div>
+                                              </div>
+                                              {dv.created_at && (
+                                                <p className="text-xs text-gray-500 mt-2">
+                                                  Original: {new Date(dv.created_at).toLocaleDateString()}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    } else {
+                                      // Render For Approval card (use renderDvCard)
+                                      return renderDvCard(dv);
+                                    }
+                                  })
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">{emptyMsg}</p>
+                                );
+                              })()}
                             </div>
                           </div>
                         )}
                         {activeTab === 'for_indexing' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📇</span>For Indexing</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
-                            </div>
+<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+    <div className="mb-4">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-blue-700 w-fit">
+        <h3 className="text-xl font-bold text-white flex items-center m-0">
+          <span className="mr-2">📇</span>For Indexing
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-600 text-white">{sortedDvs.length}</span>
+        </h3>
+      </div>
+    </div>
                             <div className="space-y-4">
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
@@ -1056,26 +1173,134 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_payment' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>For Mode of Payment</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                          <div className="bg-purple-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                              <div className="flex space-x-4">
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${paymentSection === 'for_payment' ? 'bg-purple-700 text-white' : 'bg-purple-200 text-purple-800'}`}
+                                  onClick={() => setPaymentSection('for_payment')}
+                                >
+                                  <span className="mr-2">💳</span>For Mode of Payment
+                                  <span className="ml-2 bg-purple-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                                </button>
+                                <button
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'bg-purple-700 text-white' : 'bg-purple-200 text-purple-800'}`}
+                                  onClick={() => setPaymentSection('out_to_cashiering')}
+                                >
+                                  <span className="mr-2">💵</span>Out for Cashiering
+                                  <span className="ml-2 bg-purple-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{outToCashieringDvs.length}</span>
+                                </button>
+                              </div>
                             </div>
-                            <div className="space-y-4">
-                              {sortedDvs.length > 0 ? (
-                                sortedDvs.map((dv) => renderDvCard(dv))
-                              ) : (
-                                <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending mode of payment selection. This section is clear.</p>
-                              )}
+                            <div className="space-y-4 overflow-y-auto flex-1">
+                              {(() => {
+                                let filtered, emptyMsg;
+                                if (paymentSection === 'for_payment') {
+                                  filtered = sortedDvs;
+                                  emptyMsg = "No disbursement vouchers are pending mode of payment selection. This section is clear.";
+                                } else {
+                                  filtered = outToCashieringDvs;
+                                  emptyMsg = "No disbursement vouchers are out for cashiering. All transactions are in place.";
+                                }
+                                return filtered.length > 0 ? (
+                                  filtered.map((dv) => {
+                                    if (paymentSection === 'out_to_cashiering') {
+                                      // Render Out for Cashiering card (copied from previous block)
+                                      return (
+                                        <div 
+                                          key={`cashiering-${dv.id}`}
+                                          className="bg-purple-50 border-l-4 border-purple-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                          onClick={() => handleDvClick(dv)}
+                                        >
+                                          <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                              <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
+                                                {dv.payee}
+                                                <span className="ml-2 px-3 py-1 bg-purple-200 text-purple-800 text-xs rounded-full border border-purple-300 font-semibold">
+                                                  💵 Out for Cashiering
+                                                </span>
+                                              </h3>
+                                              <p className="text-gray-600 text-sm mb-1">
+                                                {dv.dv_number}
+                                              </p>
+                                              <p className="text-gray-600 text-sm mb-2 italic">
+                                                {dv.particulars && dv.particulars.length > 50 
+                                                  ? dv.particulars.substring(0, 50) + '...'
+                                                  : dv.particulars || 'No particulars specified'}
+                                              </p>
+                                              {dv.cashiering_out_date && (
+                                                <p className="text-gray-600 text-xs mb-2">
+                                                  Sent out on: {new Date(dv.cashiering_out_date).toLocaleDateString()}
+                                                </p>
+                                              )}
+                                              <p className="text-gray-800 font-medium">
+                                                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                                                  minimumFractionDigits: 2,
+                                                  maximumFractionDigits: 2
+                                                })}
+                                                {dv.net_amount && (
+                                                  <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                                                )}
+                                              </p>
+                                            </div>
+                                            <div className="text-right">
+                                              <div className="flex flex-col items-end space-y-2">
+                                                <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-purple-500">
+                                                  Out for Cashiering
+                                                </span>
+                                                <div className="flex space-x-2">
+                                                  <button
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      handleCashieringIn(dv);
+                                                    }}
+                                                    className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
+                                                  >
+                                                    In
+                                                  </button>
+                                                  <button
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      setSelectedDv(dv);
+                                                      setIsEditModalOpen(true);
+                                                    }}
+                                                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                                                  >
+                                                    Edit
+                                                  </button>
+                                                </div>
+                                              </div>
+                                              {dv.created_at && (
+                                                <p className="text-xs text-gray-500 mt-2">
+                                                  Original: {new Date(dv.created_at).toLocaleDateString()}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    } else {
+                                      // Render For Mode of Payment card (use renderDvCard)
+                                      return renderDvCard(dv);
+                                    }
+                                  })
+                                ) : (
+                                  <p className="text-gray-500 text-center py-4">{emptyMsg}</p>
+                                );
+                              })()}
                             </div>
                           </div>
                         )}
                         {activeTab === 'out_to_cashiering' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">💵</span>Out to Cashiering</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
-                            </div>
+<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+    <div className="mb-4">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-green-700 w-fit">
+        <h3 className="text-xl font-bold text-white flex items-center m-0">
+          <span className="mr-2">💵</span>Out to Cashiering
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-600 text-white">{sortedDvs.length}</span>
+        </h3>
+      </div>
+    </div>
                             <div className="space-y-4">
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
@@ -1086,11 +1311,15 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_engas' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🌐</span>For E-NGAS Recording</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
-                            </div>
+<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+    <div className="mb-4">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-pink-700 w-fit">
+        <h3 className="text-xl font-bold text-white flex items-center m-0">
+          <span className="mr-2">🌐</span>For E-NGAS Recording
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-pink-500 text-white">{sortedDvs.length}</span>
+        </h3>
+      </div>
+    </div>
                             <div className="space-y-4">
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
@@ -1101,11 +1330,15 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_cdj' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📊</span>For CDJ Recording</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
-                            </div>
+<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+    <div className="mb-4">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-yellow-900 w-fit">
+        <h3 className="text-xl font-bold text-white flex items-center m-0">
+          <span className="mr-2">📊</span>For CDJ Recording
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-yellow-900 text-white">{sortedDvs.length}</span>
+        </h3>
+      </div>
+    </div>
                             <div className="space-y-4">
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
@@ -1116,11 +1349,15 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_lddap' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🔒</span>For LDDAP Preparation</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
-                            </div>
+<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+    <div className="mb-4">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-black w-fit">
+        <h3 className="text-xl font-bold text-white flex items-center m-0">
+          <span className="mr-2">🔒</span>For LDDAP Preparation
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-black text-white">{sortedDvs.length}</span>
+        </h3>
+      </div>
+    </div>
                             <div className="space-y-4">
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
@@ -1132,10 +1369,14 @@ export default function IncomingDvs() {
                         )}
                         {activeTab === 'processed' && (
 <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
-                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                              <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">✨</span>Processed</h3>
-                              <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
-                            </div>
+    <div className="mb-4">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-green-700 w-fit">
+        <h3 className="text-xl font-bold text-white flex items-center m-0">
+          <span className="mr-2">✨</span>Processed
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-600 text-white">{sortedDvs.length}</span>
+        </h3>
+      </div>
+    </div>
                             <div className="space-y-4 overflow-y-auto flex-1">
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
@@ -1254,113 +1495,6 @@ export default function IncomingDvs() {
                             </div>
                         )}
 
-                        {/* Out for Approval Section - Only show in Approval tab */}
-                        {activeTab === 'for_approval' && (
-                            <div className="mt-12">
-                                {/* Section Header */}
-<div className="bg-green-100 rounded-xl shadow-md mb-6">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-2xl font-bold text-gray-800 flex items-center">
-                                            <span className="mr-2 text-3xl">📤</span>Out for Approval
-                                        </h3>
-                                        <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{approvalOutDvs.length}</span>
-                                    </div>
-                                    {approvalOutDvs.length > 0 ? (
-                                        <p className="text-gray-600 text-sm mb-4">
-                                            {approvalOutDvs.length} {approvalOutDvs.length === 1 ? 'DV' : 'DVs'} currently out for approval
-                                            {searchTerm && (
-                                                <span className="ml-2 text-green-600 font-medium">
-                                                    matching "{searchTerm}"
-                                                </span>
-                                            )}
-                                        </p>
-                                    ) : (
-<p className="text-gray-500 text-center py-4">
-    No disbursement vouchers are currently out for approval. You’re all set.
-</p>
-                                    )}
-                                    {approvalOutDvs.length > 0 && (
-                                        <div className="space-y-4">
-                                            {approvalOutDvs.map((dv) => (
-                                                <div 
-                                                    key={`approval-out-${dv.id}`}
-                                                    className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                                    onClick={() => handleDvClick(dv)}
-                                                >
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex-1">
-                                                            <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
-                                                                {dv.payee}
-                                                                {/* Approval out status tag */}
-                                                                <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded-full border border-gray-300 font-semibold">
-                                                                    📤 Out for Approval
-                                                                </span>
-                                                            </h3>
-                                                            <p className="text-gray-600 text-sm mb-1">
-                                                                {dv.dv_number}
-                                                            </p>
-                                                            <p className="text-gray-600 text-sm mb-2 italic">
-                                                                {dv.particulars && dv.particulars.length > 50 
-                                                                    ? dv.particulars.substring(0, 50) + '...'
-                                                                    : dv.particulars || 'No particulars specified'}
-                                                            </p>
-                                                            {/* Show approval out info */}
-                                                            {dv.approval_out_date && (
-                                                                <p className="text-gray-600 text-xs mb-2">
-                                                                    Sent out on: {new Date(dv.approval_out_date).toLocaleDateString()}
-                                                                </p>
-                                                            )}
-                                                            <p className="text-gray-800 font-medium">
-                                                                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                                    minimumFractionDigits: 2,
-                                                                    maximumFractionDigits: 2
-                                                                })}
-                                                                {dv.net_amount && (
-                                                                    <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                                                                )}
-                                                            </p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <div className="flex flex-col items-end space-y-2">
-                                                                <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-gray-500">
-                                                                    Out for Approval
-                                                                </span>
-                                                                <div className="flex space-x-2">
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            handleApprovalIn(dv);
-                                                                        }}
-                                                                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
-                                                                    >
-                                                                        In
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setSelectedDv(dv);
-                                                                            setIsEditModalOpen(true);
-                                                                        }}
-                                                                        className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                                    >
-                                                                        Edit
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            {dv.created_at && (
-                                                                <p className="text-xs text-gray-500 mt-2">
-                                                                    Original: {new Date(dv.created_at).toLocaleDateString()}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
 
                     </div>
                 </div>
