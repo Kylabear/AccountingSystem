@@ -844,7 +844,7 @@ export default function IncomingDvs() {
 
                         {/* DV Cards - All sections use green card containers with section title and count */}
                         {activeTab === 'recents' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+<div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🕐</span>Recents</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -859,7 +859,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_review' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+<div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
                             {/* Section Headers - filter logic preserved */}
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
@@ -910,7 +910,7 @@ export default function IncomingDvs() {
                         )}
                         {activeTab === 'for_rts_in' && (
                           <>
-                            <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
                                 <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length}</span>
@@ -923,7 +923,7 @@ export default function IncomingDvs() {
                                 )}
                               </div>
                             </div>
-                            <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>Under For Box C Certification</h3>
                                 <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length}</span>
@@ -940,7 +940,7 @@ export default function IncomingDvs() {
                         )}
                         {activeTab === 'for_norsa_in' && (
                           <>
-                            <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>Under For Review</h3>
                                 <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length}</span>
@@ -953,7 +953,7 @@ export default function IncomingDvs() {
                                 )}
                               </div>
                             </div>
-                            <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
                                 <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length}</span>
@@ -969,7 +969,7 @@ export default function IncomingDvs() {
                           </>
                         )}
                         {activeTab === 'for_cash_allocation' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">💰</span>For Cash Allocation</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -984,7 +984,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_box_c' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>For Box C Certification</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -999,7 +999,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_approval' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">✅</span>For Approval</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -1014,7 +1014,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_indexing' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📇</span>For Indexing</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -1029,7 +1029,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_payment' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">�</span>For Mode of Payment</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -1044,7 +1044,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'out_to_cashiering' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">💵</span>Out to Cashiering</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -1059,7 +1059,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_engas' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🌐</span>For E-NGAS Recording</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -1074,7 +1074,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_cdj' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">📊</span>For CDJ Recording</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -1089,7 +1089,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_lddap' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                             <div className="flex items-center justify-between mb-4">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">🔒</span>For LDDAP Preparation</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -1104,7 +1104,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'processed' && (
-                          <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <h3 className="text-xl font-bold text-green-700 flex items-center"><span className="mr-2">✨</span>Processed</h3>
                               <span className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
@@ -1125,7 +1125,7 @@ export default function IncomingDvs() {
                             <div className="mt-12">
                                 {/* Section Header */}
                                 {reallocatedDvs.length > 0 ? (
-                                    <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-2xl font-bold text-orange-800 flex items-center">
                                                 <span className="mr-2 text-3xl">🔄</span>For Cash Reallocation
@@ -1213,7 +1213,7 @@ export default function IncomingDvs() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                                         <div className="flex items-center justify-between mb-4">
                                             <h3 className="text-2xl font-bold text-green-700 flex items-center">
                                                 <span className="mr-2 text-3xl">🔄</span>For Cash Reallocation
@@ -1232,7 +1232,7 @@ export default function IncomingDvs() {
                         {activeTab === 'for_approval' && (
                             <div className="mt-12">
                                 {/* Section Header */}
-                                <div className="bg-green-100 rounded-xl p-6 shadow-md mb-6">
+<div className="bg-green-100 rounded-xl shadow-md mb-6">
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="text-2xl font-bold text-gray-800 flex items-center">
                                             <span className="mr-2 text-3xl">📤</span>Out for Approval
@@ -1249,9 +1249,9 @@ export default function IncomingDvs() {
                                             )}
                                         </p>
                                     ) : (
-                                        <p className="text-gray-500 text-sm italic mb-4">
-                                            No disbursement vouchers are currently out for approval. You’re all set.
-                                        </p>
+<p className="text-gray-500 text-center py-4">
+    No disbursement vouchers are currently out for approval. You’re all set.
+</p>
                                     )}
                                     {approvalOutDvs.length > 0 && (
                                         <div className="space-y-4">
