@@ -467,13 +467,15 @@ export default function IncomingDvs() {
     // Handle DV card click
     const handleDvClick = (dv) => {
         setSelectedDv(dv);
-        // Always use unified DV Details modal except for processed, cash allocation, and LDDAP
+        // Open the correct modal for each workflow stage
         if (dv.status === 'processed') {
             setIsProcessedModalOpen(true);
         } else if (dv.status === 'for_cash_allocation') {
             setIsCashAllocationModalOpen(true);
         } else if (dv.status === 'for_lddap') {
             setIsLddapModalOpen(true);
+        } else if (dv.status === 'for_engas') {
+            setIsEngasModalOpen(true);
         } else {
             setIsModalOpen(true);
         }

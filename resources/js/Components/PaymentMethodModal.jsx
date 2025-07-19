@@ -125,37 +125,112 @@ export default function PaymentMethodModal({ dv, isOpen, onClose, onSubmit }) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <p className="text-sm font-medium text-gray-600">DV Number</p>
-                                <p className="text-gray-800">{dv.dv_number}</p>
+                                <p className="text-gray-800">{dv.dv_number || <span className='text-gray-400 italic'>Not set</span>}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Date Created</p>
-                                <p className="text-gray-800">{formatDate(dv.created_at)}</p>
+                                <p className="text-gray-800">{dv.created_at ? formatDate(dv.created_at) : <span className='text-gray-400 italic'>Not set</span>}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Payee</p>
-                                <p className="text-gray-800">{dv.payee}</p>
+                                <p className="text-gray-800">{dv.payee || <span className='text-gray-400 italic'>Not set</span>}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Transaction Type</p>
-                                <p className="text-gray-800">{dv.transaction_type}</p>
+                                <p className="text-gray-800">{dv.transaction_type || <span className='text-gray-400 italic'>Not set</span>}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Original Amount</p>
-                                <p className="text-gray-800">{formatAmount(dv.amount)}</p>
+                                <p className="text-gray-800">{dv.amount ? formatAmount(dv.amount) : <span className='text-gray-400 italic'>Not set</span>}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Account Number</p>
-                                <p className="text-gray-800">{dv.account_number}</p>
+                                <p className="text-gray-800">{dv.account_number || <span className='text-gray-400 italic'>Not set</span>}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Particulars</p>
-                                <p className="text-gray-800">{dv.particulars}</p>
+                                <p className="text-gray-800">{dv.particulars || <span className='text-gray-400 italic'>Not set</span>}</p>
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-gray-600">Current Status</p>
                                 <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-payment text-white">
                                     For Payment
                                 </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Progressive Summary - For Review */}
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold mb-4 text-red-800">📝 For Review</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm font-medium text-red-600">Review Completed</p>
+                                <p className="text-red-800">✅ {dv.review_date ? formatDate(dv.review_date) : <span className='text-gray-400 italic'>Not set</span>}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-red-600">Status</p>
+                                <p className="text-red-800">Review Done</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Progressive Summary - For Cash Allocation */}
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold mb-4 text-orange-800">💰 For Cash Allocation</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm font-medium text-orange-600">Allocation Completed</p>
+                                <p className="text-orange-800">✅ {dv.cash_allocation_date ? formatDate(dv.cash_allocation_date) : <span className='text-gray-400 italic'>Not set</span>}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-orange-600">Status</p>
+                                <p className="text-orange-800">Cash Allocated</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Progressive Summary - For Box C Certification */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold mb-4 text-yellow-800">📋 For Box C Certification</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm font-medium text-yellow-600">Certification Completed</p>
+                                <p className="text-yellow-800">✅ {dv.box_c_date ? formatDate(dv.box_c_date) : <span className='text-gray-400 italic'>Not set</span>}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-yellow-600">Status</p>
+                                <p className="text-yellow-800">Box C Certified</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Progressive Summary - For Approval */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold mb-4 text-gray-800">✅ For Approval</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">Approval Completed</p>
+                                <p className="text-gray-800">✅ {dv.approval_in_date ? formatDate(dv.approval_in_date) : <span className='text-gray-400 italic'>Not set</span>}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-gray-600">Status</p>
+                                <p className="text-gray-800">Approved</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Progressive Summary - For Indexing */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h3 className="text-lg font-semibold mb-4 text-blue-800">📋 For Indexing</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm font-medium text-blue-600">Indexing Completed</p>
+                                <p className="text-blue-800">✅ {dv.indexing_date ? formatDate(dv.indexing_date) : <span className='text-gray-400 italic'>Not set</span>}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-blue-600">Status</p>
+                                <p className="text-blue-800">Indexed</p>
                             </div>
                         </div>
                     </div>
