@@ -24,6 +24,35 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   const [rtsDate, setRtsDate] = useState('');
   const [norsaNumber, setNorsaNumber] = useState('');
   const [norsaError, setNorsaError] = useState('');
+  // LLDAP payment modal state
+  const [lldapNumber, setLldapNumber] = useState('');
+  const [lldapError, setLldapError] = useState('');
+
+  // Payment handlers
+  const handleCheckPayment = () => {
+    if (confirm('Set payment method to Check and proceed to E-NGAS?')) {
+      onStatusUpdate(dv.id, 'for_engas', { payment_method: 'check' });
+      onClose();
+    }
+  };
+  const handleLldapPayment = () => {
+    if (!lldapNumber.trim()) {
+      setLldapError('Please enter LLDAP Number.');
+      return;
+    }
+    setLldapError('');
+    if (confirm('Set payment method to LLDAP and proceed to E-NGAS?')) {
+      onStatusUpdate(dv.id, 'for_engas', { payment_method: 'lddap', lldap_number: lldapNumber });
+      onClose();
+      setLldapNumber('');
+    }
+  };
+  const handlePrPayment = () => {
+    if (confirm('Set payment method to Payroll Register and send Out for Cashiering?')) {
+      onStatusUpdate(dv.id, 'out_to_cashiering', { payment_method: 'payroll' });
+      onClose();
+    }
+  };
   // Strict NORSA number input handler (auto-format as YYYY-MM-NNNNN)
   const handleNorsaNumberChange = (e) => {
     let value = e.target.value.replace(/\D/g, ''); // Only digits
@@ -1193,11 +1222,10 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
             )}
 
             {/* Action Buttons */}
-            {dv.status === 'for_review' && (
+            {(dv.status === 'for_review' || dv.status === 'for_payment') && (
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">Review Actions</h3>
-                
-                {!activeAction && (
+                <h3 className="text-lg font-semibold mb-4">{dv.status === 'for_review' ? 'Review Actions' : 'Mode of Payment Actions'}</h3>
+                {!activeAction && dv.status === 'for_review' && (
                   <div className="flex flex-wrap gap-3">
                     <button
                       onClick={handleReviewDone}
@@ -1219,8 +1247,65 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     </button>
                   </div>
                 )}
+                {!activeAction && dv.status === 'for_payment' && (
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={handleCheckPayment}
+                      className="bg-purple-700 text-white px-4 py-2 rounded-lg hover:bg-purple-800 transition-colors"
+                    >
+                      💳 Check
+                    </button>
+                    <button
+                      onClick={() => setActiveAction('lddap')}
+                      className="bg-purple-700 text-white px-4 py-2 rounded-lg hover:bg-purple-800 transition-colors"
+                    >
+                      🏦 LLDAP
+                    </button>
+                    <button
+                      onClick={handlePrPayment}
+                      className="bg-purple-700 text-white px-4 py-2 rounded-lg hover:bg-purple-800 transition-colors"
+                    >
+                      📋 PR (Payroll Register)
+                    </button>
+                  </div>
+                )}
 
                 {/* RTS Form */}
+                {activeAction === 'lddap' && dv.status === 'for_payment' && (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-purple-800 mb-3">LLDAP Payment Details</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">LLDAP Number</label>
+                        <input
+                          type="text"
+                          value={lldapNumber}
+                          onChange={(e) => setLldapNumber(e.target.value)}
+                          placeholder="Enter LLDAP Number..."
+                          className={`w-full border border-gray-300 rounded-lg p-2 focus:border-purple-500 focus:outline-none ${lldapError ? 'border-red-500' : ''}`}
+                          required
+                        />
+                        {lldapError && (
+                          <p className="text-red-500 text-xs mt-1">{lldapError}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleLldapPayment}
+                          className="bg-purple-700 text-white px-4 py-2 rounded-lg hover:bg-purple-800 transition-colors"
+                        >
+                          Confirm LLDAP Payment
+                        </button>
+                        <button
+                          onClick={() => { setActiveAction(null); setLldapNumber(''); setLldapError(''); }}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {activeAction === 'rts' && (
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                     <h4 className="font-semibold text-orange-800 mb-3">Return to Sender Details</h4>
