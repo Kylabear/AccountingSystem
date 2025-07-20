@@ -127,28 +127,27 @@ export default function CashAllocationModal({ dv, isOpen, onClose, onUpdate }) {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '120px', paddingBottom: '40px' }}>
-            <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 my-4 flex flex-col md:flex-row">
-                {/* Main Content (left) */}
-                <div className="flex-1 p-0 md:p-6">
-                    {/* Header - orange, only for main content */}
-                    <div className="bg-orange-500 text-white p-4 rounded-t-lg md:rounded-t-lg md:rounded-l-lg md:rounded-tr-none">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Cash Allocation</h2>
-                            <button
-                                onClick={onClose}
-                                className="text-white hover:text-gray-200 text-xl font-bold"
-                                disabled={isSubmitting}
-                                aria-label="Close"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    </div>
-                    <div className="p-6 pt-0 md:pt-6">
-                        {/* Disbursement Voucher Information (Green) - Screenshot Style */}
-                        <div className="mb-6 p-4 border-2 border-green-200 rounded-lg bg-green-50">
-                            <h3 className="text-lg font-semibold text-green-800 mb-4">Disbursement Voucher Information</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+            <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 my-4 flex flex-col">
+                {/* Full-width Header */}
+                <div className="bg-orange-500 text-white p-4 rounded-t-lg flex justify-between items-center">
+                    <h2 className="text-lg font-semibold">Cash Allocation</h2>
+                    <button
+                        onClick={onClose}
+                        className="text-white hover:text-gray-200 text-xl font-bold"
+                        disabled={isSubmitting}
+                        aria-label="Close"
+                    >
+                        ×
+                    </button>
+                </div>
+                <div className="flex flex-col md:flex-row w-full">
+                    {/* Main Content (left) */}
+                    <div className="flex-1 p-0 md:p-6">
+                        <div className="p-6 pt-0 md:pt-6">
+                            {/* Disbursement Voucher Information (Green) - Screenshot Style */}
+                            <div className="mb-6 p-4 border-2 border-green-200 rounded-lg bg-green-50">
+                                <h3 className="text-lg font-semibold text-green-800 mb-4">Disbursement Voucher Information</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
                                 <div>
                                     <span className="text-sm text-gray-700">Payee</span>
                                     <div className="font-bold text-lg">{dv.payee || 'N/A'}</div>
@@ -349,41 +348,42 @@ export default function CashAllocationModal({ dv, isOpen, onClose, onUpdate }) {
                         </form>
                     </div>
                 </div>
-                {/* Transaction History Panel (right) */}
-                <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-gray-200 bg-gray-50 rounded-b-lg md:rounded-b-none md:rounded-r-lg flex-shrink-0 p-6 pt-4 md:pt-6" style={{ minWidth: '320px' }}>
-                    <div className="mb-4 flex items-center justify-between">
-                        <span className="font-semibold text-gray-800">Transaction History</span>
-                        {dv.transaction_history && (
-                            <span className="text-xs text-gray-500">{dv.transaction_history.length} entr{dv.transaction_history.length === 1 ? 'y' : 'ies'}</span>
-                        )}
-                    </div>
-                    <div className="space-y-3">
-                        {dv.transaction_history && dv.transaction_history.length > 0 ? (
-                            dv.transaction_history.map((item, idx) => (
-                                <div key={idx} className="bg-white border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm">
-                                    <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2 align-middle"></span>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-semibold text-gray-800 text-sm truncate">{item.type}</span>
-                                            <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">{item.date ? new Date(item.date).toLocaleDateString() : ''}</span>
-                                        </div>
-                                        <div className="text-xs text-gray-500 mb-1">{item.by ? `by ${item.by}` : ''}</div>
-                                        <div className="text-xs text-gray-700 space-y-0.5">
-                                            {item.amount !== undefined && item.amount !== null && !isNaN(parseFloat(item.amount)) && (
-                                                <div>Amount: ₱{parseFloat(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                                            )}
-                                            {item.dv_number && <div>DV Number: {item.dv_number}</div>}
-                                            {item.allocation_number && <div>Allocation Number: {item.allocation_number}</div>}
-                                            {item.net_amount !== undefined && item.net_amount !== null && !isNaN(parseFloat(item.net_amount)) && (
-                                                <div>Net Amount: ₱{parseFloat(item.net_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                                            )}
+                    {/* Transaction History Panel (right) */}
+                    <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-gray-200 bg-gray-50 rounded-b-lg md:rounded-b-none md:rounded-r-lg flex-shrink-0 p-6 pt-4 md:pt-6" style={{ minWidth: '320px' }}>
+                        <div className="mb-4 flex items-center justify-between">
+                            <span className="font-semibold text-gray-800">Transaction History</span>
+                            {dv.transaction_history && (
+                                <span className="text-xs text-gray-500">{dv.transaction_history.length} entr{dv.transaction_history.length === 1 ? 'y' : 'ies'}</span>
+                            )}
+                        </div>
+                        <div className="space-y-3">
+                            {dv.transaction_history && dv.transaction_history.length > 0 ? (
+                                dv.transaction_history.map((item, idx) => (
+                                    <div key={idx} className="bg-white border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm">
+                                        <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2 align-middle"></span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-center">
+                                                <span className="font-semibold text-gray-800 text-sm truncate">{item.type}</span>
+                                                <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">{item.date ? new Date(item.date).toLocaleDateString() : ''}</span>
+                                            </div>
+                                            <div className="text-xs text-gray-500 mb-1">{item.by ? `by ${item.by}` : ''}</div>
+                                            <div className="text-xs text-gray-700 space-y-0.5">
+                                                {item.amount !== undefined && item.amount !== null && !isNaN(parseFloat(item.amount)) && (
+                                                    <div>Amount: ₱{parseFloat(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                                )}
+                                                {item.dv_number && <div>DV Number: {item.dv_number}</div>}
+                                                {item.allocation_number && <div>Allocation Number: {item.allocation_number}</div>}
+                                                {item.net_amount !== undefined && item.net_amount !== null && !isNaN(parseFloat(item.net_amount)) && (
+                                                    <div>Net Amount: ₱{parseFloat(item.net_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-xs text-gray-400 italic">No transaction history available.</div>
-                        )}
+                                ))
+                            ) : (
+                                <div className="text-xs text-gray-400 italic">No transaction history available.</div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
