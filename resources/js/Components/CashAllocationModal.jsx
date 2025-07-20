@@ -412,16 +412,6 @@ export default function CashAllocationModal({ dv, isOpen, onClose, onUpdate }) {
                                                     {item.status && (
                                                         <div>Status: <span className="font-medium">{item.status}</span></div>
                                                     )}
-                                                    
-                                                    {/* Show all other properties for debugging */}
-                                                    {Object.keys(item).length > 0 && (
-                                                        <details className="mt-2">
-                                                            <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">Show all data</summary>
-                                                            <pre className="text-xs text-gray-400 mt-1 whitespace-pre-wrap break-words">
-                                                                {JSON.stringify(item, null, 2)}
-                                                            </pre>
-                                                        </details>
-                                                    )}
                                                 </div>
                                             </div>
                                         </div>
