@@ -237,18 +237,21 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '80px', paddingBottom: '20px' }}>
-            <div className="bg-white rounded-lg w-full max-w-4xl max-h-screen overflow-hidden m-4 flex flex-col">
-                {/* Header */}
-                <div className="bg-white border-b px-6 py-4 flex justify-between items-center flex-shrink-0">
-                    <h2 className="text-xl font-bold text-gray-800">Disbursement Voucher - E-NGAS Recording</h2>
-                    <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">
+            <div className="bg-white rounded-lg w-full max-w-6xl max-h-screen overflow-hidden m-4 flex flex-col">
+                {/* Full-width Header */}
+                <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex justify-between items-center flex-shrink-0">
+                    <h2 className="text-xl font-bold">Disbursement Voucher - E-NGAS Recording</h2>
+                    <button onClick={handleClose} className="text-white hover:text-gray-200">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
-                <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                {/* Main content and transaction history side by side */}
+                <div className="flex flex-col md:flex-row w-full flex-1 overflow-hidden">
+                    {/* Main Content (left) */}
+                    <div className="flex-1 p-6 space-y-6 overflow-y-auto">
                     {/* Progressive Summary - Disbursement Voucher Information */}
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <h3 className="text-lg font-semibold mb-4 text-green-800">📋 Disbursement Voucher Information</h3>
@@ -629,6 +632,90 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
                                 </div>
                             </div>
                         </form>
+                    </div>
+                </div>
+                    
+                    {/* Transaction History Panel (right) */}
+                    <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-gray-200 bg-gray-50 rounded-b-lg md:rounded-b-none md:rounded-tr-lg md:rounded-br-lg flex-shrink-0 p-6 pt-4 md:pt-6 overflow-y-auto" style={{ minWidth: '320px' }}>
+                        <div className="mb-4 flex items-center justify-between">
+                            <span className="font-semibold text-gray-800">Transaction History</span>
+                            {dv.transaction_history && (
+                                <span className="text-xs text-gray-500">{dv.transaction_history.length} entr{dv.transaction_history.length === 1 ? 'y' : 'ies'}</span>
+                            )}
+                        </div>
+                        <div className="space-y-3">
+                            {dv.transaction_history && dv.transaction_history.length > 0 ? (
+                                dv.transaction_history.map((item, idx) => (
+                                    <div key={idx} className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+                                        <div className="flex items-start gap-2">
+                                            <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="font-semibold text-gray-800 text-sm">
+                                                        {item.type || item.action || item.status || 'Transaction'}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                                                        {item.date ? new Date(item.date).toLocaleDateString() : 
+                                                         item.created_at ? new Date(item.created_at).toLocaleDateString() : 
+                                                         item.updated_at ? new Date(item.updated_at).toLocaleDateString() : ''}
+                                                    </span>
+                                                </div>
+                                                
+                                                {(item.by || item.user || item.created_by) && (
+                                                    <div className="text-xs text-gray-500 mb-2">
+                                                        by {item.by || item.user || item.created_by}
+                                                    </div>
+                                                )}
+                                                
+                                                <div className="text-xs text-gray-700 space-y-1">
+                                                    {/* Show any available amount */}
+                                                    {(item.amount !== undefined && item.amount !== null && item.amount !== '' && !isNaN(parseFloat(item.amount))) && (
+                                                        <div className="font-medium">Amount: ₱{parseFloat(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                                    )}
+                                                    
+                                                    {/* Show net amount if different from amount */}
+                                                    {(item.net_amount !== undefined && item.net_amount !== null && item.net_amount !== '' && !isNaN(parseFloat(item.net_amount)) && parseFloat(item.net_amount) !== parseFloat(item.amount || 0)) && (
+                                                        <div className="font-medium text-green-600">Net Amount: ₱{parseFloat(item.net_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                                    )}
+                                                    
+                                                    {/* DV Number */}
+                                                    {(item.dv_number || item.document_number) && (
+                                                        <div>DV: {item.dv_number || item.document_number}</div>
+                                                    )}
+                                                    
+                                                    {/* E-NGAS specific fields */}
+                                                    {(item.engas_number || item.e_ngas_number) && (
+                                                        <div>E-NGAS: {item.engas_number || item.e_ngas_number}</div>
+                                                    )}
+                                                    
+                                                    {/* Description or notes */}
+                                                    {(item.description || item.notes || item.remarks) && (
+                                                        <div className="italic">{item.description || item.notes || item.remarks}</div>
+                                                    )}
+                                                    
+                                                    {/* Status */}
+                                                    {item.status && (
+                                                        <div>Status: <span className="font-medium">{item.status}</span></div>
+                                                    )}
+                                                    
+                                                    {/* Show all other properties for debugging */}
+                                                    {Object.keys(item).length > 0 && (
+                                                        <details className="mt-2">
+                                                            <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">Show all data</summary>
+                                                            <pre className="text-xs text-gray-400 mt-1 whitespace-pre-wrap break-words">
+                                                                {JSON.stringify(item, null, 2)}
+                                                            </pre>
+                                                        </details>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-xs text-gray-400 italic">No transaction history available.</div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

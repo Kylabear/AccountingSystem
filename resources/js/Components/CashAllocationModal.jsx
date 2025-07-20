@@ -140,9 +140,10 @@ export default function CashAllocationModal({ dv, isOpen, onClose, onUpdate }) {
                         ×
                     </button>
                 </div>
+                {/* Main content and transaction history side by side on md+ screens */}
                 <div className="flex flex-col md:flex-row w-full">
                     {/* Main Content (left) */}
-                    <div className="flex-1 p-0 md:p-6">
+                    <div className="flex-1 p-0 md:p-6 md:rounded-bl-lg">
                         <div className="p-6 pt-0 md:pt-6">
                             {/* Disbursement Voucher Information (Green) - Screenshot Style */}
                             <div className="mb-6 p-4 border-2 border-green-200 rounded-lg bg-green-50">
@@ -346,10 +347,11 @@ export default function CashAllocationModal({ dv, isOpen, onClose, onUpdate }) {
                                 </button>
                             </div>
                         </form>
+                        </div>
                     </div>
-                </div>
+                    
                     {/* Transaction History Panel (right) */}
-                    <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-gray-200 bg-gray-50 rounded-b-lg md:rounded-b-none md:rounded-r-lg flex-shrink-0 p-6 pt-4 md:pt-6" style={{ minWidth: '320px' }}>
+                    <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-gray-200 bg-gray-50 md:rounded-tr-lg rounded-b-lg md:rounded-b-none md:rounded-bl-none flex-shrink-0 p-6 pt-4 md:pt-6" style={{ minWidth: '320px' }}>
                         <div className="mb-4 flex items-center justify-between">
                             <span className="font-semibold text-gray-800">Transaction History</span>
                             {dv.transaction_history && (
@@ -359,23 +361,68 @@ export default function CashAllocationModal({ dv, isOpen, onClose, onUpdate }) {
                         <div className="space-y-3">
                             {dv.transaction_history && dv.transaction_history.length > 0 ? (
                                 dv.transaction_history.map((item, idx) => (
-                                    <div key={idx} className="bg-white border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm">
-                                        <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2 align-middle"></span>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex justify-between items-center">
-                                                <span className="font-semibold text-gray-800 text-sm truncate">{item.type}</span>
-                                                <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">{item.date ? new Date(item.date).toLocaleDateString() : ''}</span>
-                                            </div>
-                                            <div className="text-xs text-gray-500 mb-1">{item.by ? `by ${item.by}` : ''}</div>
-                                            <div className="text-xs text-gray-700 space-y-0.5">
-                                                {item.amount !== undefined && item.amount !== null && !isNaN(parseFloat(item.amount)) && (
-                                                    <div>Amount: ₱{parseFloat(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                    <div key={idx} className="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+                                        <div className="flex items-start gap-2">
+                                            <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <span className="font-semibold text-gray-800 text-sm">
+                                                        {item.type || item.action || item.status || 'Transaction'}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500 whitespace-nowrap ml-2">
+                                                        {item.date ? new Date(item.date).toLocaleDateString() : 
+                                                         item.created_at ? new Date(item.created_at).toLocaleDateString() : 
+                                                         item.updated_at ? new Date(item.updated_at).toLocaleDateString() : ''}
+                                                    </span>
+                                                </div>
+                                                
+                                                {(item.by || item.user || item.created_by) && (
+                                                    <div className="text-xs text-gray-500 mb-2">
+                                                        by {item.by || item.user || item.created_by}
+                                                    </div>
                                                 )}
-                                                {item.dv_number && <div>DV Number: {item.dv_number}</div>}
-                                                {item.allocation_number && <div>Allocation Number: {item.allocation_number}</div>}
-                                                {item.net_amount !== undefined && item.net_amount !== null && !isNaN(parseFloat(item.net_amount)) && (
-                                                    <div>Net Amount: ₱{parseFloat(item.net_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                                                )}
+                                                
+                                                <div className="text-xs text-gray-700 space-y-1">
+                                                    {/* Show any available amount */}
+                                                    {(item.amount !== undefined && item.amount !== null && item.amount !== '' && !isNaN(parseFloat(item.amount))) && (
+                                                        <div className="font-medium">Amount: ₱{parseFloat(item.amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                                    )}
+                                                    
+                                                    {/* Show net amount if different from amount */}
+                                                    {(item.net_amount !== undefined && item.net_amount !== null && item.net_amount !== '' && !isNaN(parseFloat(item.net_amount)) && parseFloat(item.net_amount) !== parseFloat(item.amount || 0)) && (
+                                                        <div className="font-medium text-orange-600">Net Amount: ₱{parseFloat(item.net_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                                    )}
+                                                    
+                                                    {/* DV Number */}
+                                                    {(item.dv_number || item.document_number) && (
+                                                        <div>DV: {item.dv_number || item.document_number}</div>
+                                                    )}
+                                                    
+                                                    {/* Cash Allocation specific fields */}
+                                                    {(item.allocation_number || item.cash_allocation_number) && (
+                                                        <div>Allocation: {item.allocation_number || item.cash_allocation_number}</div>
+                                                    )}
+                                                    
+                                                    {/* Description or notes */}
+                                                    {(item.description || item.notes || item.remarks) && (
+                                                        <div className="italic">{item.description || item.notes || item.remarks}</div>
+                                                    )}
+                                                    
+                                                    {/* Status */}
+                                                    {item.status && (
+                                                        <div>Status: <span className="font-medium">{item.status}</span></div>
+                                                    )}
+                                                    
+                                                    {/* Show all other properties for debugging */}
+                                                    {Object.keys(item).length > 0 && (
+                                                        <details className="mt-2">
+                                                            <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">Show all data</summary>
+                                                            <pre className="text-xs text-gray-400 mt-1 whitespace-pre-wrap break-words">
+                                                                {JSON.stringify(item, null, 2)}
+                                                            </pre>
+                                                        </details>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
