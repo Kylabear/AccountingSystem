@@ -16,7 +16,6 @@ class IncomingDv extends Model
         'particulars',
         'status',
         'is_reallocated',
-        'transaction_history',
         'cash_allocation_date',
         'cash_allocation_number',
         'net_amount',
@@ -28,7 +27,9 @@ class IncomingDv extends Model
         'indexing_date',
         'engas_date',
         'cdj_date',
-        'lddap_date',
+        'lddap_number',
+        'lddap_certified_date',
+        'lddap_certified_by',
         'payment_method',
         'check_no',
         'processed_date',
@@ -49,7 +50,6 @@ class IncomingDv extends Model
     ];
 
     protected $casts = [
-        'transaction_history' => 'array',
         'is_reallocated' => 'boolean',
         'cash_allocation_date' => 'date',
         'processed_date' => 'date',
@@ -60,7 +60,7 @@ class IncomingDv extends Model
         'indexing_date' => 'date',
         'engas_date' => 'date',
         'cdj_date' => 'date',
-        'lddap_date' => 'date',
+        'lddap_certified_date' => 'date',
         'ca_rts_out_date' => 'date',
         'ca_rts_in_date' => 'date',
         'ca_norsa_out_date' => 'date',
@@ -74,5 +74,52 @@ class IncomingDv extends Model
     public function orsEntries()
     {
         return $this->hasMany(OrsEntry::class);
+    }
+
+    /**
+     * Get the transaction history for this DV
+     */
+    public function transactionHistories()
+    {
+        return $this->hasMany(DvTransactionHistory::class)->orderBy('created_at', 'asc');
+    }
+
+    /**
+     * Get formatted transaction history for frontend
+     */
+    public function getFormattedTransactionHistoryAttribute()
+    {
+        return $this->transactionHistories->map(function ($history) {
+            return [
+                'type' => $history->action_description,
+                'action' => $history->action_type,
+                'date' => $history->created_at->toDateString(),
+                'created_at' => $history->created_at->toISOString(),
+                'by' => $history->performed_by,
+                'user' => $history->performed_by,
+                'status_before' => $history->status_before,
+                'status_after' => $history->status_after,
+                'notes' => $history->notes,
+                // Include action_data fields at the root level for easy access
+                'amount' => $history->action_data['amount'] ?? null,
+                'net_amount' => $history->action_data['net_amount'] ?? null,
+                'dv_number' => $history->action_data['dv_number'] ?? null,
+                'allocation_number' => $history->action_data['allocation_number'] ?? null,
+                'cash_allocation_number' => $history->action_data['cash_allocation_number'] ?? null,
+                'engas_number' => $history->action_data['engas_number'] ?? null,
+                'e_ngas_number' => $history->action_data['engas_number'] ?? null,
+                'description' => $history->notes,
+                'details' => $history->action_data,
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Accessor for lddap_date to maintain backward compatibility
+     * Maps to lddap_certified_date for frontend consistency
+     */
+    public function getLddapDateAttribute()
+    {
+        return $this->lddap_certified_date;
     }
 }

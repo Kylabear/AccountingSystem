@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\IncomingDv;
 use App\Models\OrsEntry;
 use App\Models\PredefinedOption;
+use App\Models\DvTransactionHistory;
+use App\Services\DvTransactionHistoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -15,176 +17,37 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class IncomingDvController extends Controller
 {
-    //
+    protected DvTransactionHistoryService $transactionHistoryService;
+
+    public function __construct(DvTransactionHistoryService $transactionHistoryService)
+    {
+        $this->transactionHistoryService = $transactionHistoryService;
+    }
+
     public function index()
     {
-        // First, ensure all DVs have transaction history
-        $this->ensureTransactionHistory();
-        
-        $dvs = IncomingDv::with('orsEntries')->latest()->get();
+        // Load DVs with proper transaction history relationship
+        $dvs = IncomingDv::with(['orsEntries', 'transactionHistories'])
+            ->latest()
+            ->get()
+            ->map(function ($dv) {
+                // Ensure each DV has at least the initial transaction history
+                if ($dv->transactionHistories->count() === 0) {
+                    $this->transactionHistoryService->migrateExistingDv($dv);
+                    $dv->refresh(); // Reload with new transaction history
+                }
+                
+                // Add formatted transaction history to the DV object
+                $dv->transaction_history = $dv->formatted_transaction_history;
+                return $dv;
+            });
 
         return Inertia::render('IncomingDvs', [
             'dvs' => $dvs,
             'auth' => [
-                'user' => \Illuminate\Support\Facades\Auth::user()
+                'user' => Auth::user()
             ]
         ]);
-    }
-    
-    /**
-     * Ensure all DVs have transaction history initialized
-     */
-    private function ensureTransactionHistory()
-    {
-        $dvs = IncomingDv::whereNull('transaction_history')
-                        ->orWhere('transaction_history', '[]')
-                        ->orWhere('transaction_history', '{}')
-                        ->get();
-        
-        foreach ($dvs as $dv) {
-            $this->initializeDvTransactionHistory($dv);
-        }
-    }
-      /**
-     * Initialize transaction history for a single DV
-     */
-    private function initializeDvTransactionHistory($dv)
-    {
-        $transactionHistory = [];
-        
-        // Add initial receipt entry (oldest)
-        $transactionHistory[] = [
-            'action' => 'DV Received',
-            'user' => 'System',
-            'date' => $dv->created_at->toDateString(),
-            'details' => [
-                'initial_status' => 'for_review',
-                'amount' => $dv->amount,
-                'dv_number' => $dv->dv_number,
-            ]
-        ];
-        
-        // Add cash allocation if exists (chronologically after receipt)
-        if ($dv->cash_allocation_date) {
-            $transactionHistory[] = [
-                'action' => 'Cash Allocation',
-                'user' => $dv->allocated_by ?? 'Unknown User',
-                'date' => $dv->cash_allocation_date->toDateString(),
-                'details' => [
-                    'cash_allocation_number' => $dv->cash_allocation_number,
-                    'net_amount' => $dv->net_amount,
-                    'original_amount' => $dv->amount,
-                ]
-            ];
-        }
-        
-        // Add approval entries if they exist
-        if ($dv->approval_out_date) {
-            $transactionHistory[] = [
-                'action' => 'Sent out for approval',
-                'user' => 'System',
-                'date' => $dv->approval_out_date->toDateString(),
-                'details' => []
-            ];
-        }
-        
-        if ($dv->approval_in_date) {
-            $transactionHistory[] = [
-                'action' => 'Returned from approval',
-                'user' => $dv->approved_by ?? 'System',
-                'date' => $dv->approval_in_date->toDateString(),
-                'details' => []
-            ];
-        }
-        
-        // Add indexing if exists
-        if ($dv->indexing_date) {
-            $transactionHistory[] = [
-                'action' => 'Indexed',
-                'user' => $dv->indexed_by ?? 'System',
-                'date' => $dv->indexing_date->toDateString(),
-                'details' => []
-            ];
-        }
-        
-        // Add payment method if set
-        if ($dv->payment_method && $dv->payment_method_date) {
-            $transactionHistory[] = [
-                'action' => 'Payment method set: ' . ucfirst($dv->payment_method),
-                'user' => $dv->payment_method_set_by ?? 'System',
-                'date' => $dv->payment_method_date->toDateString(),
-                'details' => [
-                    'payment_method' => $dv->payment_method,
-                    'lddap_number' => $dv->lddap_number ?? null,
-                ]
-            ];
-        }
-        
-        // Add payroll entries if applicable
-        if ($dv->pr_out_date) {
-            $transactionHistory[] = [
-                'action' => 'Sent to Cashiering (Payroll)',
-                'user' => $dv->pr_out_by ?? 'System',
-                'date' => $dv->pr_out_date->toDateString(),
-                'details' => []
-            ];
-        }
-        
-        if ($dv->pr_in_date) {
-            $transactionHistory[] = [
-                'action' => 'Returned from Cashiering',
-                'user' => $dv->pr_in_by ?? 'System',
-                'date' => $dv->pr_in_date->toDateString(),
-                'details' => []
-            ];
-        }
-        
-        // Add E-NGAS if recorded
-        if ($dv->engas_number && $dv->engas_date) {
-            $transactionHistory[] = [
-                'action' => 'E-NGAS Recorded',
-                'user' => $dv->engas_recorded_by ?? 'System',
-                'date' => $dv->engas_date->toDateString(),
-                'details' => ['engas_number' => $dv->engas_number]
-            ];
-        }
-        
-        // Add CDJ if recorded
-        if ($dv->cdj_date) {
-            $transactionHistory[] = [
-                'action' => 'CDJ Recorded',
-                'user' => $dv->cdj_recorded_by ?? 'System',
-                'date' => $dv->cdj_date->toDateString(),
-                'details' => []
-            ];
-        }
-        
-        // Add LDDAP certification if done
-        if ($dv->lddap_certified_date) {
-            $transactionHistory[] = [
-                'action' => 'LDDAP Certified',
-                'user' => $dv->lddap_certified_by ?? 'System',
-                'date' => $dv->lddap_certified_date->toDateString(),
-                'details' => []
-            ];
-        }
-        
-        // Add final processed status if completed
-        if ($dv->status === 'processed' && $dv->processed_date) {
-            $transactionHistory[] = [
-                'action' => 'Processing Complete',
-                'user' => $dv->lddap_certified_by ?? 'System',
-                'date' => $dv->processed_date->toDateString(),
-                'details' => []
-            ];
-        }
-        
-        // Sort transaction history by date to ensure chronological order
-        usort($transactionHistory, function($a, $b) {
-            return strcmp($a['date'], $b['date']);
-        });
-
-        $dv->update(['transaction_history' => $transactionHistory]);
     }
     
     public function store(Request $request)
@@ -213,6 +76,9 @@ class IncomingDvController extends Controller
             'particulars' => $validated['particulars'],
             'status' => 'for_review', // New DVs start at for_review status
         ]);
+
+        // Record the initial DV receipt in transaction history
+        $this->transactionHistoryService->recordDvReceived($dv);
 
         // Auto-add new options to predefined options if they don't exist
         if (!empty($validated['transaction_type'])) {
@@ -290,16 +156,8 @@ class IncomingDvController extends Controller
             }
         }
 
-        // Add transaction history entry
-        $currentUser = \Illuminate\Support\Facades\Auth::user()->name ?? 'Unknown User';
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'DV Details Updated',
-            'user' => $currentUser,
-            'timestamp' => now()->toDateTimeString(),
-            'details' => 'DV details were modified'
-        ];
-        $dv->update(['transaction_history' => $transactionHistory]);
+        // Record DV update in transaction history
+        $this->transactionHistoryService->recordDvUpdated($dv);
 
         return redirect()->route('incoming-dvs');
     }
@@ -336,36 +194,35 @@ class IncomingDvController extends Controller
 
         // Get current user
         $currentUser = Auth::user()->name ?? 'Unknown User';
+        $oldStatus = $dv->status;
 
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        
-        // Determine action description based on status
-        $actionMap = [
-            'for_review' => 'Review Done',
-            'for_cash_allocation' => 'Review Done',
-            'for_box_c' => 'Box C Certification',
-            'for_approval' => 'Approval Process',
-            'for_indexing' => 'Indexing Process',
-            'for_payment' => 'Payment Processing',
-            'for_engas' => 'E-NGAS Recording',
-            'for_cdj' => 'CDJ Recording',
-            'for_lddap' => 'LDDAP Certification',
-            'processed' => 'Processed',
-        ];
-
-        $action = $actionMap[$validated['status']] ?? 'Status Update';
-
-        $transactionHistory[] = [
-            'action' => $action,
-            'user' => $currentUser,
-            'date' => now()->toDateString(),
-            'details' => [
-                'status' => $validated['status'],
+        // Only record specific transaction history for actual completed actions, not status changes
+        if ($validated['status'] === 'for_cash_allocation' && $oldStatus === 'for_review') {
+            // Review was completed, DV is now ready for cash allocation
+            $this->transactionHistoryService->recordReviewCompleted($dv, $validated['status'], $currentUser, [
                 'rts_reason' => $validated['rts_reason'] ?? null,
                 'norsa_number' => $validated['norsa_number'] ?? null,
-            ]
-        ];
+            ]);
+        } elseif (!empty($validated['rts_reason'])) {
+            // RTS was issued
+            $this->transactionHistoryService->recordRtsIssued(
+                $dv, 
+                $validated['rts_reason'], 
+                $validated['rts_out_date'] ?? now()->toDateString(), 
+                $currentUser
+            );
+        } elseif (!empty($validated['norsa_number'])) {
+            // NORSA was issued
+            $this->transactionHistoryService->recordNorsaIssued(
+                $dv, 
+                $validated['norsa_number'], 
+                $validated['norsa_date'] ?? now()->toDateString(), 
+                $currentUser
+            );
+        } else {
+            // General status change (use sparingly)
+            $this->transactionHistoryService->recordStatusChange($dv, $oldStatus, $validated['status'], $currentUser);
+        }
 
         $dv->update([
             'status' => $validated['status'],
@@ -375,7 +232,6 @@ class IncomingDvController extends Controller
             'norsa_number' => $validated['norsa_number'] ?? null,
             'rts_origin' => $validated['rts_origin'] ?? null,
             'norsa_origin' => $validated['norsa_origin'] ?? null,
-            'transaction_history' => $transactionHistory,
         ]);
 
         if ($request->inertia()) {
@@ -402,15 +258,41 @@ class IncomingDvController extends Controller
 
         // Get current user
         $currentUser = Auth::user()->name ?? 'Unknown User';
+        $oldStatus = $dv->status;
 
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        
-        // Determine action based on status and histories
-        $action = 'Status Update';
-        $details = ['status' => $validated['status']];
+        // Record appropriate transaction history based on the update
+        if ($validated['rts_history'] && count($validated['rts_history']) > count($dv->rts_history ?? [])) {
+            // New RTS was added
+            $latestRts = end($validated['rts_history']);
+            $this->transactionHistoryService->recordRtsIssued(
+                $dv, 
+                $latestRts['reason'] ?? 'RTS Issued', 
+                $latestRts['date'] ?? now()->toDateString(), 
+                $currentUser,
+                [
+                    'rts_count' => $validated['rts_cycle_count'],
+                    'origin' => $validated['rts_origin'] ?? 'review'
+                ]
+            );
+        } elseif ($validated['norsa_history'] && count($validated['norsa_history']) > count($dv->norsa_history ?? [])) {
+            // New NORSA was added
+            $latestNorsa = end($validated['norsa_history']);
+            $this->transactionHistoryService->recordNorsaIssued(
+                $dv, 
+                $latestNorsa['number'] ?? '', 
+                $latestNorsa['date'] ?? now()->toDateString(), 
+                $currentUser,
+                [
+                    'norsa_count' => $validated['norsa_cycle_count'],
+                    'origin' => $validated['norsa_origin'] ?? 'review'
+                ]
+            );
+        } elseif ($oldStatus !== $validated['status']) {
+            // Status change only
+            $this->transactionHistoryService->recordStatusChange($dv, $oldStatus, $validated['status'], $currentUser);
+        }
 
-        // Determine origin for new RTS/NORSA cycles
+        // Update DV data
         $updateData = [
             'status' => $validated['status'],
             'rts_history' => $validated['rts_history'] ?? [],
@@ -419,43 +301,15 @@ class IncomingDvController extends Controller
             'norsa_cycle_count' => $validated['norsa_cycle_count'] ?? 0,
             'last_rts_date' => $validated['last_rts_date'] ?? null,
             'last_norsa_date' => $validated['last_norsa_date'] ?? null,
-            'transaction_history' => [],
         ];
 
-        if ($validated['rts_history'] && count($validated['rts_history']) > count($dv->rts_history ?? [])) {
-            $action = 'RTS (Return to Sender)';
-            $latestRts = end($validated['rts_history']);
-            $details['rts_reason'] = $latestRts['reason'] ?? null;
-            $details['rts_count'] = $validated['rts_cycle_count'];
-            
-            // Set origin when starting new RTS cycle
-            if ($validated['status'] === 'for_rts_in') {
-                $updateData['rts_origin'] = $validated['rts_origin'] ?? 'review';
-            }
-        } elseif ($validated['norsa_history'] && count($validated['norsa_history']) > count($dv->norsa_history ?? [])) {
-            $action = 'NORSA Submission';
-            $latestNorsa = end($validated['norsa_history']);
-            $details['norsa_number'] = $latestNorsa['number'] ?? null;
-            $details['norsa_count'] = $validated['norsa_cycle_count'];
-            
-            // Set origin when starting new NORSA cycle
-            if ($validated['status'] === 'for_norsa_in') {
-                $updateData['norsa_origin'] = $validated['norsa_origin'] ?? 'review';
-            }
-        } elseif ($validated['status'] === 'for_review') {
-            $action = 'Returned from RTS/NORSA';
-        } elseif ($validated['status'] === 'for_cash_allocation') {
-            $action = 'Review Done';
+        // Set origin when starting new cycles
+        if ($validated['status'] === 'for_rts_in') {
+            $updateData['rts_origin'] = $validated['rts_origin'] ?? 'review';
         }
-
-        $transactionHistory[] = [
-            'action' => $action,
-            'user' => $currentUser,
-            'date' => now()->toDateString(),
-            'details' => $details
-        ];
-
-        $updateData['transaction_history'] = $transactionHistory;
+        if ($validated['status'] === 'for_norsa_in') {
+            $updateData['norsa_origin'] = $validated['norsa_origin'] ?? 'review';
+        }
 
         $dv->update($updateData);
 
@@ -478,33 +332,19 @@ class IncomingDvController extends Controller
         // Get current user (you might need to adjust this based on your auth system)
         $currentUser = Auth::user()->name ?? 'Unknown User';
 
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'Cash Allocation',
-            'user' => $currentUser,
-            'date' => now()->toDateString(),
-            'details' => [
-                'cash_allocation_number' => $validated['cash_allocation_number'],
-                'net_amount' => $validated['net_amount'],
-                'original_amount' => $dv->amount,
-            ]
-        ];
+        // Record cash allocation in transaction history
+        $this->transactionHistoryService->recordCashAllocation($dv, $validated, $currentUser);
 
-        // For reallocated DVs, add reallocation info to transaction history
+        // For reallocated DVs, this is actually a reallocation
         if ($dv->is_reallocated) {
-            $transactionHistory[] = [
-                'action' => 'Cash Reallocation Completed',
-                'user' => $currentUser,
-                'date' => now()->toDateString(),
-                'details' => [
-                    'new_cash_allocation_number' => $validated['cash_allocation_number'],
-                    'new_net_amount' => $validated['net_amount'],
-                    'original_amount' => $dv->amount,
-                    'reallocation_date' => $dv->reallocation_date,
-                    'reallocation_reason' => $dv->reallocation_reason
-                ]
-            ];
+            // Add additional entry for reallocation completion
+            $this->transactionHistoryService->recordStatusChange(
+                $dv, 
+                $dv->status, 
+                'for_box_c', 
+                $currentUser,
+                'Cash Reallocation Completed'
+            );
         }
 
         $dv->update([
@@ -512,7 +352,6 @@ class IncomingDvController extends Controller
             'cash_allocation_number' => $validated['cash_allocation_number'],
             'net_amount' => $validated['net_amount'],
             'allocated_by' => $currentUser,
-            'transaction_history' => $transactionHistory,
             'status' => 'for_box_c', // Move to next status after cash allocation
             'is_reallocated' => false, // Clear reallocated flag to allow normal workflow progression
         ]);
@@ -538,25 +377,24 @@ class IncomingDvController extends Controller
         // Get current user
         $currentUser = Auth::user()->name ?? 'Unknown User';
 
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-
         switch ($validated['action']) {
             case 'certify':
-                $transactionHistory[] = [
-                    'action' => 'Box C Certified',
-                    'user' => $currentUser,
-                    'date' => now()->toDateString(),
-                    'details' => []
-                ];
+                $this->transactionHistoryService->recordBoxCCertification($dv, $currentUser);
                 
                 $dv->update([
                     'status' => 'for_approval',
-                    'transaction_history' => $transactionHistory,
                 ]);
                 break;
 
             case 'rts':
+                $this->transactionHistoryService->recordRtsIssued(
+                    $dv, 
+                    $validated['rts_reason'], 
+                    $validated['rts_out_date'], 
+                    $currentUser,
+                    ['origin' => 'box_c']
+                );
+
                 $rtsHistory = $dv->rts_history ?? [];
                 $rtsHistory[] = [
                     'date' => $validated['rts_out_date'],
@@ -565,27 +403,24 @@ class IncomingDvController extends Controller
                     'origin' => 'box_c'
                 ];
 
-                $transactionHistory[] = [
-                    'action' => 'RTS from Box C',
-                    'user' => $currentUser,
-                    'date' => now()->toDateString(),
-                    'details' => [
-                        'rts_reason' => $validated['rts_reason'],
-                        'origin' => 'box_c'
-                    ]
-                ];
-
                 $dv->update([
                     'status' => 'for_rts_in',
                     'rts_history' => $rtsHistory,
                     'rts_cycle_count' => ($dv->rts_cycle_count ?? 0) + 1,
                     'last_rts_date' => $validated['rts_out_date'],
                     'rts_origin' => 'box_c',
-                    'transaction_history' => $transactionHistory,
                 ]);
                 break;
 
             case 'norsa':
+                $this->transactionHistoryService->recordNorsaIssued(
+                    $dv, 
+                    $validated['norsa_number'], 
+                    $validated['norsa_date'], 
+                    $currentUser,
+                    ['origin' => 'box_c']
+                );
+
                 $norsaHistory = $dv->norsa_history ?? [];
                 $norsaHistory[] = [
                     'date' => $validated['norsa_date'],
@@ -594,23 +429,12 @@ class IncomingDvController extends Controller
                     'origin' => 'box_c'
                 ];
 
-                $transactionHistory[] = [
-                    'action' => 'NORSA from Box C',
-                    'user' => $currentUser,
-                    'date' => now()->toDateString(),
-                    'details' => [
-                        'norsa_number' => $validated['norsa_number'],
-                        'origin' => 'box_c'
-                    ]
-                ];
-
                 $dv->update([
                     'status' => 'for_norsa_in',
                     'norsa_history' => $norsaHistory,
                     'norsa_cycle_count' => ($dv->norsa_cycle_count ?? 0) + 1,
                     'last_norsa_date' => $validated['norsa_date'],
                     'norsa_origin' => 'box_c',
-                    'transaction_history' => $transactionHistory,
                 ]);
                 break;
         }
@@ -630,7 +454,7 @@ class IncomingDvController extends Controller
         
         $count = 0;
         foreach ($dvs as $dv) {
-            $this->initializeDvTransactionHistory($dv);
+            $this->transactionHistoryService->migrateExistingDv($dv);
             $count++;
         }
         
@@ -644,6 +468,11 @@ class IncomingDvController extends Controller
             'out_date' => 'required|date',
         ])->validate();
         
+        // Record approval sending
+        $this->transactionHistoryService->recordApprovalSent($dv, Auth::user()->name ?? 'System', [
+            'date' => $validated['out_date']
+        ]);
+        
         // Update the DV status and approval fields
         $updateData = [
             'approval_out' => true,
@@ -651,16 +480,6 @@ class IncomingDvController extends Controller
             'approval_in_date' => null, // Clear any previous in date
             'approval_status' => 'out', // Set approval status to 'out'
         ];
-        
-        // Add to transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'Sent out for approval',
-            'user' => Auth::user()->name ?? 'System',
-            'date' => $validated['out_date'],
-            'details' => []
-        ];
-        $updateData['transaction_history'] = $transactionHistory;
         
         $dv->update($updateData);
         
@@ -678,6 +497,9 @@ class IncomingDvController extends Controller
             'in_date' => 'required|date',
         ])->validate();
         
+        // Record approval return
+        $this->transactionHistoryService->recordApprovalReturned($dv, Auth::user()->name ?? 'System');
+        
         // Update the DV status and approval fields
         $updateData = [
             'approval_out' => false,
@@ -686,22 +508,6 @@ class IncomingDvController extends Controller
             'status' => 'for_indexing', // Move to next stage
             'approved_by' => Auth::user()->name ?? 'System',
         ];
-        
-        // Add to transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'Returned from approval',
-            'user' => Auth::user()->name ?? 'System',
-            'date' => $validated['in_date'],
-            'details' => []
-        ];
-        $transactionHistory[] = [
-            'action' => 'Moved to indexing',
-            'user' => Auth::user()->name ?? 'System',
-            'date' => $validated['in_date'],
-            'details' => []
-        ];
-        $updateData['transaction_history'] = $transactionHistory;
         
         $dv->update($updateData);
         
@@ -720,20 +526,15 @@ class IncomingDvController extends Controller
         
         $currentUser = Auth::user()->name ?? 'Unknown User';
         
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'Indexed',
-            'user' => $currentUser,
-            'date' => $validated['indexing_date'],
-            'details' => []
-        ];
+        // Record indexing completion
+        $this->transactionHistoryService->recordIndexingCompleted($dv, $currentUser, [
+            'indexing_date' => $validated['indexing_date']
+        ]);
         
         $dv->update([
             'indexing_date' => $validated['indexing_date'],
             'indexed_by' => $currentUser,
             'status' => 'for_payment',
-            'transaction_history' => $transactionHistory,
         ]);
         
         return response()->json([
@@ -753,20 +554,15 @@ class IncomingDvController extends Controller
         $currentUser = Auth::user()->name ?? 'Unknown User';
         $today = now()->toDateString();
         
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        
         $nextStatus = 'for_engas'; // Default next status
         
         if ($validated['payment_method'] === 'payroll') {
             // For payroll, go to cashiering first
             $nextStatus = 'out_to_cashiering';
-            $transactionHistory[] = [
-                'action' => 'Set to Payroll Register',
-                'user' => $currentUser,
-                'date' => $today,
-                'details' => ['payment_method' => 'payroll']
-            ];
+            
+            $this->transactionHistoryService->recordPaymentMethodSet($dv, $validated['payment_method'], [
+                'next_status' => 'cashiering'
+            ], $currentUser);
             
             $dv->update([
                 'payment_method' => $validated['payment_method'],
@@ -775,28 +571,21 @@ class IncomingDvController extends Controller
                 'status' => $nextStatus,
                 'pr_out_date' => $today,
                 'pr_out_by' => $currentUser,
-                'transaction_history' => $transactionHistory,
             ]);
         } else {
             // For check or LDDAP, go directly to E-NGAS
-            $details = ['payment_method' => $validated['payment_method']];
+            $details = ['next_status' => 'e_ngas'];
             if ($validated['payment_method'] === 'lddap') {
                 $details['lddap_number'] = $validated['lddap_number'];
             }
             
-            $transactionHistory[] = [
-                'action' => 'Payment method set: ' . ucfirst($validated['payment_method']),
-                'user' => $currentUser,
-                'date' => $today,
-                'details' => $details
-            ];
+            $this->transactionHistoryService->recordPaymentMethodSet($dv, $validated['payment_method'], $details, $currentUser);
             
             $updateData = [
                 'payment_method' => $validated['payment_method'],
                 'payment_method_date' => $today,
                 'payment_method_set_by' => $currentUser,
                 'status' => $nextStatus,
-                'transaction_history' => $transactionHistory,
             ];
             
             if ($validated['payment_method'] === 'lddap') {
@@ -821,20 +610,13 @@ class IncomingDvController extends Controller
         
         $currentUser = Auth::user()->name ?? 'Unknown User';
         
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'Returned from Cashiering',
-            'user' => $currentUser,
-            'date' => $validated['in_date'],
-            'details' => []
-        ];
+        // Record return from cashiering
+        $this->transactionHistoryService->recordStatusChange($dv, $dv->status, 'for_engas', $currentUser, 'Returned from Cashiering');
         
         $dv->update([
             'pr_in_date' => $validated['in_date'],
             'pr_in_by' => $currentUser,
             'status' => 'for_engas',
-            'transaction_history' => $transactionHistory,
         ]);
         
         return response()->json([
@@ -850,10 +632,10 @@ class IncomingDvController extends Controller
             'engas_number' => [
                 'required',
                 'string',
-                'regex:/^(\d{4})-(\d{2})-(\d{5})$/',
+                'regex:/^(\d{4})-(\d{2})-(\d{6})$/',
                 function ($attribute, $value, $fail) {
                     // Validate the format components
-                    if (preg_match('/^(\d{4})-(\d{2})-(\d{5})$/', $value, $matches)) {
+                    if (preg_match('/^(\d{4})-(\d{2})-(\d{6})$/', $value, $matches)) {
                         $year = (int)$matches[1];
                         $month = (int)$matches[2];
                         $serial = (int)$matches[3];
@@ -867,36 +649,34 @@ class IncomingDvController extends Controller
                         }
                         
                         if ($serial === 0) {
-                            $fail('The serial number in E-NGAS number cannot be 00000.');
+                            $fail('The serial number in E-NGAS number cannot be 000000.');
                         }
                     } else {
-                        $fail('The E-NGAS number format must be YYYY-MM-XXXXX (e.g., 2025-06-00001).');
+                        $fail('The E-NGAS number format must be YYYY-MM-XXXXXX (e.g., 2025-06-000001).');
                     }
                 }
             ],
             'engas_date' => 'required|date',
         ], [
-            'engas_number.regex' => 'The E-NGAS number format must be YYYY-MM-XXXXX (e.g., 2025-06-00001).',
+            'engas_number.regex' => 'The E-NGAS number format must be YYYY-MM-XXXXXX (e.g., 2025-06-000001).',
             'engas_number.required' => 'The E-NGAS number is required.',
         ]);
         
         $currentUser = Auth::user()->name ?? 'Unknown User';
         
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'E-NGAS Recorded',
-            'user' => $currentUser,
-            'date' => $validated['engas_date'],
-            'details' => ['engas_number' => $validated['engas_number']]
-        ];
+        // Record E-NGAS in transaction history
+        $this->transactionHistoryService->recordEngasRecorded(
+            $dv, 
+            $validated['engas_number'], 
+            $validated['engas_date'], 
+            $currentUser
+        );
         
         $dv->update([
             'engas_number' => $validated['engas_number'],
             'engas_date' => $validated['engas_date'],
             'engas_recorded_by' => $currentUser,
             'status' => 'for_cdj',
-            'transaction_history' => $transactionHistory,
         ]);
         
         return response()->json([
@@ -914,19 +694,13 @@ class IncomingDvController extends Controller
         
         $currentUser = Auth::user()->name ?? 'Unknown User';
         
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'CDJ Recorded',
-            'user' => $currentUser,
-            'date' => $validated['cdj_date'],
-        ];
+        // Record CDJ completion
+        $this->transactionHistoryService->recordCdjRecorded($dv, $validated['cdj_date'], $currentUser);
         
         $dv->update([
             'cdj_date' => $validated['cdj_date'],
             'cdj_recorded_by' => $currentUser,
             'status' => 'for_lddap',
-            'transaction_history' => $transactionHistory,
         ]);
         
         return response()->json([
@@ -938,33 +712,47 @@ class IncomingDvController extends Controller
     
     public function certifyLddap(Request $request, IncomingDv $dv)
     {
+        // Validate the request
+        $request->validate([
+            'lddap_date' => 'required|date',
+            'lddap_number' => 'nullable|string|max:255',
+        ]);
+
         $currentUser = Auth::user()->name ?? 'Unknown User';
-        $today = now()->toDateString();
+        $lddapDate = $request->lddap_date;
+        $lddapNumber = $request->lddap_number;
         
-        // Update transaction history
-        $transactionHistory = $dv->transaction_history ?? [];
-        $transactionHistory[] = [
-            'action' => 'LDDAP Certified',
-            'user' => $currentUser,
-            'date' => $today,
-            'details' => []
-        ];
-        $transactionHistory[] = [
-            'action' => 'Processing Complete',
-            'user' => $currentUser,
-            'date' => $today,
-            'details' => []
-        ];
+        // Record LDDAP certification
+        $this->transactionHistoryService->recordLddapCertified($dv, $currentUser);
         
-        $dv->update([
-            'lddap_certified_date' => $today,
+        // Record processing completion
+        $this->transactionHistoryService->recordProcessingCompleted($dv, $currentUser);
+        
+        // Update DV with LDDAP certification details
+        $updateData = [
+            'lddap_certified_date' => $lddapDate,
             'lddap_certified_by' => $currentUser,
             'status' => 'processed',
-            'processed_date' => $today,
-            'transaction_history' => $transactionHistory,
-        ]);
+            'processed_date' => $lddapDate,
+        ];
+
+        // Add LDDAP number if provided
+        if ($lddapNumber) {
+            $updateData['lddap_number'] = $lddapNumber;
+        }
+
+        $dv->update($updateData);
         
-        // Instead of JSON response, redirect to detailed view
+        // Return JSON response for AJAX requests
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'LDDAP certification completed successfully. DV is now processed.',
+                'dv' => $dv->fresh()
+            ]);
+        }
+
+        // Fallback redirect for non-AJAX requests
         return redirect()->route('dv.details', ['dv' => $dv->id])
             ->with('success', 'DV processing completed successfully');
     }
@@ -1073,12 +861,13 @@ class IncomingDvController extends Controller
         $section->addText($dv->particulars ?? 'N/A');
         
         // Add transaction history if available
-        if ($dv->transaction_history && count($dv->transaction_history) > 0) {
+        $transactionHistories = $dv->formatted_transaction_history;
+        if ($transactionHistories && count($transactionHistories) > 0) {
             $section->addTextBreak(2);
             $section->addText('TRANSACTION HISTORY:', $boldStyle);
             $section->addTextBreak();
             
-            foreach (collect($dv->transaction_history)->sortBy('date') as $history) {
+            foreach ($transactionHistories as $history) {
                 $section->addText('• ' . $history['action'] . ' - ' . \Carbon\Carbon::parse($history['date'])->format('Y-m-d') . ' by ' . $history['user']);
                 
                 if (isset($history['details']) && is_array($history['details'])) {
@@ -1153,12 +942,13 @@ class IncomingDvController extends Controller
         }
         
         // Transaction History
-        if ($dv->transaction_history && count($dv->transaction_history) > 0) {
+        $transactionHistories = $dv->formatted_transaction_history;
+        if ($transactionHistories && count($transactionHistories) > 0) {
             $csvData[] = ['', ''];
             $csvData[] = ['TRANSACTION HISTORY', ''];
             $csvData[] = ['Action', 'Date', 'User', 'Details'];
             
-            foreach (collect($dv->transaction_history)->sortBy('date') as $entry) {
+            foreach ($transactionHistories as $entry) {
                 $details = '';
                 if (isset($entry['details']) && is_array($entry['details'])) {
                     $detailsArray = [];
@@ -1264,20 +1054,14 @@ class IncomingDvController extends Controller
             
             $dv->update($updateData);
             
-            // Add reallocation entry to transaction history
-            $transactionHistory = $dv->transaction_history ?? [];
-            $transactionHistory[] = [
-                'action' => 'Cash Reallocation Requested',
-                'date' => now()->toDateTimeString(),
-                'user' => Auth::user()->name ?? 'System',
-                'details' => [
-                    'reason' => 'DV returned from cashiering for cash reallocation',
-                    'previous_processed_date' => $previousState['processed_date'],
-                    'cleared_fields' => array_filter($previousState) // Only include fields that had values
-                ]
-            ];
-            
-            $dv->update(['transaction_history' => $transactionHistory]);
+            // Record cash reallocation request
+            $this->transactionHistoryService->recordStatusChange(
+                $dv, 
+                $dv->status, 
+                'for_cash_allocation', 
+                Auth::user()->name ?? 'System',
+                'Cash Reallocation Requested - DV returned from cashiering for cash reallocation'
+            );
             
             Log::info("DV {$id} successfully reallocated to cash allocation");
             

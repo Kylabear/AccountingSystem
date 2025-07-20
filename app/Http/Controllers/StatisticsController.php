@@ -657,7 +657,7 @@ class StatisticsController extends Controller
     private function calculateIndividualDvDurations($dv)
     {
         $createdDate = $dv->created_at;
-        $completedDate = $dv->lddap_date ?? $dv->cdj_date ?? $dv->engas_date ?? $dv->processed_date;
+        $completedDate = $dv->lddap_certified_date ?? $dv->cdj_date ?? $dv->engas_date ?? $dv->processed_date;
         
         if (!$completedDate || !$createdDate) {
             return [

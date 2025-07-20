@@ -15,7 +15,7 @@ import ProcessedDvModal from '../Components/ProcessedDvModal';
 
 
 const statuses = [
-    { key: 'recents', label: 'Recents', color: 'text-white', bgColor: '#73FBFD' },
+    { key: 'recents', label: 'Recent Activity', color: 'text-white', bgColor: '#73FBFD' },
     { key: 'for_review', label: 'For Review', color: 'text-white', bgColor: '#D92F21' },
     { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'text-white', bgColor: '#F07B1D' },
     { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
@@ -31,7 +31,7 @@ const statuses = [
 export default function IncomingDvs() {
     // Add state for Box C Certification tab sections
     const [boxCSection, setBoxCSection] = React.useState('box_c');
-    const { dvs, auth } = usePage().props;
+    const { dvs, auth, debug } = usePage().props;
     
     // State for responsive design
     const [isMobile, setIsMobile] = useState(false);
@@ -212,6 +212,89 @@ export default function IncomingDvs() {
         }
     };
 
+    // Handle E-NGAS recording
+    const handleEngasRecording = async (data) => {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+
+            const response = await fetch(`/incoming-dvs/${selectedDv.id}/engas`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    engas_number: data.engas_number,
+                    engas_date: data.engas_date
+                })
+            });
+
+            if (response.ok) {
+                alert('✅ E-NGAS number recorded successfully! DV is now ready for CDJ recording.');
+                // Close modal and refresh page to show updated DV status
+                setIsEngasModalOpen(false);
+                setSelectedDv(null);
+                window.location.reload();
+            } else {
+                const responseData = await response.json();
+                alert(`❌ Error recording E-NGAS: ${responseData.message || responseData.error || 'Unknown server error'}`);
+            }
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                alert('❌ Network error: Could not connect to server. Please check if the server is running.');
+            } else {
+                alert(`❌ Error recording E-NGAS: ${error.message}`);
+            }
+        }
+    };
+
+    // Handle CDJ recording
+    const handleCdjRecording = async (data) => {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
+            if (!csrfToken) {
+                alert('CSRF token not found. Please refresh the page and try again.');
+                return;
+            }
+
+            const response = await fetch(`/incoming-dvs/${selectedDv.id}/cdj`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    cdj_date: data.cdj_date
+                })
+            });
+
+            if (response.ok) {
+                alert('✅ CDJ recording completed successfully! DV is now ready for LDDAP certification.');
+                // Close modal and refresh page to show updated DV status
+                setIsCdjModalOpen(false);
+                setSelectedDv(null);
+                window.location.reload();
+            } else {
+                const responseData = await response.json();
+                alert(`❌ Error recording CDJ: ${responseData.message || responseData.error || 'Unknown server error'}`);
+            }
+        } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                alert('❌ Network error: Could not connect to server. Please check if the server is running.');
+            } else {
+                alert(`❌ Error recording CDJ: ${error.message}`);
+            }
+        }
+    };
+
     // Handle LDDAP certification
     const handleLddapCertification = async (data) => {
         try {
@@ -230,7 +313,8 @@ export default function IncomingDvs() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    lddap_date: data.lddap_date
+                    lddap_date: data.lddap_date,
+                    lddap_number: data.lddap_number
                 })
             });
 
@@ -304,11 +388,8 @@ export default function IncomingDvs() {
         let matchesStatus;
         
         if (activeTab === 'recents') {
-            // Recents shows DVs from the last 7 days regardless of status
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            const dvDate = new Date(dv.created_at);
-            matchesStatus = dvDate >= sevenDaysAgo;
+            // Recents shows ALL DVs regardless of status (serves as notification center)
+            matchesStatus = true;
         } else {
             // Other tabs filter by actual status
             if (activeTab === 'for_review') {
@@ -350,9 +431,59 @@ export default function IncomingDvs() {
         return matchesStatus && matchesSearch;
     });
 
-    // Sort DVs - for recents tab, show newest first
+    // Sort DVs - for recents tab, show newest first based on latest activity
     const sortedDvs = activeTab === 'recents' 
-        ? [...filteredDvs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        ? [...filteredDvs].sort((a, b) => {
+            // Get the most recent activity date from multiple possible date fields
+            const getLatestActivityDate = (dv) => {
+                const dates = [];
+                
+                // Add all possible date fields with proper parsing
+                const addDateIfValid = (dateStr) => {
+                    if (dateStr) {
+                        const date = new Date(dateStr);
+                        if (!isNaN(date.getTime())) {
+                            dates.push(date.getTime()); // Use timestamp for accurate comparison
+                        }
+                    }
+                };
+                
+                // Add all possible date fields
+                addDateIfValid(dv.created_at);
+                addDateIfValid(dv.updated_at);
+                addDateIfValid(dv.cash_allocation_date);
+                addDateIfValid(dv.cash_allocation_processed_date);
+                addDateIfValid(dv.box_c_date);
+                addDateIfValid(dv.approval_out_date);
+                addDateIfValid(dv.approval_in_date);
+                addDateIfValid(dv.indexing_date);
+                addDateIfValid(dv.engas_date);
+                addDateIfValid(dv.cdj_date);
+                addDateIfValid(dv.lddap_date);
+                addDateIfValid(dv.processed_date);
+                addDateIfValid(dv.reallocation_date);
+                
+                // Add RTS and NORSA dates
+                addDateIfValid(dv.ca_rts_out_date);
+                addDateIfValid(dv.ca_rts_in_date);
+                addDateIfValid(dv.ca_norsa_out_date);
+                addDateIfValid(dv.ca_norsa_in_date);
+                addDateIfValid(dv.bc_rts_out_date);
+                addDateIfValid(dv.bc_rts_in_date);
+                addDateIfValid(dv.bc_norsa_out_date);
+                addDateIfValid(dv.bc_norsa_in_date);
+                
+                // Return the most recent timestamp, or fallback to created_at
+                const latestTimestamp = dates.length > 0 ? Math.max(...dates) : new Date(dv.created_at || Date.now()).getTime();
+                
+                return latestTimestamp;
+            };
+            
+            const timestampA = getLatestActivityDate(a);
+            const timestampB = getLatestActivityDate(b);
+            
+            return timestampB - timestampA; // Most recent first (descending order)
+        })
         : filteredDvs;
 
     // Filter reallocated DVs for cash allocation tab
@@ -476,6 +607,8 @@ export default function IncomingDvs() {
             setIsLddapModalOpen(true);
         } else if (dv.status === 'for_engas') {
             setIsEngasModalOpen(true);
+        } else if (dv.status === 'for_cdj') {
+            setIsCdjModalOpen(true);
         } else {
             setIsModalOpen(true);
         }
@@ -520,8 +653,8 @@ export default function IncomingDvs() {
                   {statuses.find(s => s.key === dv.status)?.label || dv.status}
                 </span>
                 <div className="flex space-x-2">
-                  {/* Show "Out" button for approval tab */}
-                  {activeTab === 'for_approval' && (
+                  {/* Show "Out" button for DVs in for_approval status */}
+                  {dv.status === 'for_approval' && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -530,19 +663,6 @@ export default function IncomingDvs() {
                       className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
                     >
                       Out
-                    </button>
-                  )}
-                  {/* Show "Certify" button for LDDAP tab */}
-                  {activeTab === 'for_lddap' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedDv(dv);
-                        setIsLddapModalOpen(true);
-                      }}
-                      className="bg-gray-600 text-white px-3 py-1 rounded text-xs hover:bg-gray-700 transition-colors duration-200"
-                    >
-                      Certify
                     </button>
                   )}
                   <button
@@ -680,13 +800,8 @@ export default function IncomingDvs() {
                                 {statuses.map((status) => {
                                     let count;
                                     if (status.key === 'recents') {
-                                        // Count DVs from the last 7 days
-                                        const sevenDaysAgo = new Date();
-                                        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                                        count = dvs.filter(dv => {
-                                            const dvDate = new Date(dv.created_at);
-                                            return dvDate >= sevenDaysAgo;
-                                        }).length;
+                                        // Count ALL DVs regardless of status (notification center)
+                                        count = dvs.length;
                                     } else if (status.key === 'for_review') {
                                         // Count all DVs in review-related statuses
                                         count = dvs.filter(dv => ['for_review', 'for_rts_in', 'for_norsa_in'].includes(dv.status)).length;
@@ -805,7 +920,7 @@ export default function IncomingDvs() {
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-green-700 w-fit">
         <h3 className="text-xl font-bold text-white flex items-center m-0">
-          <span className="mr-2">🕐</span>Recents
+          <span className="mr-2">�</span>Recent Activity
           <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-600 text-white">{sortedDvs.length}</span>
         </h3>
       </div>
@@ -814,7 +929,7 @@ export default function IncomingDvs() {
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
                               ) : (
-                                <p className="text-gray-500 text-center py-4">No recent disbursement vouchers yet. New entries will appear here once added.</p>
+                                <p className="text-gray-500 text-center py-4">No disbursement vouchers available. All DV activities will appear here in chronological order.</p>
                               )}
                             </div>
                           </div>
@@ -1563,11 +1678,7 @@ export default function IncomingDvs() {
                     setIsEngasModalOpen(false);
                     setSelectedDv(null);
                 }}
-                onSubmit={() => {
-                    setIsEngasModalOpen(false);
-                    setSelectedDv(null);
-                    window.location.reload();
-                }}
+                onSubmit={handleEngasRecording}
             />
 
             <CdjModal
@@ -1577,11 +1688,7 @@ export default function IncomingDvs() {
                     setIsCdjModalOpen(false);
                     setSelectedDv(null);
                 }}
-                onSubmit={() => {
-                    setIsCdjModalOpen(false);
-                    setSelectedDv(null);
-                    window.location.reload();
-                }}
+                onSubmit={handleCdjRecording}
             />
 
             <LddapModal

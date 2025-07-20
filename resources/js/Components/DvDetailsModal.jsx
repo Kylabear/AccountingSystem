@@ -1,24 +1,13 @@
 import { useState, useEffect } from 'react';
 
 export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStatusUpdate }) {
-  // Inject mock/test data for dv if not present
-  let dv = originalDv;
-  if (process.env.NODE_ENV !== 'production' && dv && !dv.rts_history) {
-    dv = {
-      ...dv,
-      status: dv.status || 'for_rts_in',
-      rts_history: [
-        {
-          date: '2025-07-15',
-          reason: 'Missing signature on document',
-          returned_date: dv.status === 'for_review' ? '2025-07-16' : null,
-          reviewed_by: 'Test Reviewer',
-          staff_in_charge: 'Test Staff',
-          review_date: '2025-07-15',
-        }
-      ]
-    };
+  // Early return if dv is null or undefined to prevent errors
+  if (!originalDv) {
+    return null;
   }
+
+  // Use the original DV data without any mock injection
+  let dv = originalDv;
   const [activeAction, setActiveAction] = useState(null);
   const [rtsReason, setRtsReason] = useState('');
   const [rtsDate, setRtsDate] = useState('');
@@ -27,6 +16,86 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   // LLDAP payment modal state
   const [lldapNumber, setLldapNumber] = useState('');
   const [lldapError, setLldapError] = useState('');
+
+  // Helper function to determine which sections to show based on workflow progression
+  const getVisibleSections = (dvStatus) => {
+    const statusOrder = [
+      'for_review',            // Stage 1-2: Initial review (with RTS/NORSA cycles)
+      'for_rts_in',           // Sub-status: RTS issued from review stage
+      'for_norsa_in',         // Sub-status: NORSA issued from review stage
+      'for_cash_allocation',   // Stage 3: Cash allocation 
+      'for_box_c',            // Stage 4: Box C certification (with RTS/NORSA cycles)
+      'for_bc_rts_in',        // Sub-status: RTS issued from box C stage
+      'for_bc_norsa_in',      // Sub-status: NORSA issued from box C stage
+      'for_approval',         // Stage 5: For approval (out/in)
+      'out_for_approval',     // Sub-status: Out for approval
+      'for_indexing',         // Stage 6: Indexing process
+      'for_mode_of_payment',  // Stage 7: Payment method selection
+      'for_engas',            // Stage 8a: E-NGAS recording (Check/LLDAP path)
+      'out_for_cashiering',   // Stage 8b: Out for cashiering (PR path)
+      'for_cdj_recording',    // Stage 9: CDJ recording
+      'for_lddap_certification', // Stage 10: LDDAP certification
+      'processed',            // Stage 11: Final processed stage
+      'for_reallocation'      // Reallocation branch (goes back to cash allocation flow)
+    ];
+    
+    // Map sub-statuses to their main workflow stage
+    const getMainStage = (status) => {
+      if (['for_rts_in', 'for_norsa_in'].includes(status)) return 'for_review';
+      if (['for_bc_rts_in', 'for_bc_norsa_in'].includes(status)) return 'for_box_c';
+      if (status === 'out_for_approval') return 'for_approval';
+      return status;
+    };
+    
+    const mainStage = getMainStage(dvStatus);
+    const currentIndex = statusOrder.indexOf(mainStage);
+    
+    if (currentIndex === -1) return { 
+      showReview: false, 
+      showCashAllocation: false, 
+      showBoxC: false, 
+      showApproval: false,
+      showIndexing: false,
+      showModeOfPayment: false,
+      showEngas: false,
+      showCdj: false,
+      showLddap: false,
+      showProcessed: false
+    };
+    
+    // Determine stage indices
+    const reviewIndex = statusOrder.indexOf('for_review');
+    const cashAllocationIndex = statusOrder.indexOf('for_cash_allocation');
+    const boxCIndex = statusOrder.indexOf('for_box_c');
+    const approvalIndex = statusOrder.indexOf('for_approval');
+    const indexingIndex = statusOrder.indexOf('for_indexing');
+    const paymentIndex = statusOrder.indexOf('for_mode_of_payment');
+    const engasIndex = statusOrder.indexOf('for_engas');
+    const cdjIndex = statusOrder.indexOf('for_cdj_recording');
+    const lddapIndex = statusOrder.indexOf('for_lddap_certification');
+    const processedIndex = statusOrder.indexOf('processed');
+    
+    return {
+      showReview: currentIndex >= reviewIndex,
+      showCashAllocation: currentIndex >= cashAllocationIndex || dvStatus === 'for_reallocation',
+      showBoxC: currentIndex >= boxCIndex && dvStatus !== 'for_reallocation', // Skip Box C for reallocated DVs
+      showApproval: currentIndex >= approvalIndex && dvStatus !== 'for_reallocation', // Skip Approval for reallocated DVs
+      showIndexing: currentIndex >= indexingIndex && dvStatus !== 'for_reallocation', // Skip Indexing for reallocated DVs
+      showModeOfPayment: currentIndex >= paymentIndex,
+      showEngas: currentIndex >= engasIndex,
+      showCdj: currentIndex >= cdjIndex,
+      showLddap: currentIndex >= lddapIndex,
+      showProcessed: currentIndex >= processedIndex
+    };
+  };
+
+  const visibleSections = dv ? getVisibleSections(dv.status) : { 
+    showReview: false, 
+    showCashAllocation: false, 
+    showBoxC: false, 
+    showApproval: false,
+    showIndexing: false
+  };
 
   // Payment handlers
   const handleCheckPayment = () => {
@@ -515,8 +584,8 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
               </div>
             </div>
 
-            {/* RTS Information - Only show in for_review if at least one RTS cycle has a returned_date (came from for_rts_in) */}
-            {(dv.rts_history && dv.rts_history.length > 0 && dv.status === 'for_review' && dv.rts_history.some(rts => rts.returned_date)) && (
+            {/* RTS Information - Only show if DV actually went through RTS process */}
+            {(dv.rts_history && dv.rts_history.length > 0 && dv.rts_history.some(rts => rts.returned_date)) && (
               <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
                 <h3 className="text-lg font-semibold text-orange-800 mb-4">RTS Information</h3>
                 {dv.rts_history.map((rts, index) => (
@@ -544,8 +613,8 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
               </div>
             )}
 
-            {/* For Review Section - For Cash Allocation DVs or Reallocated DVs */}
-            {(dv.status === 'for_cash_allocation' || isReallocationView) && (
+            {/* For Review Section - Only show if DV has RTS/NORSA data (not for clean new DVs) */}
+            {(dv.status === 'for_review' && (dv.rts_out_date || dv.rts_in_date || dv.rts_reason || dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason)) && (
               <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                   <span className="mr-2">📖</span>
@@ -562,10 +631,10 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                 )}
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* RTS Details Box */}
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <h4 className="font-semibold text-red-800 mb-3">RTS Details</h4>
-                    {(dv.rts_out_date || dv.rts_in_date || dv.rts_reason) ? (
+                  {/* RTS Details Box - Only show if RTS actually occurred */}
+                  {(dv.rts_out_date || dv.rts_in_date || dv.rts_reason) && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <h4 className="font-semibold text-red-800 mb-3">RTS Details</h4>
                       <div className="space-y-2 text-sm">
                         <div>
                           <span className="font-medium text-gray-700">RTS Issued Date:</span>
@@ -582,15 +651,13 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                           </div>
                         )}
                       </div>
-                    ) : (
-                      <p className="text-gray-500 italic">No RTS was issued for this DV.</p>
-                    )}
-                  </div>
+                    </div>
+                  )}
                   
-                  {/* NORSA Details Box */}
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details</h4>
-                    {(dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason) ? (
+                  {/* NORSA Details Box - Only show if NORSA actually occurred */}
+                  {(dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason) && (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details</h4>
                       <div className="space-y-2 text-sm">
                         <div>
                           <span className="font-medium text-gray-700">NORSA Issued Date:</span>
@@ -613,22 +680,20 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                           </div>
                         )}
                       </div>
-                    ) : (
-                      <p className="text-gray-500 italic">No NORSA was issued for this DV.</p>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* Progressive Summary Sections - For Approval DVs */}
-            {dv.status === 'for_approval' && !isReallocationView && (
+            {/* Progressive Summary Sections - Show based on workflow progression (NOT for for_review) */}
+            {(['for_cash_allocation', 'for_box_c', 'for_approval', 'for_indexing', 'for_mode_of_payment', 'for_engas', 'out_for_cashiering', 'for_cdj_recording', 'for_lddap_certification', 'processed'].includes(dv.status) || isReallocationView) && (
               <>
-                {/* For Review Section */}
+                {/* For Review Section - Progressive Summary */}
                 <div className="mb-6 p-4 border-2 border-gray-200 rounded-lg bg-gray-50">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                     <span className="mr-2">📖</span>
-                    For Review
+                    For Review (Summary)
                   </h3>
                   
                   {/* Review Done Date */}
@@ -641,10 +706,10 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                   )}
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* RTS Details Box */}
-                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                      <h4 className="font-semibold text-red-800 mb-3">RTS Details</h4>
-                      {(dv.rts_out_date || dv.rts_in_date || dv.rts_reason) ? (
+                    {/* RTS Details Box - Only show if RTS actually occurred */}
+                    {(dv.rts_out_date || dv.rts_in_date || dv.rts_reason) && (
+                      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <h4 className="font-semibold text-red-800 mb-3">RTS Details</h4>
                         <div className="space-y-2 text-sm">
                           <div>
                             <span className="font-medium text-gray-700">RTS Issued Date:</span>
@@ -661,15 +726,13 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                             </div>
                           )}
                         </div>
-                      ) : (
-                        <p className="text-gray-500 italic">No RTS was issued for this DV.</p>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     
-                    {/* NORSA Details Box */}
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details</h4>
-                      {(dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason) ? (
+                    {/* NORSA Details Box - Only show if NORSA actually occurred */}
+                    {(dv.norsa_out_date || dv.norsa_in_date || dv.norsa_number || dv.norsa_reason) && (
+                      <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <h4 className="font-semibold text-yellow-800 mb-3">NORSA Details</h4>
                         <div className="space-y-2 text-sm">
                           <div>
                             <span className="font-medium text-gray-700">NORSA Issued Date:</span>
@@ -692,10 +755,8 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                             </div>
                           )}
                         </div>
-                      ) : (
-                        <p className="text-gray-500 italic">No NORSA was issued for this DV.</p>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
