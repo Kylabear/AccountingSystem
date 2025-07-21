@@ -20,7 +20,7 @@ const statuses = [
     { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
     { key: 'for_approval', label: 'For Approval', color: 'text-white', bgColor: '#6B6B6B' },
     { key: 'for_indexing', label: 'For Indexing', color: 'text-white', bgColor: '#0023F5' },
-    { key: 'for_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#6B28E3' },
+    { key: 'for_mode_of_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#6B28E3' },
     { key: 'for_engas', label: 'For E-NGAS Recording', color: 'text-white', bgColor: '#EA3680' },
     { key: 'for_cdj', label: 'For CDJ Recording', color: 'text-white', bgColor: '#784315' },
     { key: 'for_lddap', label: 'For LDDAP Certification', color: 'text-white', bgColor: '#000000' },
@@ -410,7 +410,7 @@ export default function IncomingDvs() {
 // For Cash Allocation tab shows DVs in for_cash_allocation status (excluding reallocated ones)
                 // Reallocated DVs are now handled in their own section
                 matchesStatus = dv.status === 'for_cash_allocation' && !dv.is_reallocated;
-            } else if (activeTab === 'for_payment') {
+            } else if (activeTab === 'for_mode_of_payment') {
                 // For Payment tab shows DVs in for_payment, for_mode_of_payment, OR out_to_cashiering status
                 matchesStatus = ['for_payment', 'for_mode_of_payment', 'out_to_cashiering'].includes(dv.status);
             } else if (activeTab === 'for_lddap') {
@@ -784,9 +784,9 @@ export default function IncomingDvs() {
                                             (dv.status === 'for_rts_in' && dv.rts_origin === 'box_c') ||
                                             (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c')
                                         ).length;
-                                    } else if (status.key === 'for_payment') {
+                                    } else if (status.key === 'for_mode_of_payment') {
                                         // Count DVs in for_payment OR out_to_cashiering status
-                                        count = dvs.filter(dv => ['for_payment', 'out_to_cashiering'].includes(dv.status)).length;                    } else if (status.key === 'for_cash_allocation') {
+                                        count = dvs.filter(dv => ['for_payment', 'for_mode_of_payment', 'out_to_cashiering'].includes(dv.status)).length;                    } else if (status.key === 'for_cash_allocation') {
                         // Count DVs in for_cash_allocation status (excluding reallocated ones)
                         count = dvs.filter(dv => dv.status === 'for_cash_allocation' && !dv.is_reallocated).length;
                                     } else if (status.key === 'for_lddap') {
@@ -890,10 +890,17 @@ export default function IncomingDvs() {
                         {activeTab === 'recents' && (
 <div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
+<<<<<<< Updated upstream
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-700">
           <span className="mr-2">📋</span>Recents
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'recents' ? 'bg-cyan-500 text-white' : 'bg-transparent text-cyan-700'}`}>{sortedDvs.length}</span>
+=======
+      <div className="flex items-center px-4 py-2 rounded-lg bg-blue-400 w-fit">
+        <h3 className="text-xl font-bold text-white flex items-center m-0">
+          <span className="mr-2">🕐</span>Recents
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-blue-300 text-blue-800">{sortedDvs.length}</span>
+>>>>>>> Stashed changes
         </h3>
       </div>
     </div>
@@ -908,6 +915,7 @@ export default function IncomingDvs() {
                         )}
                         {activeTab === 'for_review' && (
 <div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+<<<<<<< Updated upstream
                             {/* Section Headers - filter logic preserved */}
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               {/* Menu hover effect: dim non-hovered buttons */}
@@ -934,6 +942,32 @@ export default function IncomingDvs() {
                                     </button>
                                   );
                                 })}
+=======
+    {/* Section Headers - filter logic preserved */}
+    <div className="flex items-center justify-between mb-4 flex-shrink-0">
+      <div className="flex space-x-4">
+        <button
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-700 text-white' : 'bg-red-200 text-red-700'}`}
+          onClick={() => setForReviewSection('for_review')}
+        >
+          <span className="mr-2">🔄</span>For Review
+          <span className="ml-2 bg-red-200 text-red-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
+        </button>
+        <button
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-700 text-white' : 'bg-red-200 text-red-700'}`}
+          onClick={() => setForReviewSection('for_rts_in')}
+        >
+          <span className="mr-2">📦</span>For RTS In
+          <span className="ml-2 bg-red-200 text-red-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
+        </button>
+        <button
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-700 text-white' : 'bg-red-200 text-red-700'}`}
+          onClick={() => setForReviewSection('for_norsa_in')}
+        >
+          <span className="mr-2">🌐</span>For NORSA In
+          <span className="ml-2 bg-red-200 text-red-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
+        </button>
+>>>>>>> Stashed changes
                               </div>
                             </div>
                             {/* Scrollable DV Tiles Area */}
@@ -1134,8 +1168,13 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
+<<<<<<< Updated upstream
                         {activeTab === 'for_payment' && (
                           <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+=======
+                        {activeTab === 'for_mode_of_payment' && (
+                          <div className="bg-purple-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+>>>>>>> Stashed changes
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
                                 <button

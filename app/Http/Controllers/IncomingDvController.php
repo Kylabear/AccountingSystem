@@ -335,15 +335,20 @@ class IncomingDvController extends Controller
         // Record cash allocation in transaction history
         $this->transactionHistoryService->recordCashAllocation($dv, $validated, $currentUser);
 
-        // For reallocated DVs, this is actually a reallocation
+        // Determine next status based on whether this is a reallocation
+        $nextStatus = 'for_box_c'; // Default for new DVs
+        
         if ($dv->is_reallocated) {
-            // Add additional entry for reallocation completion
+            // For reallocated DVs, skip Box C, Approval, and Indexing - go directly to mode of payment
+            $nextStatus = 'for_mode_of_payment';
+            
+            // Add additional entry for reallocation completion with skip notification
             $this->transactionHistoryService->recordStatusChange(
                 $dv, 
                 $dv->status, 
-                'for_box_c', 
+                $nextStatus, 
                 $currentUser,
-                'Cash Reallocation Completed'
+                'Cash Reallocation Completed - Skipped Box C, Approval, and Indexing stages'
             );
         }
 
@@ -352,7 +357,7 @@ class IncomingDvController extends Controller
             'cash_allocation_number' => $validated['cash_allocation_number'],
             'net_amount' => $validated['net_amount'],
             'allocated_by' => $currentUser,
-            'status' => 'for_box_c', // Move to next status after cash allocation
+            'status' => $nextStatus, // Use determined next status
             'is_reallocated' => false, // Clear reallocated flag to allow normal workflow progression
         ]);
 
@@ -1070,6 +1075,54 @@ class IncomingDvController extends Controller
         } catch (\Exception $e) {
             Log::error("Error reallocating DV {$id}: " . $e->getMessage());
             Log::error("Stack trace: " . $e->getTraceAsString());
+            return response()->json(['error' => 'Internal server error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Fix a reallocated DV that's in wrong status - move it to for_mode_of_payment
+     */
+    public function fixReallocatedDvStatus(Request $request, $id)
+    {
+        try {
+            Log::info("Fix reallocated DV request received for DV ID: {$id}");
+            
+            $dv = IncomingDv::findOrFail($id);
+            
+            Log::info("DV found - Payee: {$dv->payee}, Current Status: {$dv->status}");
+            
+            // Check if this is a DV that was reallocated but ended up in wrong status
+            if (!$dv->is_reallocated && $dv->reallocation_date) {
+                // This DV was reallocated but the flag was cleared - it should be in for_mode_of_payment
+                $currentUser = Auth::user()->name ?? 'System';
+                
+                // Record the status correction
+                $this->transactionHistoryService->recordStatusChange(
+                    $dv, 
+                    $dv->status, 
+                    'for_mode_of_payment', 
+                    $currentUser,
+                    'Status Corrected - Reallocated DV moved to correct workflow stage (Mode of Payment)'
+                );
+                
+                // Update status to correct position for reallocated DVs
+                $dv->update([
+                    'status' => 'for_mode_of_payment'
+                ]);
+                
+                Log::info("DV {$id} status corrected to for_mode_of_payment");
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'DV status corrected to Mode of Payment successfully',
+                    'dv' => $dv->fresh()
+                ]);
+            } else {
+                return response()->json(['error' => 'DV does not appear to need status correction'], 400);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error("Error fixing DV status {$id}: " . $e->getMessage());
             return response()->json(['error' => 'Internal server error: ' . $e->getMessage()], 500);
         }
     }

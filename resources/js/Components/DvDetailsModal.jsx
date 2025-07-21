@@ -106,11 +106,65 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       onClose();
     }
   };
+  // LDDAP number validation function
+  const validateLldapNumber = (value) => {
+    if (!value) return 'Please enter LDDAP Number.';
+    
+    // Pattern: NNN-MM-SNMBR-NNN (where NNN=3 digits, MM=2 digits, SNMBR=5 digits, NNN=3 digits)
+    const pattern = /^(\d{3})-(\d{2})-(\d{5})-(\d{3})$/;
+    const match = value.match(pattern);
+    
+    if (!match) {
+      return 'Format must be NNN-MM-SNMBR-NNN (e.g., 101-06-54236-653)';
+    }
+    
+    return '';
+  };
+
+  // LDDAP number formatting function
+  const handleLldapNumberChange = (e) => {
+    let value = e.target.value;
+    
+    // Remove any non-digit characters
+    let digitsOnly = value.replace(/[^0-9]/g, '');
+    
+    // Limit to maximum 13 digits (3 + 2 + 5 + 3)
+    if (digitsOnly.length > 13) {
+      digitsOnly = digitsOnly.slice(0, 13);
+    }
+    
+    // Auto-format based on length
+    let formattedValue = '';
+    
+    if (digitsOnly.length <= 3) {
+      // Just the first part
+      formattedValue = digitsOnly;
+    } else if (digitsOnly.length <= 5) {
+      // First + second part
+      formattedValue = digitsOnly.slice(0, 3) + '-' + digitsOnly.slice(3);
+    } else if (digitsOnly.length <= 10) {
+      // First + second + third part
+      formattedValue = digitsOnly.slice(0, 3) + '-' + digitsOnly.slice(3, 5) + '-' + digitsOnly.slice(5);
+    } else {
+      // Complete format
+      formattedValue = digitsOnly.slice(0, 3) + '-' + digitsOnly.slice(3, 5) + '-' + digitsOnly.slice(5, 10) + '-' + digitsOnly.slice(10, 13);
+    }
+    
+    setLldapNumber(formattedValue);
+    
+    // Clear error when user starts typing
+    if (lldapError) {
+      setLldapError('');
+    }
+  };
+
   const handleLldapPayment = () => {
-    if (!lldapNumber.trim()) {
-      setLldapError('Please enter LLDAP Number.');
+    const validationError = validateLldapNumber(lldapNumber);
+    if (validationError) {
+      setLldapError(validationError);
       return;
     }
+    
     setLldapError('');
     if (confirm('Set payment method to LLDAP and proceed to E-NGAS?')) {
       onStatusUpdate(dv.id, 'for_engas', { payment_method: 'lddap', lldap_number: lldapNumber });
@@ -1343,13 +1397,19 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                         <input
                           type="text"
                           value={lldapNumber}
-                          onChange={(e) => setLldapNumber(e.target.value)}
-                          placeholder="Enter LLDAP Number..."
+                          onChange={handleLldapNumberChange}
+                          placeholder="NNN-MM-SNMBR-NNN (e.g., 101-06-54236-653)"
                           className={`w-full border border-gray-300 rounded-lg p-2 focus:border-purple-500 focus:outline-none ${lldapError ? 'border-red-500' : ''}`}
+                          maxLength={16}
                           required
                         />
                         {lldapError && (
                           <p className="text-red-500 text-xs mt-1">{lldapError}</p>
+                        )}
+                        {!lldapError && (
+                          <p className="text-gray-500 text-xs mt-1">
+                            Format: NNN-MM-SNMBR-NNN (auto-formatted as you type)
+                          </p>
                         )}
                       </div>
                       <div className="flex gap-2">
@@ -1821,26 +1881,35 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     <label className="block text-sm font-medium text-gray-700 mb-1">LDDAP Number</label>
                     <input
                       type="text"
-                      value={norsaNumber}
-                      onChange={handleNorsaNumberChange}
-                      placeholder="YYYY-MM-NNNNN"
-                      className={`w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none ${norsaError ? 'border-red-500' : ''}`}
-                      maxLength={13}
+                      value={lldapNumber}
+                      onChange={handleLldapNumberChange}
+                      placeholder="NNN-MM-SNMBR-NNN (e.g., 101-06-54236-653)"
+                      className={`w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none ${lldapError ? 'border-red-500' : ''}`}
+                      maxLength={16}
                       required
                     />
-                    {norsaError && (
-                      <p className="text-red-500 text-xs mt-1">{norsaError}</p>
+                    {lldapError && (
+                      <p className="text-red-500 text-xs mt-1">{lldapError}</p>
+                    )}
+                    {!lldapError && (
+                      <p className="text-gray-500 text-xs mt-1">
+                        Format: NNN-MM-SNMBR-NNN (auto-formatted as you type)
+                      </p>
                     )}
                     <div className="flex gap-2 mt-3">
                       <button
                         onClick={() => {
-                          if (!norsaNumber || norsaError) {
-                            setNorsaError('Please enter a valid LDDAP Number.');
+                          const validationError = validateLldapNumber(lldapNumber);
+                          if (validationError) {
+                            setLldapError(validationError);
                             return;
                           }
-                          onStatusUpdate(dv.id, 'for_lddap', { payment_method: 'LDDAP-ADA', lddap_number: norsaNumber });
-                          setActiveAction(null);
-                          setNorsaNumber('');
+                          setLldapError('');
+                          if (confirm('Set payment method to LDDAP-ADA and proceed?')) {
+                            onStatusUpdate(dv.id, 'for_lddap', { payment_method: 'LDDAP-ADA', lddap_number: lldapNumber });
+                            setActiveAction(null);
+                            setLldapNumber('');
+                          }
                         }}
                         className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors"
                       >
@@ -1849,8 +1918,8 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                       <button
                         onClick={() => {
                           setActiveAction(null);
-                          setNorsaNumber('');
-                          setNorsaError('');
+                          setLldapNumber('');
+                          setLldapError('');
                         }}
                         className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                       >
@@ -1873,49 +1942,6 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                   >
                     In
                   </button>
-                </div>
-              </div>
-            )}
-
-            {/* LDDAP Certification Action */}
-            {dv.status === 'for_lddap' && (
-              <div className="border-t pt-6">
-                <div className="bg-black text-white p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-4">LDDAP Certification</h3>
-                  <p className="text-sm mb-4">
-                    Perform final verification. Confirm that all processing steps, bank account validation, 
-                    and documentation are complete.
-                  </p>
-                  <div className="flex justify-end">
-                    <button
-                      onClick={async () => {
-                        if (confirm('Certify this DV for LDDAP? This will complete the processing and redirect to the detailed view.')) {
-                          try {
-                            const response = await fetch(`/incoming-dvs/${dv.id}/lddap-certify`, {
-                              method: 'POST',
-                              headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                              }
-                            });
-
-                            if (response.ok) {
-                              // The backend will handle the redirect
-                              window.location.href = `/dv/${dv.id}/details`;
-                            } else {
-                              alert('Error certifying LDDAP');
-                            }
-                          } catch (error) {
-                            console.error('Error:', error);
-                            alert('Error certifying LDDAP');
-                          }
-                        }
-                      }}
-                      className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      Certified
-                    </button>
-                  </div>
                 </div>
               </div>
             )}
