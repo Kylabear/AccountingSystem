@@ -580,74 +580,82 @@ export default function IncomingDvs() {
 
     // Helper to render a DV card (to avoid code duplication in grouped sections)
     function renderDvCard(dv) {
+      const statusObj = statuses.find(s => s.key === dv.status);
       return (
-        <div 
-          key={dv.id} 
-          className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
-          style={getBorderStyle(dv.status)}
+        <div
+          key={dv.id}
+          className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer flex flex-row min-h-[56px]"
           onClick={() => handleDvClick(dv)}
         >
-          <div className="flex justify-between items-start">
-            <div className="flex-1">
-              <h3 className="font-semibold text-gray-800 text-lg mb-1">
-                {dv.payee}
-              </h3>
-              <p className="text-gray-600 text-sm mb-1">
-                {dv.dv_number}
-              </p>
-              <p className="text-gray-600 text-sm mb-2 italic">
-                {dv.particulars && dv.particulars.length > 50 
-                  ? dv.particulars.substring(0, 50) + '...'
-                  : dv.particulars || 'No particulars specified'}
-              </p>
-              <p className="text-gray-800 font-medium">
-                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}
-                {dv.net_amount && (
-                  <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                )}
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="flex flex-col items-end space-y-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${statuses.find(s => s.key === dv.status)?.color || 'text-white'}`}
-                  style={{ backgroundColor: statuses.find(s => s.key === dv.status)?.bgColor || '#6B7280' }}>
-                  {statuses.find(s => s.key === dv.status)?.label || dv.status}
-                </span>
-                <div className="flex space-x-2">
-                  {/* Show "Out" button for DVs in for_approval status */}
-                  {dv.status === 'for_approval' && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSendForApproval(dv);
-                      }}
-                      className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
-                    >
-                      Out
-                    </button>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedDv(dv);
-                      setIsEditModalOpen(true);
-                    }}
-                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                  >
-                    Edit
-                  </button>
-                </div>
-              </div>
-              {dv.created_at && (
-                <p className="text-xs text-gray-500 mt-2">
-                  {new Date(dv.created_at).toLocaleDateString()}
-                </p>
+          {/* Main content */}
+          <div className="flex-1 p-2 md:p-3 flex flex-col justify-center">
+            <h3 className="font-semibold text-gray-800 text-base md:text-lg mb-0.5 truncate">
+              {dv.payee}
+            </h3>
+            <p className="text-gray-600 text-xs md:text-sm mb-0.5 truncate">
+              {dv.dv_number}
+            </p>
+            <p className="text-gray-600 text-xs md:text-sm mb-0.5 italic truncate">
+              {dv.particulars && dv.particulars.length > 50
+                ? dv.particulars.substring(0, 50) + '...'
+                : dv.particulars || 'No particulars specified'}
+            </p>
+            <p className="text-gray-800 font-medium text-xs md:text-sm mb-0.5">
+              ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })}
+              {dv.net_amount && (
+                <span className="text-xs text-gray-500 ml-1">(Net)</span>
               )}
-            </div>
+            </p>
           </div>
+          {/* Right section: date, status, actions at top-right */}
+          <div className="flex flex-col items-end justify-start px-2 pt-2 min-w-[110px] max-w-[150px]">
+            <div className="flex flex-row items-center space-x-2 mb-1">
+              {/* Status */}
+              <span
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusObj?.color || 'text-white'}`}
+                style={{ backgroundColor: statusObj?.bgColor || '#6B7280' }}
+              >
+                {statusObj?.label || dv.status}
+              </span>
+            </div>
+            <div className="flex flex-row items-center space-x-1 mb-1">
+              {dv.status === 'for_approval' && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleSendForApproval(dv);
+                  }}
+                  className="bg-green-500 text-white px-2 py-0.5 rounded text-xs hover:bg-green-600 transition-colors duration-200"
+                >
+                  Out
+                </button>
+              )}
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  setSelectedDv(dv);
+                  setIsEditModalOpen(true);
+                }}
+                className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+              >
+                Edit
+              </button>
+            </div>
+            {/* Date below action buttons */}
+            {dv.created_at && (
+              <span className="text-xs text-gray-500 mt-0.5">
+                {new Date(dv.created_at).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+          {/* Slimmer color indicator bar at far right, full height */}
+          <div
+            className="w-1 md:w-1.5 rounded-r-lg"
+            style={{ backgroundColor: statusObj?.bgColor || '#9CA3AF', minHeight: '100%', alignSelf: 'stretch' }}
+          />
         </div>
       );
     }
@@ -1097,85 +1105,8 @@ export default function IncomingDvs() {
                                 }
                                 return filtered.length > 0 ? (
                                   filtered.map((dv) => {
-                                    if (approvalSection === 'out_for_approval') {
-                                      // Render Out For Approval card (copied from previous block)
-                                      return (
-                                        <div 
-                                          key={`approval-out-${dv.id}`}
-                                          className="bg-gray-50 border-l-4 border-gray-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                          onClick={() => handleDvClick(dv)}
-                                        >
-                                          <div className="flex justify-between items-start">
-                                            <div className="flex-1">
-                                              <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
-                                                {dv.payee}
-                                                <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded-full border border-gray-300 font-semibold">
-                                                  📤 Out for Approval
-                                                </span>
-                                              </h3>
-                                              <p className="text-gray-600 text-sm mb-1">
-                                                {dv.dv_number}
-                                              </p>
-                                              <p className="text-gray-600 text-sm mb-2 italic">
-                                                {dv.particulars && dv.particulars.length > 50 
-                                                  ? dv.particulars.substring(0, 50) + '...'
-                                                  : dv.particulars || 'No particulars specified'}
-                                              </p>
-                                              {dv.approval_out_date && (
-                                                <p className="text-gray-600 text-xs mb-2">
-                                                  Sent out on: {new Date(dv.approval_out_date).toLocaleDateString()}
-                                                </p>
-                                              )}
-                                              <p className="text-gray-800 font-medium">
-                                                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                  minimumFractionDigits: 2,
-                                                  maximumFractionDigits: 2
-                                                })}
-                                                {dv.net_amount && (
-                                                  <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                                                )}
-                                              </p>
-                                            </div>
-                                            <div className="text-right">
-                                              <div className="flex flex-col items-end space-y-2">
-                                                <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-gray-500">
-                                                  Out for Approval
-                                                </span>
-                                                <div className="flex space-x-2">
-                                                  <button
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleApprovalIn(dv);
-                                                    }}
-                                                    className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
-                                                  >
-                                                    In
-                                                  </button>
-                                                  <button
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      setSelectedDv(dv);
-                                                      setIsEditModalOpen(true);
-                                                    }}
-                                                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                  >
-                                                    Edit
-                                                  </button>
-                                                </div>
-                                              </div>
-                                              {dv.created_at && (
-                                                <p className="text-xs text-gray-500 mt-2">
-                                                  Original: {new Date(dv.created_at).toLocaleDateString()}
-                                                </p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    } else {
-                                      // Render For Approval card (use renderDvCard)
-                                      return renderDvCard(dv);
-                                    }
+                                    // Always use the global renderDvCard for both sections
+                                    return renderDvCard(dv);
                                   })
                                 ) : (
                                   <p className="text-gray-500 text-center py-4">{emptyMsg}</p>
