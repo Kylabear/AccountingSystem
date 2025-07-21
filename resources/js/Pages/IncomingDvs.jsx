@@ -890,17 +890,10 @@ export default function IncomingDvs() {
                         {activeTab === 'recents' && (
 <div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
-<<<<<<< Updated upstream
-      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-700">
-          <span className="mr-2">📋</span>Recents
-          <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'recents' ? 'bg-cyan-500 text-white' : 'bg-transparent text-cyan-700'}`}>{sortedDvs.length}</span>
-=======
       <div className="flex items-center px-4 py-2 rounded-lg bg-blue-400 w-fit">
         <h3 className="text-xl font-bold text-white flex items-center m-0">
           <span className="mr-2">🕐</span>Recents
           <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-blue-300 text-blue-800">{sortedDvs.length}</span>
->>>>>>> Stashed changes
         </h3>
       </div>
     </div>
@@ -915,34 +908,6 @@ export default function IncomingDvs() {
                         )}
                         {activeTab === 'for_review' && (
 <div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
-<<<<<<< Updated upstream
-                            {/* Section Headers - filter logic preserved */}
-                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                              {/* Menu hover effect: dim non-hovered buttons */}
-                              <div
-                                className="flex space-x-4 group"
-                                onMouseLeave={() => setHoveredButton(null)}
-                              >
-                                {['for_review', 'for_rts_in', 'for_norsa_in'].map((key) => {
-                                  const label = key === 'for_review' ? 'For Review' : key === 'for_rts_in' ? 'For RTS In' : 'For NORSA In';
-                                  const icon = key === 'for_review' ? '🔄' : key === 'for_rts_in' ? '📦' : '🌐';
-                                  const count = sortedDvs.filter(dv => dv.status === key).length;
-                                  return (
-                                    <button
-                                      key={key}
-                                      className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${((hoveredButton === key) || (forReviewSection === key)) ? 'text-red-700' : 'text-black'} ${hoveredButton !== null && hoveredButton !== key ? 'opacity-20' : 'opacity-100'}`}
-                                      style={{ boxShadow: 'none', border: 'none' }}
-                                      onClick={() => setForReviewSection(key)}
-                                      onMouseEnter={() => setHoveredButton(key)}
-                                      onMouseLeave={() => setHoveredButton(null)}
-                                    >
-                                      <span className="mr-2">{icon}</span>
-                                      <span className={`transition-colors duration-200 ${((hoveredButton === key) || (forReviewSection === key)) ? 'text-red-700' : 'text-black'}`}>{label}</span>
-                                      <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${((hoveredButton === key) || (forReviewSection === key)) ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{count}</span>
-                                    </button>
-                                  );
-                                })}
-=======
     {/* Section Headers - filter logic preserved */}
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
@@ -967,9 +932,8 @@ export default function IncomingDvs() {
           <span className="mr-2">🌐</span>For NORSA In
           <span className="ml-2 bg-red-200 text-red-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
         </button>
->>>>>>> Stashed changes
-                              </div>
-                            </div>
+      </div>
+    </div>
                             {/* Scrollable DV Tiles Area */}
                             <div className="space-y-4 overflow-y-auto flex-1">
                               {(() => {
@@ -1168,13 +1132,8 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-<<<<<<< Updated upstream
-                        {activeTab === 'for_payment' && (
-                          <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
-=======
                         {activeTab === 'for_mode_of_payment' && (
                           <div className="bg-purple-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
->>>>>>> Stashed changes
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
                                 <button
