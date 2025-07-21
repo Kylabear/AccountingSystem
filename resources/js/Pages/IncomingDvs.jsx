@@ -19,10 +19,12 @@ const statuses = [
     { key: 'for_rts_in', label: 'For RTS In', color: 'text-white', bgColor: '#FF6E63' },
     { key: 'for_norsa_in', label: 'For NORSA In', color: 'text-white', bgColor: '#CD5C5C' },
     { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'text-white', bgColor: '#F07B1D' },
+    { key: 'for_cash_reallocation', label: 'For Cash Reallocation', color: 'text-orange-900', bgColor: '#FFD9B3' }, // lighter orange
     { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
     { key: 'for_approval', label: 'For Approval', color: 'text-white', bgColor: '#6B6B6B' },
     { key: 'for_indexing', label: 'For Indexing', color: 'text-white', bgColor: '#0023F5' },
     { key: 'for_mode_of_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#6B28E3' },
+    { key: 'out_to_cashiering', label: 'Out for Cashiering', color: 'text-purple-900', bgColor: '#C4B5FD' }, // lighter violet
     { key: 'for_engas', label: 'For E-NGAS Recording', color: 'text-white', bgColor: '#EA3680' },
     { key: 'for_cdj', label: 'For CDJ Recording', color: 'text-white', bgColor: '#784315' },
     { key: 'for_lddap', label: 'For LDDAP Certification', color: 'text-white', bgColor: '#000000' },
@@ -547,18 +549,23 @@ export default function IncomingDvs() {
     const getCurrentStatusColor = (status) => {
         const statusObj = statuses.find(s => s.key === status);
         if (statusObj && statusObj.bgColor) {
-            return `border-r-4`;
+            return statusObj.bgColor;
         }
-        return 'border-r-4 border-gray-400';
+        // fallback for legacy or unknown statuses
+        switch (status) {
+            case 'for_mode_of_payment':
+            case 'for_payment':
+                return '#6B28E3'; // Deep violet
+            case 'out_to_cashiering':
+                return '#C4B5FD'; // Lighter violet
+            default:
+                return '#e5e7eb'; // gray-200
+        }
     };
 
     // Get border color style object for inline styling
     const getBorderStyle = (status) => {
-        const statusObj = statuses.find(s => s.key === status);
-        if (statusObj && statusObj.bgColor) {
-            return { borderRightColor: statusObj.bgColor };
-        }
-        return { borderRightColor: '#9CA3AF' }; // gray-400
+        return { borderRight: `8px solid ${getCurrentStatusColor(status)}` };
     };
 
     // Handle DV card click
@@ -582,7 +589,31 @@ export default function IncomingDvs() {
 
     // Helper to render a DV card (to avoid code duplication in grouped sections)
     function renderDvCard(dv) {
-      const statusObj = statuses.find(s => s.key === dv.status);
+      // Use lighter orange indicator for reallocated DVs in cash reallocation section
+      let statusObj;
+      let overrideBgColor = null;
+      // Cash Reallocation: lighter orange
+      if (dv.status === 'for_cash_allocation' && dv.is_reallocated) {
+        statusObj = statuses.find(s => s.key === 'for_cash_reallocation');
+      } else if (
+        // Out for Cashiering in the multi-section tab (not global tab)
+        dv.status === 'out_to_cashiering' &&
+        activeTab === 'for_mode_of_payment' &&
+        paymentSection === 'out_to_cashiering'
+      ) {
+        statusObj = statuses.find(s => s.key === 'out_to_cashiering');
+        overrideBgColor = '#C4B5FD'; // lighter violet
+      } else if (
+        // For Mode of Payment in the multi-section tab
+        dv.status === 'for_payment' &&
+        activeTab === 'for_mode_of_payment' &&
+        paymentSection === 'for_payment'
+      ) {
+        statusObj = statuses.find(s => s.key === 'for_mode_of_payment');
+        overrideBgColor = '#6B28E3'; // deep violet
+      } else {
+        statusObj = statuses.find(s => s.key === dv.status);
+      }
       return (
         <div
           key={dv.id}
@@ -656,7 +687,7 @@ export default function IncomingDvs() {
           {/* Slimmer color indicator bar at far right, full height */}
           <div
             className="w-1 md:w-1.5 rounded-r-lg"
-            style={{ backgroundColor: statusObj?.bgColor || '#9CA3AF', minHeight: '100%', alignSelf: 'stretch' }}
+            style={{ backgroundColor: overrideBgColor || statusObj?.bgColor || '#9CA3AF', minHeight: '100%', alignSelf: 'stretch' }}
           />
         </div>
       );
@@ -772,7 +803,7 @@ export default function IncomingDvs() {
                             {/* Main Process Statuses */}
                             <div className="space-y-2">
                                 {statuses
-                                  .filter(status => status.key !== 'for_rts_in' && status.key !== 'for_norsa_in')
+                                  .filter(status => status.key !== 'for_rts_in' && status.key !== 'for_norsa_in' && status.key !== 'for_cash_reallocation')
                                   .map((status) => {
                                     let count;
                                     if (status.key === 'recents') {
@@ -1141,129 +1172,53 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {activeTab === 'for_mode_of_payment' && (
-                          <div className="bg-purple-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
-                            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                              <div className="flex space-x-4">
-                                <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}
-                                  style={{ background: 'none', boxShadow: 'none', border: 'none' }}
-                                  onClick={() => setPaymentSection('for_payment')}
-                                >
-                                  <span className="mr-2">💳</span>
-                                  <span className={`transition-colors duration-200 ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}>For Mode of Payment</span>
-                                  <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'for_payment' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{sortedDvs.length}</span>
-                                </button>
-                                <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}
-                                  style={{ background: 'none', boxShadow: 'none', border: 'none' }}
-                                  onClick={() => setPaymentSection('out_to_cashiering')}
-                                >
-                                  <span className="mr-2">💵</span>
-                                  <span className={`transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}>Out for Cashiering</span>
-                                  <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{outToCashieringDvs.length}</span>
-                                </button>
-                              </div>
-                            </div>
-                            <div className="space-y-4 overflow-y-auto flex-1">
-                              {(() => {
-                                let filtered, emptyMsg;
-                                if (paymentSection === 'for_payment') {
-                                  filtered = sortedDvs;
-                                  emptyMsg = "No disbursement vouchers are pending mode of payment selection. This section is clear.";
-                                } else {
-                                  filtered = outToCashieringDvs;
-                                  emptyMsg = "No disbursement vouchers are out for cashiering. All transactions are in place.";
-                                }
-                                return filtered.length > 0 ? (
-                                  filtered.map((dv) => {
-                                    if (paymentSection === 'out_to_cashiering') {
-                                      // Render Out for Cashiering card (copied from previous block)
-                                      return (
-                                        <div 
-                                          key={`cashiering-${dv.id}`}
-                                          className="bg-purple-50 border-l-4 border-purple-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                          onClick={() => handleDvClick(dv)}
-                                        >
-                                          <div className="flex justify-between items-start">
-                                            <div className="flex-1">
-                                              <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
-                                                {dv.payee}
-                                                <span className="ml-2 px-3 py-1 bg-purple-200 text-purple-800 text-xs rounded-full border border-purple-300 font-semibold">
-                                                  💵 Out for Cashiering
-                                                </span>
-                                              </h3>
-                                              <p className="text-gray-600 text-sm mb-1">
-                                                {dv.dv_number}
-                                              </p>
-                                              <p className="text-gray-600 text-sm mb-2 italic">
-                                                {dv.particulars && dv.particulars.length > 50 
-                                                  ? dv.particulars.substring(0, 50) + '...'
-                                                  : dv.particulars || 'No particulars specified'}
-                                              </p>
-                                              {dv.cashiering_out_date && (
-                                                <p className="text-gray-600 text-xs mb-2">
-                                                  Sent out on: {new Date(dv.cashiering_out_date).toLocaleDateString()}
-                                                </p>
-                                              )}
-                                              <p className="text-gray-800 font-medium">
-                                                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                  minimumFractionDigits: 2,
-                                                  maximumFractionDigits: 2
-                                                })}
-                                                {dv.net_amount && (
-                                                  <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                                                )}
-                                              </p>
-                                            </div>
-                                            <div className="text-right">
-                                              <div className="flex flex-col items-end space-y-2">
-                                                <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-purple-500">
-                                                  Out for Cashiering
-                                                </span>
-                                                <div className="flex space-x-2">
-                                                  <button
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      handleCashieringIn(dv);
-                                                    }}
-                                                    className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors duration-200"
-                                                  >
-                                                    In
-                                                  </button>
-                                                  <button
-                                                    onClick={(e) => {
-                                                      e.stopPropagation();
-                                                      setSelectedDv(dv);
-                                                      setIsEditModalOpen(true);
-                                                    }}
-                                                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                  >
-                                                    Edit
-                                                  </button>
-                                                </div>
-                                              </div>
-                                              {dv.created_at && (
-                                                <p className="text-xs text-gray-500 mt-2">
-                                                  Original: {new Date(dv.created_at).toLocaleDateString()}
-                                                </p>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    } else {
-                                      // Render For Mode of Payment card (use renderDvCard)
-                                      return renderDvCard(dv);
-                                    }
-                                  })
-                                ) : (
-                                  <p className="text-gray-500 text-center py-4">{emptyMsg}</p>
-                                );
-                              })()}
-                            </div>
-                          </div>
-                        )}
+{activeTab === 'for_mode_of_payment' && (
+  <div className="bg-purple-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+    <div className="flex items-center justify-between mb-4 flex-shrink-0">
+      <div className="flex space-x-4">
+        <button
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}
+          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+          onClick={() => setPaymentSection('for_payment')}
+        >
+          <span className="mr-2">💳</span>
+          <span className={`transition-colors duration-200 ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}>For Mode of Payment</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'for_payment' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{dvs.filter(dv => dv.status === 'for_payment' || dv.status === 'for_mode_of_payment').length}</span>
+        </button>
+        <button
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}
+          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+          onClick={() => setPaymentSection('out_to_cashiering')}
+        >
+          <span className="mr-2">💵</span>
+          <span className={`transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}>Out for Cashiering</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{dvs.filter(dv => dv.status === 'out_to_cashiering').length}</span>
+        </button>
+      </div>
+    </div>
+    <div className="space-y-4 overflow-y-auto flex-1">
+      {paymentSection === 'for_payment' ? (
+        (() => {
+          const filtered = dvs.filter(dv => dv.status === 'for_payment' || dv.status === 'for_mode_of_payment');
+          return filtered.length > 0 ? (
+            filtered.map((dv) => renderDvCard(dv, { tab: 'for_payment' }))
+          ) : (
+            <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending mode of payment selection. This section is clear.</p>
+          );
+        })()
+      ) : (
+        (() => {
+          const filtered = dvs.filter(dv => dv.status === 'out_to_cashiering');
+          return filtered.length > 0 ? (
+            filtered.map((dv) => renderDvCard(dv, { tab: 'out_to_cashiering' }))
+          ) : (
+            <p className="text-gray-500 text-center py-4">No disbursement vouchers are out for cashiering. All transactions are in place.</p>
+          );
+        })()
+      )}
+    </div>
+  </div>
+)}
                         {activeTab === 'out_to_cashiering' && (
 <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
@@ -1397,73 +1352,7 @@ export default function IncomingDvs() {
                                         )
                                     ) : (
                                         reallocatedDvs.length > 0 ? (
-                                            reallocatedDvs.map((dv) => (
-                                                <div 
-                                                    key={`realloc-${dv.id}`}
-                                                    className="bg-orange-50 border-l-4 border-orange-400 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                                                    onClick={() => handleDvClick(dv)}
-                                                >
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex-1">
-                                                            <h3 className="font-semibold text-gray-800 text-lg mb-1 flex items-center">
-                                                                {dv.payee}
-                                                                <span className="ml-2 px-3 py-1 bg-orange-200 text-orange-800 text-xs rounded-full border border-orange-300 font-semibold">
-                                                                    🔄 Returned by Cashiering – Reallocate Cash
-                                                                </span>
-                                                            </h3>
-                                                            <p className="text-gray-600 text-sm mb-1">
-                                                                {dv.dv_number}
-                                                            </p>
-                                                            <p className="text-gray-600 text-sm mb-2 italic">
-                                                                {dv.particulars && dv.particulars.length > 50 
-                                                                    ? dv.particulars.substring(0, 50) + '...'
-                                                                    : dv.particulars || 'No particulars specified'}
-                                                            </p>
-                                                            {dv.reallocation_reason && (
-                                                                <p className="text-orange-700 text-xs mb-2 italic font-medium">
-                                                                    Return Reason: {dv.reallocation_reason}
-                                                                </p>
-                                                            )}
-                                                            {dv.reallocation_date && (
-                                                                <p className="text-orange-600 text-xs mb-2">
-                                                                    Returned on: {new Date(dv.reallocation_date).toLocaleDateString()}
-                                                                </p>
-                                                            )}
-                                                            <p className="text-gray-800 font-medium">
-                                                                ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
-                                                                    minimumFractionDigits: 2,
-                                                                    maximumFractionDigits: 2
-                                                                })}
-                                                                {dv.net_amount && (
-                                                                    <span className="text-xs text-gray-500 ml-1">(Net)</span>
-                                                                )}
-                                                            </p>
-                                                        </div>
-                                                        <div className="text-right">
-                                                            <div className="flex flex-col items-end space-y-2">
-                                                                <span className="px-3 py-1 rounded-full text-xs font-medium text-white bg-orange-500">
-                                                                    For Reallocation
-                                                                </span>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setSelectedDv(dv);
-                                                                        setIsEditModalOpen(true);
-                                                                    }}
-                                                                    className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
-                                                                >
-                                                                    Edit
-                                                                </button>
-                                                            </div>
-                                                            {dv.created_at && (
-                                                                <p className="text-xs text-gray-500 mt-2">
-                                                                    Original: {new Date(dv.created_at).toLocaleDateString()}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))
+                                            reallocatedDvs.map((dv) => renderDvCard(dv))
                                         ) : (
                                             <p className="text-gray-500 text-center py-4">No disbursement vouchers need reallocation. All funds are properly assigned.</p>
                                         )
