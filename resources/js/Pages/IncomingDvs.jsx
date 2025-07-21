@@ -814,7 +814,7 @@ export default function IncomingDvs() {
                             {/* Main Process Statuses */}
                             <div className="space-y-2">
                                 {statuses
-                                  .filter(status => status.key !== 'for_rts_in' && status.key !== 'for_norsa_in' && status.key !== 'for_cash_reallocation')
+                                  .filter(status => status.key !== 'for_rts_in' && status.key !== 'for_norsa_in' && status.key !== 'for_cash_reallocation' && status.key !== 'out_to_cashiering')
                                   .map((status) => {
                                     let count;
                                     if (status.key === 'recents') {
