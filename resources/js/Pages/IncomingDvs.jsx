@@ -28,7 +28,11 @@ const statuses = [
 ];
 
 export default function IncomingDvs() {
-    // Add state for Box C Certification tab sections
+// For menu hover effect in Box C Certification tab
+    const [boxCHoveredButton, setBoxCHoveredButton] = useState(null);
+    // For menu hover effect in For Review tab
+    const [hoveredButton, setHoveredButton] = useState(null);
+// Add state for Box C Certification tab sections
     const [boxCSection, setBoxCSection] = React.useState('box_c');
     const { dvs, auth, debug } = usePage().props;
     
@@ -394,7 +398,7 @@ export default function IncomingDvs() {
                 // For Review tab shows DVs in for_review, for_rts_in, or for_norsa_in status
                 matchesStatus = ['for_review', 'for_rts_in', 'for_norsa_in'].includes(dv.status);
             } else if (activeTab === 'for_box_c') {
-                // For Box C tab shows DVs in for_box_c status OR those in RTS/NORSA cycles that originated from box_c
+// For Box C Certification tab shows DVs in for_box_c status OR those in RTS/NORSA cycles that originated from box_c
                 matchesStatus = dv.status === 'for_box_c' || 
                     (dv.status === 'for_rts_in' && dv.rts_origin === 'box_c') ||
                     (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c');
@@ -403,7 +407,7 @@ export default function IncomingDvs() {
                 // DVs that have been sent out will be shown in a separate "Out for Approval" section
                 matchesStatus = dv.status === 'for_approval' && !dv.approval_out_date;
             } else if (activeTab === 'for_cash_allocation') {
-                // For Cash Allocation tab shows DVs in for_cash_allocation status (excluding reallocated ones)
+// For Cash Allocation tab shows DVs in for_cash_allocation status (excluding reallocated ones)
                 // Reallocated DVs are now handled in their own section
                 matchesStatus = dv.status === 'for_cash_allocation' && !dv.is_reallocated;
             } else if (activeTab === 'for_payment') {
@@ -484,7 +488,7 @@ export default function IncomingDvs() {
         })
         : filteredDvs;
 
-    // Filter reallocated DVs for cash allocation tab
+// Filter reallocated DVs for Cash Allocation tab
     const reallocatedDvs = activeTab === 'for_cash_allocation' ? dvs.filter((dv) => {
         // Only show reallocated DVs in for_cash_allocation status
         const isReallocated = dv.status === 'for_cash_allocation' && dv.is_reallocated;
@@ -535,45 +539,7 @@ export default function IncomingDvs() {
         return isLddap && matchesSearch;
     }) : [];
 
-    // Debug logging for cash allocation tab to check PLHHH and Frenzel Atuan
-    if (activeTab === 'for_cash_allocation') {
-        console.log('🔍 For Cash Allocation Debug:');
-        console.log('Total DVs:', dvs.length);
-        console.log('DVs with for_cash_allocation status:', dvs.filter(dv => dv.status === 'for_cash_allocation').length);
-        console.log('New allocations (not reallocated):', sortedDvs.length);
-        console.log('Reallocated DVs (is_reallocated=true):', reallocatedDvs.length);
-        
-        // Look specifically for PLHHH and Frenzel Atuan
-        const plhhhDv = dvs.find(dv => dv.payee && dv.payee.toLowerCase().includes('plhhh'));
-        const frenzelDv = dvs.find(dv => dv.payee && dv.payee.toLowerCase().includes('frenzel'));
-        
-        console.log('PLHHH DV found:', plhhhDv ? {
-            id: plhhhDv.id,
-            payee: plhhhDv.payee,
-            status: plhhhDv.status,
-            reallocation_date: plhhhDv.reallocation_date,
-            reallocation_reason: plhhhDv.reallocation_reason,
-            is_reallocated: plhhhDv.is_reallocated
-        } : 'Not found');
-        
-        console.log('Frenzel DV found:', frenzelDv ? {
-            id: frenzelDv.id,
-            payee: frenzelDv.payee,
-            status: frenzelDv.status,
-            reallocation_date: frenzelDv.reallocation_date,
-            reallocation_reason: frenzelDv.reallocation_reason,
-            is_reallocated: frenzelDv.is_reallocated
-        } : 'Not found');
-        
-        // Show all DVs with is_reallocated=true
-        const allReallocatedDvs = dvs.filter(dv => dv.is_reallocated);
-        console.log('All DVs with is_reallocated=true:', allReallocatedDvs.map(dv => ({
-            id: dv.id,
-            payee: dv.payee,
-            status: dv.status,
-            is_reallocated: dv.is_reallocated
-        })));
-    }
+// ...existing code...
 
     // Get current status color for the right border
     const getCurrentStatusColor = (status) => {
@@ -916,10 +882,10 @@ export default function IncomingDvs() {
                         {activeTab === 'recents' && (
 <div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-green-700 w-fit">
-        <h3 className="text-xl font-bold text-white flex items-center m-0">
-          <span className="mr-2">�</span>Recent Activity
-          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-600 text-white">{sortedDvs.length}</span>
+      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-700">
+          <span className="mr-2">📋</span>Recents
+          <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'recents' ? 'bg-cyan-500 text-white' : 'bg-transparent text-cyan-700'}`}>{sortedDvs.length}</span>
         </h3>
       </div>
     </div>
@@ -936,28 +902,30 @@ export default function IncomingDvs() {
 <div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
                             {/* Section Headers - filter logic preserved */}
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                              <div className="flex space-x-4">
-                                <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-green-700 text-white' : 'bg-green-200 text-green-700'}`}
-                                  onClick={() => setForReviewSection('for_review')}
-                                >
-                                  <span className="mr-2">🔄</span>For Review
-                                  <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
-                                </button>
-                                <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-green-700 text-white' : 'bg-green-200 text-green-700'}`}
-                                  onClick={() => setForReviewSection('for_rts_in')}
-                                >
-                                  <span className="mr-2">📦</span>For RTS In
-                                  <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
-                                </button>
-                                <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-green-700 text-white' : 'bg-green-200 text-green-700'}`}
-                                  onClick={() => setForReviewSection('for_norsa_in')}
-                                >
-                                  <span className="mr-2">🌐</span>For NORSA In
-                                  <span className="ml-2 bg-green-600 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
-                                </button>
+                              {/* Menu hover effect: dim non-hovered buttons */}
+                              <div
+                                className="flex space-x-4 group"
+                                onMouseLeave={() => setHoveredButton(null)}
+                              >
+                                {['for_review', 'for_rts_in', 'for_norsa_in'].map((key) => {
+                                  const label = key === 'for_review' ? 'For Review' : key === 'for_rts_in' ? 'For RTS In' : 'For NORSA In';
+                                  const icon = key === 'for_review' ? '🔄' : key === 'for_rts_in' ? '📦' : '🌐';
+                                  const count = sortedDvs.filter(dv => dv.status === key).length;
+                                  return (
+                                    <button
+                                      key={key}
+                                      className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${((hoveredButton === key) || (forReviewSection === key)) ? 'text-red-700' : 'text-black'} ${hoveredButton !== null && hoveredButton !== key ? 'opacity-20' : 'opacity-100'}`}
+                                      style={{ boxShadow: 'none', border: 'none' }}
+                                      onClick={() => setForReviewSection(key)}
+                                      onMouseEnter={() => setHoveredButton(key)}
+                                      onMouseLeave={() => setHoveredButton(null)}
+                                    >
+                                      <span className="mr-2">{icon}</span>
+                                      <span className={`transition-colors duration-200 ${((hoveredButton === key) || (forReviewSection === key)) ? 'text-red-700' : 'text-black'}`}>{label}</span>
+                                      <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${((hoveredButton === key) || (forReviewSection === key)) ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{count}</span>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </div>
                             {/* Scrollable DV Tiles Area */}
@@ -1046,28 +1014,26 @@ export default function IncomingDvs() {
                         {activeTab === 'for_box_c' && (
                           <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                              <div className="flex space-x-4">
-                                <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${boxCSection === 'box_c' ? 'bg-yellow-400 text-white' : 'bg-yellow-100 text-yellow-800'}`}
-                                  onClick={() => setBoxCSection('box_c')}
-                                >
-                                  <span className="mr-2">📦</span>For Box C Certification
-                                  <span className="ml-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_box_c').length}</span>
-                                </button>
-                                <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${boxCSection === 'rts_in' ? 'bg-yellow-400 text-white' : 'bg-yellow-100 text-yellow-800'}`}
-                                  onClick={() => setBoxCSection('rts_in')}
-                                >
-                                  <span className="mr-2">🔄</span>For RTS In
-                                  <span className="ml-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
-                                </button>
-                                <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${boxCSection === 'norsa_in' ? 'bg-yellow-400 text-white' : 'bg-yellow-100 text-yellow-800'}`}
-                                  onClick={() => setBoxCSection('norsa_in')}
-                                >
-                                  <span className="mr-2">🌐</span>For NORSA In
-                                  <span className="ml-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
-                                </button>
+                              <div className="flex space-x-4 group" onMouseLeave={() => setBoxCHoveredButton(null)}>
+                                {['box_c', 'rts_in', 'norsa_in'].map((key) => {
+                                  const label = key === 'box_c' ? 'For Box C Certification' : key === 'rts_in' ? 'For RTS In' : 'For NORSA In';
+                                  const icon = key === 'box_c' ? '📦' : key === 'rts_in' ? '🔄' : '🌐';
+                                  const count = sortedDvs.filter(dv => dv.status === (key === 'box_c' ? 'for_box_c' : key === 'rts_in' ? 'for_rts_in' : 'for_norsa_in')).length;
+                                  return (
+                                    <button
+                                      key={key}
+                                      className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-600' : 'text-black'} ${boxCHoveredButton !== null && boxCHoveredButton !== key ? 'opacity-20' : 'opacity-100'}`}
+                                      style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+                                      onClick={() => setBoxCSection(key)}
+                                      onMouseEnter={() => setBoxCHoveredButton(key)}
+                                      onMouseLeave={() => setBoxCHoveredButton(null)}
+                                    >
+                                      <span className="mr-2">{icon}</span>
+                                      <span className={`transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-600' : 'text-black'}`}>{label}</span>
+                                      <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'bg-yellow-400 text-white' : 'bg-transparent text-yellow-600'}`}>{count}</span>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </div>
                             <div className="space-y-4 overflow-y-auto flex-1">
@@ -1100,18 +1066,22 @@ export default function IncomingDvs() {
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
                                 <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${approvalSection === 'for_approval' ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${approvalSection === 'for_approval' ? 'text-gray-700' : 'text-black'}`}
+                                  style={{ background: 'none', boxShadow: 'none', border: 'none' }}
                                   onClick={() => setApprovalSection('for_approval')}
                                 >
-                                  <span className="mr-2">✅</span>For Approval
-                                  <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                                  <span className="mr-2">✅</span>
+                                  <span className={`transition-colors duration-200 ${approvalSection === 'for_approval' ? 'text-gray-700' : 'text-black'}`}>For Approval</span>
+                                  <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${approvalSection === 'for_approval' ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-700'}`}>{sortedDvs.length}</span>
                                 </button>
                                 <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-700'}`}
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${approvalSection === 'out_for_approval' ? 'text-gray-700' : 'text-black'}`}
+                                  style={{ background: 'none', boxShadow: 'none', border: 'none' }}
                                   onClick={() => setApprovalSection('out_for_approval')}
                                 >
-                                  <span className="mr-2">📤</span>Out For Approval
-                                  <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-sm font-semibold">{approvalOutDvs.length}</span>
+                                  <span className="mr-2">📤</span>
+                                  <span className={`transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'text-gray-700' : 'text-black'}`}>Out For Approval</span>
+                                  <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-700'}`}>{approvalOutDvs.length}</span>
                                 </button>
                               </div>
                             </div>
@@ -1217,10 +1187,10 @@ export default function IncomingDvs() {
                         {activeTab === 'for_indexing' && (
 <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-blue-700 w-fit">
-        <h3 className="text-xl font-bold text-white flex items-center m-0">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-blue-700">
           <span className="mr-2">📇</span>For Indexing
-          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-600 text-white">{sortedDvs.length}</span>
+          <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_indexing' ? 'bg-blue-700 text-white' : 'bg-transparent text-blue-700'}`}>{sortedDvs.length}</span>
         </h3>
       </div>
     </div>
@@ -1234,22 +1204,26 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_payment' && (
-                          <div className="bg-purple-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                          <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
                                 <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${paymentSection === 'for_payment' ? 'bg-purple-700 text-white' : 'bg-purple-200 text-purple-800'}`}
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}
+                                  style={{ background: 'none', boxShadow: 'none', border: 'none' }}
                                   onClick={() => setPaymentSection('for_payment')}
                                 >
-                                  <span className="mr-2">💳</span>For Mode of Payment
-                                  <span className="ml-2 bg-purple-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                                  <span className="mr-2">💳</span>
+                                  <span className={`transition-colors duration-200 ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}>For Mode of Payment</span>
+                                  <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'for_payment' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{sortedDvs.length}</span>
                                 </button>
                                 <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'bg-purple-700 text-white' : 'bg-purple-200 text-purple-800'}`}
+                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}
+                                  style={{ background: 'none', boxShadow: 'none', border: 'none' }}
                                   onClick={() => setPaymentSection('out_to_cashiering')}
                                 >
-                                  <span className="mr-2">💵</span>Out for Cashiering
-                                  <span className="ml-2 bg-purple-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{outToCashieringDvs.length}</span>
+                                  <span className="mr-2">💵</span>
+                                  <span className={`transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}>Out for Cashiering</span>
+                                  <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{outToCashieringDvs.length}</span>
                                 </button>
                               </div>
                             </div>
@@ -1374,10 +1348,10 @@ export default function IncomingDvs() {
                         {activeTab === 'for_engas' && (
 <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-pink-700 w-fit">
-        <h3 className="text-xl font-bold text-white flex items-center m-0">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-pink-700">
           <span className="mr-2">🌐</span>For E-NGAS Recording
-          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-pink-500 text-white">{sortedDvs.length}</span>
+          <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_engas' ? 'bg-pink-700 text-white' : 'bg-transparent text-pink-700'}`}>{sortedDvs.length}</span>
         </h3>
       </div>
     </div>
@@ -1393,10 +1367,10 @@ export default function IncomingDvs() {
                         {activeTab === 'for_cdj' && (
 <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-yellow-900 w-fit">
-        <h3 className="text-xl font-bold text-white flex items-center m-0">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-orange-600">
           <span className="mr-2">📊</span>For CDJ Recording
-          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-yellow-900 text-white">{sortedDvs.length}</span>
+          <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_cdj' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.length}</span>
         </h3>
       </div>
     </div>
@@ -1412,10 +1386,10 @@ export default function IncomingDvs() {
                         {activeTab === 'for_lddap' && (
 <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-black w-fit">
-        <h3 className="text-xl font-bold text-white flex items-center m-0">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-black">
           <span className="mr-2">🔒</span>For LDDAP Preparation
-          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-black text-white">{sortedDvs.length}</span>
+          <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_lddap' ? 'bg-black text-white' : 'bg-transparent text-black'}`}>{sortedDvs.length}</span>
         </h3>
       </div>
     </div>
@@ -1431,10 +1405,10 @@ export default function IncomingDvs() {
                         {activeTab === 'processed' && (
 <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-green-700 w-fit">
-        <h3 className="text-xl font-bold text-white flex items-center m-0">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-green-700">
           <span className="mr-2">✨</span>Processed
-          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-green-600 text-white">{sortedDvs.length}</span>
+          <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'processed' ? 'bg-green-700 text-white' : 'bg-transparent text-green-700'}`}>{sortedDvs.length}</span>
         </h3>
       </div>
     </div>
@@ -1456,18 +1430,22 @@ export default function IncomingDvs() {
                                 <div className="flex items-center justify-between mb-4 flex-shrink-0">
                                     <div className="flex space-x-4">
                                         <button
-                                            className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${cashSection === 'allocation' ? 'bg-orange-600 text-white' : 'bg-orange-200 text-orange-800'}`}
+                                            className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${cashSection === 'allocation' ? 'text-orange-600' : 'text-black'}`}
+                                            style={{ background: 'none', boxShadow: 'none', border: 'none' }}
                                             onClick={() => setCashSection('allocation')}
                                         >
-                                            <span className="mr-2">💰</span>For Cash Allocation
-                                            <span className="ml-2 bg-orange-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.length}</span>
+                                            <span className="mr-2">💰</span>
+                                            <span className={`transition-colors duration-200 ${cashSection === 'allocation' ? 'text-orange-600' : 'text-black'}`}>For Cash Allocation</span>
+                                            <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${cashSection === 'allocation' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.length}</span>
                                         </button>
                                         <button
-                                            className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${cashSection === 'reallocation' ? 'bg-orange-600 text-white' : 'bg-orange-200 text-orange-800'}`}
+                                            className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${cashSection === 'reallocation' ? 'text-orange-600' : 'text-black'}`}
+                                            style={{ background: 'none', boxShadow: 'none', border: 'none' }}
                                             onClick={() => setCashSection('reallocation')}
                                         >
-                                            <span className="mr-2">🔄</span>For Cash Reallocation
-                                            <span className="ml-2 bg-orange-500 text-white px-2 py-1 rounded-full text-sm font-semibold">{reallocatedDvs.length}</span>
+                                            <span className="mr-2">🔄</span>
+                                            <span className={`transition-colors duration-200 ${cashSection === 'reallocation' ? 'text-orange-600' : 'text-black'}`}>For Cash Reallocation</span>
+                                            <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${cashSection === 'reallocation' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{reallocatedDvs.length}</span>
                                         </button>
                                     </div>
                                 </div>
