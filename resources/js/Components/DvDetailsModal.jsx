@@ -1,3 +1,5 @@
+
+// ...existing code...
 import { useState, useEffect } from 'react';
 
 export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStatusUpdate }) {
@@ -1784,6 +1786,95 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                   </div>
                 )}
               </>
+            )}
+
+
+            {/* For Mode of Payment Actions - Enhanced Workflow */}
+            {dv.status === 'for_mode_of_payment' && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">For Mode of Payment</h3>
+                {!activeAction && (
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => onStatusUpdate(dv.id, 'for_check', { payment_method: 'Check' })}
+                      className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition-colors"
+                    >
+                      Check
+                    </button>
+                    <button
+                      onClick={() => setActiveAction('lddap')}
+                      className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors"
+                    >
+                      LDDAP-ADA
+                    </button>
+                    <button
+                      onClick={() => onStatusUpdate(dv.id, 'out_to_cashiering', { payment_method: 'PR' })}
+                      className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors"
+                    >
+                      Payroll Register (PR)
+                    </button>
+                  </div>
+                )}
+                {/* LDDAP-ADA Input */}
+                {activeAction === 'lddap' && (
+                  <div className="mt-4 bg-gray-50 border border-gray-300 rounded-lg p-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">LDDAP Number</label>
+                    <input
+                      type="text"
+                      value={norsaNumber}
+                      onChange={handleNorsaNumberChange}
+                      placeholder="YYYY-MM-NNNNN"
+                      className={`w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none ${norsaError ? 'border-red-500' : ''}`}
+                      maxLength={13}
+                      required
+                    />
+                    {norsaError && (
+                      <p className="text-red-500 text-xs mt-1">{norsaError}</p>
+                    )}
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={() => {
+                          if (!norsaNumber || norsaError) {
+                            setNorsaError('Please enter a valid LDDAP Number.');
+                            return;
+                          }
+                          onStatusUpdate(dv.id, 'for_lddap', { payment_method: 'LDDAP-ADA', lddap_number: norsaNumber });
+                          setActiveAction(null);
+                          setNorsaNumber('');
+                        }}
+                        className="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors"
+                      >
+                        Confirm LDDAP-ADA
+                      </button>
+                      <button
+                        onClick={() => {
+                          setActiveAction(null);
+                          setNorsaNumber('');
+                          setNorsaError('');
+                        }}
+                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Out to Cashiering Actions */}
+            {dv.status === 'out_to_cashiering' && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Out to Cashiering</h3>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => onStatusUpdate(dv.id, 'for_payment', { cashiering_returned: true })}
+                    className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition-colors"
+                  >
+                    In
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* LDDAP Certification Action */}

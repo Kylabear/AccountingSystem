@@ -5,7 +5,6 @@ import DvDetailsModal from '../Components/DvDetailsModal';
 import RtsNorsaModal from '../Components/RtsNorsaModal';
 import CashAllocationModal from '../Components/CashAllocationModal';
 import IndexingModal from '../Components/IndexingModal';
-import PaymentMethodModal from '../Components/PaymentMethodModal';
 import EngasModal from '../Components/EngasModal';
 import CdjModal from '../Components/CdjModal';
 import LddapModal from '../Components/LddapModal';
@@ -73,7 +72,6 @@ export default function IncomingDvs() {
     const [isRtsNorsaModalOpen, setIsRtsNorsaModalOpen] = useState(false);
     const [isCashAllocationModalOpen, setIsCashAllocationModalOpen] = useState(false);
     const [isIndexingModalOpen, setIsIndexingModalOpen] = useState(false);
-    const [isPaymentMethodModalOpen, setIsPaymentMethodModalOpen] = useState(false);
     const [isEngasModalOpen, setIsEngasModalOpen] = useState(false);
     const [isCdjModalOpen, setIsCdjModalOpen] = useState(false);
     const [isLddapModalOpen, setIsLddapModalOpen] = useState(false);
@@ -409,8 +407,8 @@ export default function IncomingDvs() {
                 // Reallocated DVs are now handled in their own section
                 matchesStatus = dv.status === 'for_cash_allocation' && !dv.is_reallocated;
             } else if (activeTab === 'for_payment') {
-                // For Payment tab shows DVs in for_payment OR out_to_cashiering status
-                matchesStatus = ['for_payment', 'out_to_cashiering'].includes(dv.status);
+                // For Payment tab shows DVs in for_payment, for_mode_of_payment, OR out_to_cashiering status
+                matchesStatus = ['for_payment', 'for_mode_of_payment', 'out_to_cashiering'].includes(dv.status);
             } else if (activeTab === 'for_lddap') {
                 // For LDDAP tab shows DVs in for_lddap status
                 matchesStatus = dv.status === 'for_lddap';
@@ -1652,20 +1650,6 @@ export default function IncomingDvs() {
                 }}
                 onSubmit={() => {
                     setIsIndexingModalOpen(false);
-                    setSelectedDv(null);
-                    window.location.reload();
-                }}
-            />
-
-            <PaymentMethodModal
-                dv={selectedDv}
-                isOpen={isPaymentMethodModalOpen}
-                onClose={() => {
-                    setIsPaymentMethodModalOpen(false);
-                    setSelectedDv(null);
-                }}
-                onSubmit={() => {
-                    setIsPaymentMethodModalOpen(false);
                     setSelectedDv(null);
                     window.location.reload();
                 }}

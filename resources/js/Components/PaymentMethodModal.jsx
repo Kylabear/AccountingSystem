@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-
 export default function PaymentMethodModal({ dv, isOpen, onClose, onSubmit }) {
     const [paymentMethod, setPaymentMethod] = useState('');
     const [lddapNumber, setLddapNumber] = useState('');
