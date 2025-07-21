@@ -771,7 +771,9 @@ export default function IncomingDvs() {
                             
                             {/* Main Process Statuses */}
                             <div className="space-y-2">
-                                {statuses.map((status) => {
+                                {statuses
+                                  .filter(status => status.key !== 'for_rts_in' && status.key !== 'for_norsa_in')
+                                  .map((status) => {
                                     let count;
                                     if (status.key === 'recents') {
                                         // Count ALL DVs regardless of status (notification center)
@@ -798,7 +800,6 @@ export default function IncomingDvs() {
                                         // Count DVs with this specific status
                                         count = dvs.filter(dv => dv.status === status.key).length;
                                     }
-                                    
                                     return (
                                         <button
                                             key={status.key}
@@ -889,13 +890,13 @@ export default function IncomingDvs() {
                         {/* Removed section titles outside DV cards for consistency. Only section titles inside DV cards remain. */}
 
                         {/* DV Cards - All sections use green card containers with section title and count */}
-                        {activeTab === 'recents' && (
+{activeTab === 'recents' && (
 <div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-blue-400 w-fit">
-        <h3 className="text-xl font-bold text-white flex items-center m-0">
+      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-600">
           <span className="mr-2">🕐</span>Recents
-          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold bg-blue-300 text-blue-800">{sortedDvs.length}</span>
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 bg-cyan-400 text-white">{sortedDvs.length}</span>
         </h3>
       </div>
     </div>
@@ -914,33 +915,31 @@ export default function IncomingDvs() {
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-700 text-white' : 'bg-red-200 text-red-700'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-orange-600' : 'text-black'}`}
+          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
           onClick={() => setForReviewSection('for_review')}
         >
-          <span className="mr-2">🔄</span>For Review
-          <span className="ml-2 bg-red-200 text-red-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
+          <span className="mr-2">🔄</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-orange-600' : 'text-black'}`}>For Review</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-white' : 'text-black bg-red-50'}`}
-          style={forReviewSection === 'for_rts_in' ? { backgroundColor: '#FF6E63' } : {}}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_rts_in' ? 'text-orange-600' : 'text-black'}`}
+          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
           onClick={() => setForReviewSection('for_rts_in')}
         >
-          <span className="mr-2">📦</span>For RTS In
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold ${forReviewSection === 'for_rts_in' ? 'bg-white text-black' : 'text-white'}`}
-                style={forReviewSection === 'for_rts_in' ? {} : { backgroundColor: '#FF6E63' }}>
-            {sortedDvs.filter(dv => dv.status === 'for_rts_in').length}
-          </span>
+          <span className="mr-2">📦</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-orange-600' : 'text-black'}`}>For RTS In</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-white' : 'text-black bg-red-50'}`}
-          style={forReviewSection === 'for_norsa_in' ? { backgroundColor: '#CD5C5C' } : {}}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_norsa_in' ? 'text-orange-600' : 'text-black'}`}
+          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
           onClick={() => setForReviewSection('for_norsa_in')}
         >
-          <span className="mr-2">🌐</span>For NORSA In
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold ${forReviewSection === 'for_norsa_in' ? 'bg-white text-black' : 'text-white'}`}
-                style={forReviewSection === 'for_norsa_in' ? {} : { backgroundColor: '#CD5C5C' }}>
-            {sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}
-          </span>
+          <span className="mr-2">🌐</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-orange-600' : 'text-black'}`}>For NORSA In</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
         </button>
       </div>
     </div>
