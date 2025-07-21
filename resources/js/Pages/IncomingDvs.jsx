@@ -16,6 +16,8 @@ import ProcessedDvModal from '../Components/ProcessedDvModal';
 const statuses = [
     { key: 'recents', label: 'Recent Activity', color: 'text-white', bgColor: '#73FBFD' },
     { key: 'for_review', label: 'For Review', color: 'text-white', bgColor: '#D92F21' },
+    { key: 'for_rts_in', label: 'For RTS In', color: 'text-white', bgColor: '#FF6E63' },
+    { key: 'for_norsa_in', label: 'For NORSA In', color: 'text-white', bgColor: '#CD5C5C' },
     { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'text-white', bgColor: '#F07B1D' },
     { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
     { key: 'for_approval', label: 'For Approval', color: 'text-white', bgColor: '#6B6B6B' },
@@ -919,18 +921,26 @@ export default function IncomingDvs() {
           <span className="ml-2 bg-red-200 text-red-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-700 text-white' : 'bg-red-200 text-red-700'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-white' : 'text-black bg-red-50'}`}
+          style={forReviewSection === 'for_rts_in' ? { backgroundColor: '#FF6E63' } : {}}
           onClick={() => setForReviewSection('for_rts_in')}
         >
           <span className="mr-2">📦</span>For RTS In
-          <span className="ml-2 bg-red-200 text-red-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold ${forReviewSection === 'for_rts_in' ? 'bg-white text-black' : 'text-white'}`}
+                style={forReviewSection === 'for_rts_in' ? {} : { backgroundColor: '#FF6E63' }}>
+            {sortedDvs.filter(dv => dv.status === 'for_rts_in').length}
+          </span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-700 text-white' : 'bg-red-200 text-red-700'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-white' : 'text-black bg-red-50'}`}
+          style={forReviewSection === 'for_norsa_in' ? { backgroundColor: '#CD5C5C' } : {}}
           onClick={() => setForReviewSection('for_norsa_in')}
         >
           <span className="mr-2">🌐</span>For NORSA In
-          <span className="ml-2 bg-red-200 text-red-700 px-2 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold ${forReviewSection === 'for_norsa_in' ? 'bg-white text-black' : 'text-white'}`}
+                style={forReviewSection === 'for_norsa_in' ? {} : { backgroundColor: '#CD5C5C' }}>
+            {sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}
+          </span>
         </button>
       </div>
     </div>
