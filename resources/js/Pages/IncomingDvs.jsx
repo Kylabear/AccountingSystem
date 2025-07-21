@@ -648,7 +648,7 @@ export default function IncomingDvs() {
             <div className="flex flex-row items-center space-x-2 mb-1">
               {/* Status */}
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusObj?.color || 'text-white'}`}
+                className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusObj?.color || 'text-white'}`}
                 style={{ backgroundColor: statusObj?.bgColor || '#6B7280' }}
               >
                 {statusObj?.label || dv.status}
@@ -715,7 +715,7 @@ export default function IncomingDvs() {
       ? sortedDvs.filter(dv => dv.status === 'out_to_cashiering')
       : [];
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen" style={{ backgroundImage: 'url(/background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
             {/* Fixed Header - Simple design */}
             <div className="bg-green-700 text-white p-4 flex items-center justify-between header-fixed shadow-lg">
                 <div className="flex items-center">
@@ -933,7 +933,7 @@ export default function IncomingDvs() {
 
                         {/* DV Cards - All sections use green card containers with section title and count */}
 {activeTab === 'recents' && (
-<div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+<div className="flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-600">
@@ -951,37 +951,37 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {activeTab === 'for_review' && (
-<div className="bg-green-100 rounded-xl shadow-md flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+{activeTab === 'for_review' && (
+<div className="flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     {/* Section Headers - filter logic preserved */}
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-orange-600' : 'text-black'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-red-600' : 'text-black'}`}
           style={{ background: 'none', boxShadow: 'none', border: 'none' }}
           onClick={() => setForReviewSection('for_review')}
         >
           <span className="mr-2">🔄</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-orange-600' : 'text-black'}`}>For Review</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-600' : 'text-black'}`}>For Review</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-600 text-white' : 'bg-transparent text-red-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_rts_in' ? 'text-orange-600' : 'text-black'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_rts_in' ? 'text-red-600' : 'text-black'}`}
           style={{ background: 'none', boxShadow: 'none', border: 'none' }}
           onClick={() => setForReviewSection('for_rts_in')}
         >
           <span className="mr-2">📦</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-orange-600' : 'text-black'}`}>For RTS In</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-red-600' : 'text-black'}`}>For RTS In</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-600 text-white' : 'bg-transparent text-red-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_norsa_in' ? 'text-orange-600' : 'text-black'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_norsa_in' ? 'text-red-600' : 'text-black'}`}
           style={{ background: 'none', boxShadow: 'none', border: 'none' }}
           onClick={() => setForReviewSection('for_norsa_in')}
         >
           <span className="mr-2">🌐</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-orange-600' : 'text-black'}`}>For NORSA In</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-red-600' : 'text-black'}`}>For NORSA In</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-600 text-white' : 'bg-transparent text-red-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
         </button>
       </div>
     </div>
@@ -1068,8 +1068,8 @@ export default function IncomingDvs() {
                           </>
                         )}
                         {/* Only show the unified card for allocation/reallocation in Cash Allocation tab */}
-                        {activeTab === 'for_box_c' && (
-                          <div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+{activeTab === 'for_box_c' && (
+  <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4 group" onMouseLeave={() => setBoxCHoveredButton(null)}>
                                 {['box_c', 'rts_in', 'norsa_in'].map((key) => {
@@ -1118,8 +1118,8 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {activeTab === 'for_approval' && (
-                          <div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+{activeTab === 'for_approval' && (
+  <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
                                 <button
@@ -1163,8 +1163,8 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {activeTab === 'for_indexing' && (
-<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+{activeTab === 'for_indexing' && (
+<div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-blue-700">
@@ -1183,7 +1183,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
 {activeTab === 'for_mode_of_payment' && (
-  <div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+  <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
         <button
@@ -1248,8 +1248,8 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {activeTab === 'for_engas' && (
-<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+{activeTab === 'for_engas' && (
+<div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-pink-700">
@@ -1267,8 +1267,8 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {activeTab === 'for_cdj' && (
-<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+{activeTab === 'for_cdj' && (
+<div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-orange-600">
@@ -1287,7 +1287,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
 {activeTab === 'for_lddap' && (
-<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+<div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-black">
@@ -1306,7 +1306,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
 {activeTab === 'processed' && (
-<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+<div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-green-700">
@@ -1327,8 +1327,8 @@ export default function IncomingDvs() {
 
 
                         {/* For Cash Reallocation Section - Only show in Cash Allocation tab */}
-                        {activeTab === 'for_cash_allocation' && (
-                            <div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
+{activeTab === 'for_cash_allocation' && (
+    <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
                                 {/* Section Tabs */}
                                 <div className="flex items-center justify-between mb-4 flex-shrink-0">
                                     <div className="flex space-x-4">
