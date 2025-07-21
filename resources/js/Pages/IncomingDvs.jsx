@@ -1069,7 +1069,7 @@ export default function IncomingDvs() {
                         )}
                         {/* Only show the unified card for allocation/reallocation in Cash Allocation tab */}
                         {activeTab === 'for_box_c' && (
-                          <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                          <div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4 group" onMouseLeave={() => setBoxCHoveredButton(null)}>
                                 {['box_c', 'rts_in', 'norsa_in'].map((key) => {
@@ -1119,7 +1119,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_approval' && (
-                          <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                          <div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
                                 <button
@@ -1164,7 +1164,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_indexing' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-blue-700">
@@ -1183,7 +1183,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
 {activeTab === 'for_mode_of_payment' && (
-  <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+  <div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
         <button
@@ -1249,7 +1249,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_engas' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-pink-700">
@@ -1268,7 +1268,7 @@ export default function IncomingDvs() {
                           </div>
                         )}
                         {activeTab === 'for_cdj' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-orange-600">
@@ -1286,8 +1286,8 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {activeTab === 'for_lddap' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+{activeTab === 'for_lddap' && (
+<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-black">
@@ -1305,8 +1305,8 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
-                        {activeTab === 'processed' && (
-<div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+{activeTab === 'processed' && (
+<div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
         <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-green-700">
@@ -1328,7 +1328,7 @@ export default function IncomingDvs() {
 
                         {/* For Cash Reallocation Section - Only show in Cash Allocation tab */}
                         {activeTab === 'for_cash_allocation' && (
-                            <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+                            <div className="bg-green-100 rounded-xl shadow-md flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)' }}>
                                 {/* Section Tabs */}
                                 <div className="flex items-center justify-between mb-4 flex-shrink-0">
                                     <div className="flex space-x-4">
