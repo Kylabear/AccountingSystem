@@ -1133,19 +1133,18 @@ export default function IncomingDvs() {
                             </div>
                             <div className="space-y-4 overflow-y-auto flex-1">
                               {(() => {
-                                let filtered, emptyMsg;
+                                let filtered, emptyMsg, tabKey;
                                 if (approvalSection === 'for_approval') {
                                   filtered = sortedDvs;
                                   emptyMsg = "No disbursement vouchers are waiting for approval. All items have been reviewed.";
+                                  tabKey = 'for_approval';
                                 } else {
                                   filtered = approvalOutDvs;
                                   emptyMsg = "No disbursement vouchers are currently out for approval. You’re all set.";
+                                  tabKey = 'out_for_approval';
                                 }
                                 return filtered.length > 0 ? (
-                                  filtered.map((dv) => {
-                                    // Always use the global renderDvCard for both sections
-                                    return renderDvCard(dv);
-                                  })
+                                  filtered.map((dv) => renderDvCard(dv, { tab: tabKey }))
                                 ) : (
                                   <p className="text-gray-500 text-center py-4">{emptyMsg}</p>
                                 );
