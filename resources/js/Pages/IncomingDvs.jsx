@@ -20,7 +20,7 @@ const statuses = [
     { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
     { key: 'for_approval', label: 'For Approval', color: 'text-white', bgColor: '#6B6B6B' },
     { key: 'for_indexing', label: 'For Indexing', color: 'text-white', bgColor: '#0023F5' },
-    { key: 'for_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#6B28E3' },
+    { key: 'for_mode_of_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#6B28E3' },
     { key: 'for_engas', label: 'For E-NGAS Recording', color: 'text-white', bgColor: '#EA3680' },
     { key: 'for_cdj', label: 'For CDJ Recording', color: 'text-white', bgColor: '#784315' },
     { key: 'for_lddap', label: 'For LDDAP Certification', color: 'text-white', bgColor: '#000000' },
@@ -410,7 +410,7 @@ export default function IncomingDvs() {
 // For Cash Allocation tab shows DVs in for_cash_allocation status (excluding reallocated ones)
                 // Reallocated DVs are now handled in their own section
                 matchesStatus = dv.status === 'for_cash_allocation' && !dv.is_reallocated;
-            } else if (activeTab === 'for_payment') {
+            } else if (activeTab === 'for_mode_of_payment') {
                 // For Payment tab shows DVs in for_payment, for_mode_of_payment, OR out_to_cashiering status
                 matchesStatus = ['for_payment', 'for_mode_of_payment', 'out_to_cashiering'].includes(dv.status);
             } else if (activeTab === 'for_lddap') {
@@ -776,9 +776,9 @@ export default function IncomingDvs() {
                                             (dv.status === 'for_rts_in' && dv.rts_origin === 'box_c') ||
                                             (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c')
                                         ).length;
-                                    } else if (status.key === 'for_payment') {
+                                    } else if (status.key === 'for_mode_of_payment') {
                                         // Count DVs in for_payment OR out_to_cashiering status
-                                        count = dvs.filter(dv => ['for_payment', 'out_to_cashiering'].includes(dv.status)).length;                    } else if (status.key === 'for_cash_allocation') {
+                                        count = dvs.filter(dv => ['for_payment', 'for_mode_of_payment', 'out_to_cashiering'].includes(dv.status)).length;                    } else if (status.key === 'for_cash_allocation') {
                         // Count DVs in for_cash_allocation status (excluding reallocated ones)
                         count = dvs.filter(dv => dv.status === 'for_cash_allocation' && !dv.is_reallocated).length;
                                     } else if (status.key === 'for_lddap') {
@@ -1203,8 +1203,13 @@ export default function IncomingDvs() {
                             </div>
                           </div>
                         )}
+<<<<<<< Updated upstream
                         {activeTab === 'for_payment' && (
                           <div className="bg-green-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+=======
+                        {activeTab === 'for_mode_of_payment' && (
+                          <div className="bg-purple-100 rounded-xl shadow-md mb-6 flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)' }}>
+>>>>>>> Stashed changes
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
                                 <button

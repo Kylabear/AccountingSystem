@@ -77,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/incoming-dvs/{dv}/cdj', [IncomingDvController::class, 'updateCdj'])->name('incoming-dvs.cdj');
     Route::post('/incoming-dvs/{dv}/lddap-certify', [IncomingDvController::class, 'certifyLddap'])->name('incoming-dvs.lddap-certify');
     Route::post('/incoming-dvs/{id}/reallocate-cash', [IncomingDvController::class, 'reallocateCash'])->name('incoming-dvs.reallocate-cash');
+    Route::post('/incoming-dvs/{id}/fix-reallocated-status', [IncomingDvController::class, 'fixReallocatedDvStatus'])->name('incoming-dvs.fix-reallocated-status');
     Route::get('/incoming-dvs/filter-options', [IncomingDvController::class, 'getFilterOptions'])->name('incoming-dvs.filter-options');
     Route::get('/download-processed-dvs', [IncomingDvController::class, 'downloadProcessedDvs'])->name('download.processed-dvs');
     Route::get('/dv/{dv}/details', [IncomingDvController::class, 'showDetails'])->name('dv.details');
