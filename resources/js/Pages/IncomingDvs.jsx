@@ -655,7 +655,7 @@ export default function IncomingDvs() {
               </span>
             </div>
             <div className="flex flex-row items-center space-x-1 mb-1">
-              {dv.status === 'for_approval' && (
+              {dv.status === 'for_approval' && !dv.approval_out_date && (
                 <button
                   onClick={e => {
                     e.stopPropagation();
@@ -664,6 +664,17 @@ export default function IncomingDvs() {
                   className="bg-green-500 text-white px-2 py-0.5 rounded text-xs hover:bg-green-600 transition-colors duration-200"
                 >
                   Out
+                </button>
+              )}
+              {dv.status === 'for_approval' && dv.approval_out_date && !dv.approval_in_date && (
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleApprovalIn(dv);
+                  }}
+                  className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                >
+                  In
                 </button>
               )}
               <button
