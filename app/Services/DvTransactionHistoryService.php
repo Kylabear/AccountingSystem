@@ -11,7 +11,7 @@ class DvTransactionHistoryService
     /**
      * Record when a DV is initially received/created
      */
-    public function recordDvReceived(IncomingDv $dv, string $performedBy = null): DvTransactionHistory
+    public function recordDvReceived(IncomingDv $dv, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -30,7 +30,7 @@ class DvTransactionHistoryService
     /**
      * Record when review is completed
      */
-    public function recordReviewCompleted(IncomingDv $dv, string $newStatus, string $performedBy = null, array $additionalData = []): DvTransactionHistory
+    public function recordReviewCompleted(IncomingDv $dv, string $newStatus, ?string $performedBy = null, array $additionalData = []): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -62,7 +62,7 @@ class DvTransactionHistoryService
     /**
      * Record cash allocation
      */
-    public function recordCashAllocation(IncomingDv $dv, array $allocationData, string $performedBy = null): DvTransactionHistory
+    public function recordCashAllocation(IncomingDv $dv, array $allocationData, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -83,7 +83,7 @@ class DvTransactionHistoryService
     /**
      * Record Box C certification
      */
-    public function recordBoxCCertification(IncomingDv $dv, string $performedBy = null): DvTransactionHistory
+    public function recordBoxCCertification(IncomingDv $dv, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -101,7 +101,7 @@ class DvTransactionHistoryService
     /**
      * Record when sent for approval
      */
-    public function recordApprovalSent(IncomingDv $dv, string $performedBy = null): DvTransactionHistory
+    public function recordApprovalSent(IncomingDv $dv, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -118,7 +118,7 @@ class DvTransactionHistoryService
     /**
      * Record when returned from approval
      */
-    public function recordApprovalReturned(IncomingDv $dv, string $approvedBy, string $performedBy = null): DvTransactionHistory
+    public function recordApprovalReturned(IncomingDv $dv, string $approvedBy, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -137,7 +137,7 @@ class DvTransactionHistoryService
     /**
      * Record indexing completion
      */
-    public function recordIndexingCompleted(IncomingDv $dv, string $performedBy = null): DvTransactionHistory
+    public function recordIndexingCompleted(IncomingDv $dv, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -155,7 +155,7 @@ class DvTransactionHistoryService
     /**
      * Record when DV processing is completed
      */
-    public function recordProcessingCompleted(IncomingDv $dv, string $performedBy = null): DvTransactionHistory
+    public function recordProcessingCompleted(IncomingDv $dv, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -172,7 +172,7 @@ class DvTransactionHistoryService
     /**
      * Record payment method selection
      */
-    public function recordPaymentMethodSet(IncomingDv $dv, string $paymentMethod, array $additionalData = [], string $performedBy = null): DvTransactionHistory
+    public function recordPaymentMethodSet(IncomingDv $dv, string $paymentMethod, array $additionalData = [], ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -190,7 +190,7 @@ class DvTransactionHistoryService
     /**
      * Record E-NGAS recording
      */
-    public function recordEngasRecorded(IncomingDv $dv, string $engasNumber, string $engasDate, string $performedBy = null): DvTransactionHistory
+    public function recordEngasRecorded(IncomingDv $dv, string $engasNumber, string $engasDate, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -209,7 +209,7 @@ class DvTransactionHistoryService
     /**
      * Record CDJ recording
      */
-    public function recordCdjRecorded(IncomingDv $dv, string $cdjDate, string $performedBy = null): DvTransactionHistory
+    public function recordCdjRecorded(IncomingDv $dv, string $cdjDate, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -227,7 +227,7 @@ class DvTransactionHistoryService
     /**
      * Record LDDAP certification
      */
-    public function recordLddapCertified(IncomingDv $dv, string $performedBy = null): DvTransactionHistory
+    public function recordLddapCertified(IncomingDv $dv, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -245,7 +245,7 @@ class DvTransactionHistoryService
     /**
      * Record RTS (Return to Sender)
      */
-    public function recordRtsIssued(IncomingDv $dv, string $reason, string $rtsDate, string $performedBy = null): DvTransactionHistory
+    public function recordRtsIssued(IncomingDv $dv, string $reason, string $rtsDate, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -264,7 +264,7 @@ class DvTransactionHistoryService
     /**
      * Record NORSA (Notice of Reason for Settlement Adjustment)
      */
-    public function recordNorsaIssued(IncomingDv $dv, string $norsaNumber, string $norsaDate, string $performedBy = null): DvTransactionHistory
+    public function recordNorsaIssued(IncomingDv $dv, string $norsaNumber, string $norsaDate, ?string $performedBy = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
@@ -282,7 +282,7 @@ class DvTransactionHistoryService
     /**
      * Record general status change (use sparingly, prefer specific methods)
      */
-    public function recordStatusChange(IncomingDv $dv, string $oldStatus, string $newStatus, string $performedBy = null, string $reason = null): DvTransactionHistory
+    public function recordStatusChange(IncomingDv $dv, string $oldStatus, string $newStatus, ?string $performedBy = null, ?string $reason = null): DvTransactionHistory
     {
         return DvTransactionHistory::createEntry(
             incomingDvId: $dv->id,
