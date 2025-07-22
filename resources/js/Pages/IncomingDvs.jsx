@@ -883,7 +883,7 @@ export default function IncomingDvs() {
                     </div>
 
                     {/* Main Content Area - Simple responsive design */}
-                    <div className={`flex-1 p-6 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg ${isMobile ? '' : 'ml-64'}`}>
+                    <div className={`flex-1 p-6 backdrop-blur-sm rounded-lg shadow-lg ${isMobile ? '' : 'ml-64'}`}>
         {/* Search Bar and Add Button - Responsive, same height, button right-aligned */}
         <div className="mb-6 w-full flex flex-col sm:flex-row gap-4 items-stretch sm:items-stretch">
             {/* Search Bar */}
