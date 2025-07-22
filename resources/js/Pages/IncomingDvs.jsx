@@ -942,7 +942,7 @@ export default function IncomingDvs() {
 <div className="flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-600">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-600" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
           <span className="mr-2">🕐</span>Recents
           <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 bg-cyan-400 text-white">{sortedDvs.length}</span>
         </h3>
@@ -963,12 +963,12 @@ export default function IncomingDvs() {
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-white'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-red-400'}`}
           style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
           onClick={() => setForReviewSection('for_review')}
         >
           <span className="mr-2">🔄</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-white'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Review</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-red-400'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Review</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-500/80 text-white' : 'bg-white/20 text-red-400'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
         </button>
         <button
@@ -1173,7 +1173,7 @@ export default function IncomingDvs() {
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-blue-700">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-blue-700" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
           <span className="mr-2">📇</span>For Indexing
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_indexing' ? 'bg-blue-700 text-white' : 'bg-transparent text-blue-700'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1258,7 +1258,7 @@ export default function IncomingDvs() {
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-pink-700">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-pink-700" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
           <span className="mr-2">🌐</span>For E-NGAS Recording
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_engas' ? 'bg-pink-700 text-white' : 'bg-transparent text-pink-700'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1277,7 +1277,7 @@ export default function IncomingDvs() {
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-orange-600">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-orange-600" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
           <span className="mr-2">📊</span>For CDJ Recording
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_cdj' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1296,7 +1296,7 @@ export default function IncomingDvs() {
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-black">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-black" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
           <span className="mr-2">🔒</span>For LDDAP Preparation
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_lddap' ? 'bg-black text-white' : 'bg-transparent text-black'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1315,7 +1315,7 @@ export default function IncomingDvs() {
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
       <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-green-700">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-green-700" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
           <span className="mr-2">✨</span>Processed
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'processed' ? 'bg-green-700 text-white' : 'bg-transparent text-green-700'}`}>{sortedDvs.length}</span>
         </h3>
