@@ -59,11 +59,21 @@ export default function Profile() {
     const handleSubmit = (e) => {
         e.preventDefault();
         
+        console.log('Form data being submitted:', data);
+        console.log('Profile image type:', typeof data.profile_image);
+        console.log('Profile image:', data.profile_image);
+        
         post('/profile/update', {
             forceFormData: true,
-            onSuccess: () => {
+            onSuccess: (response) => {
+                console.log('Update successful:', response);
                 setIsEditing(false);
                 setPreviewImage(null);
+                // Force page refresh to show updated image
+                window.location.reload();
+            },
+            onError: (errors) => {
+                console.error('Update failed:', errors);
             }
         });
     };
@@ -92,12 +102,6 @@ export default function Profile() {
                         </Link>
                     </div>
                     <div className="flex items-center space-x-4">
-                        <Link 
-                            href="/incoming-dvs"
-                            className="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-800 transition-colors"
-                        >
-                            Back to Dashboard
-                        </Link>
                         <Link
                             href="/logout"
                             method="post"
@@ -116,14 +120,25 @@ export default function Profile() {
                         {/* Profile Header */}
                         <div className="flex items-center justify-between mb-8">
                             <h1 className="text-3xl font-bold text-gray-800">User Profile</h1>
-                            {!isEditing && (
-                                <button
-                                    onClick={() => setIsEditing(true)}
-                                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                            <div className="flex items-center space-x-3">
+                                <Link 
+                                    href="/incoming-dvs"
+                                    className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm flex items-center"
                                 >
-                                    Edit Profile
-                                </button>
-                            )}
+                                    ← Back to Dashboard
+                                </Link>
+                                {!isEditing && (
+                                    <button
+                                        onClick={() => {
+                                            console.log('Edit Profile clicked, setting isEditing to true');
+                                            setIsEditing(true);
+                                        }}
+                                        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                    >
+                                        Edit Profile
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {isEditing ? (
@@ -133,7 +148,7 @@ export default function Profile() {
                                 <div className="flex flex-col items-center mb-8">
                                     <div className="relative mb-4">
                                         <img 
-                                            src={previewImage || (auth.user.profile_image ? `/storage/${auth.user.profile_image}` : '/default-profile.png')} 
+                                            src={previewImage || (auth.user.profile_image ? `/storage/${auth.user.profile_image}?t=${Date.now()}` : '/default-profile.png')} 
                                             alt="Profile" 
                                             className="w-32 h-32 rounded-full object-cover border-4 border-green-500 shadow-lg"
                                         />
@@ -206,11 +221,11 @@ export default function Profile() {
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="flex space-x-4 pt-6">
+                                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 pt-6">
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                                        className="w-full sm:w-auto bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 font-medium"
                                     >
                                         {processing ? 'Saving...' : 'Save Changes'}
                                     </button>
@@ -222,7 +237,7 @@ export default function Profile() {
                                             setData('name', auth.user.name);
                                             setData('profile_image', null);
                                         }}
-                                        className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+                                        className="w-full sm:w-auto bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
                                     >
                                         Cancel
                                     </button>
@@ -234,7 +249,7 @@ export default function Profile() {
                                 {/* Profile Image Display */}
                                 <div className="flex flex-col items-center mb-8">
                                     <img 
-                                        src={auth.user.profile_image ? `/storage/${auth.user.profile_image}` : '/default-profile.png'} 
+                                        src={auth.user.profile_image ? `/storage/${auth.user.profile_image}?t=${Date.now()}` : '/default-profile.png'} 
                                         alt="Profile" 
                                         className="w-32 h-32 rounded-full object-cover border-4 border-green-500 mb-4"
                                     />
