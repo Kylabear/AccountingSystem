@@ -27,9 +27,15 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
+        // Format names to ensure proper capitalization (First Letter Capital, rest lowercase)
+        $formattedFirstName = ucwords(strtolower(trim($input['first_name'])));
+        $formattedLastName = ucwords(strtolower(trim($input['last_name'])));
+        $fullName = $formattedFirstName . ' ' . $formattedLastName;
+
         return User::create([
-            'first_name' => $input['first_name'],
-            'last_name' => $input['last_name'],
+            'name' => $fullName,
+            'first_name' => $formattedFirstName,
+            'last_name' => $formattedLastName,
             'role' => $input['role'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),

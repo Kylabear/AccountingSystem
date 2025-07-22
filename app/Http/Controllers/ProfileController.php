@@ -56,8 +56,11 @@ class ProfileController extends Controller
 
         $user = $request->user();
         
+        // Format name to ensure proper capitalization (First Letter Capital, rest lowercase)
+        $formattedName = ucwords(strtolower(trim($request->name)));
+        
         // Update name
-        $user->name = $request->name;
+        $user->name = $formattedName;
         
         // Handle profile image upload
         if ($request->hasFile('profile_image')) {

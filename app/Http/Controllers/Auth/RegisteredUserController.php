@@ -38,13 +38,17 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Format names to ensure proper capitalization (First Letter Capital, rest lowercase)
+        $formattedFirstName = ucwords(strtolower(trim($request->first_name)));
+        $formattedLastName = ucwords(strtolower(trim($request->last_name)));
+        
         // Combine first_name and last_name into name
-        $fullName = $request->first_name . ' ' . $request->last_name;
+        $fullName = $formattedFirstName . ' ' . $formattedLastName;
 
         $user = User::create([
             'name' => $fullName,
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
+            'first_name' => $formattedFirstName,
+            'last_name' => $formattedLastName,
             'role' => $request->role,
             'email' => $request->email,
             'password' => Hash::make($request->password),

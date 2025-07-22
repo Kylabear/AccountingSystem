@@ -15,8 +15,21 @@ export default function Register() {
         password_confirmation: '',
     });
 
+    // Helper function to format names (capitalize first letter of each word)
+    const formatName = (name) => {
+        return name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+    };
+
     const handleChange = (e) => {
-        setData(e.target.name, e.target.value);
+        const { name, value } = e.target;
+        
+        // Format first_name and last_name as user types
+        if (name === 'first_name' || name === 'last_name') {
+            const formattedValue = formatName(value);
+            setData(name, formattedValue);
+        } else {
+            setData(name, value);
+        }
     };
 
     const submit = (e) => {

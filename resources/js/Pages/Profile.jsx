@@ -32,6 +32,16 @@ export default function Profile() {
         profile_image: null,
     });
 
+    // Helper function to format names (capitalize first letter of each word)
+    const formatName = (name) => {
+        return name.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+    };
+
+    const handleNameChange = (e) => {
+        const formattedName = formatName(e.target.value);
+        setData('name', formattedName);
+    };
+
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -181,7 +191,7 @@ export default function Profile() {
                                     <input
                                         type="text"
                                         value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
+                                        onChange={handleNameChange}
                                         className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
                                         placeholder="Enter your full name"
                                         required
