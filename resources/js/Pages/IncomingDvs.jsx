@@ -889,11 +889,7 @@ export default function IncomingDvs() {
                     </div>
 
                     {/* Main Content Area - Simple responsive design */}
-<<<<<<< Updated upstream
-                    <div className={`flex-1 p-6 ${isMobile ? '' : 'ml-64'}`} style={{background: 'transparent', boxShadow: 'none', outline: 'none', border: 'none', filter: 'none'}}>
-=======
                     <div className={`flex-1 p-6 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg shadow-lg ${isMobile ? '' : 'ml-64'}`}>
->>>>>>> Stashed changes
         {/* Search Bar and Add Button - Responsive, same height, button right-aligned */}
         <div className="mb-6 w-full flex flex-col sm:flex-row gap-4 items-stretch sm:items-stretch">
             {/* Search Bar */}
