@@ -173,7 +173,7 @@ export default function LandingPage() {
                         />
                         <Link 
                             href="/incoming-dvs"
-                            className="text-xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors duration-200 cursor-pointer"
+                            className="text-xl font-bold aurora-text hover:text-yellow-300 transition-colors duration-200 cursor-pointer"
                             style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                         >
                             Accounting Monitoring and Tracking System
@@ -210,14 +210,19 @@ export default function LandingPage() {
                 </div>
             </div>
 
-            {/* Main content area with background pattern */}
-            <div className="relative bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen cursor-magic content-with-header">
+            {/* Main content area with aurora background pattern */}
+            <div className="relative aurora-background min-h-screen content-with-header">
+                {/* Aurora overlay effects */}
+                <div className="aurora-waves"></div>
+                <div className="aurora-overlay"></div>
+                <div className="aurora-particles"></div>
+                
                 {/* Background pattern overlay */}
-                <div className="absolute inset-0 opacity-10 bg-repeat" style={{
+                <div className="absolute inset-0 opacity-10 bg-repeat z-10" style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
                 }}></div>
 
-                <div className="relative z-10 max-w-6xl mx-auto px-8 py-8">
+                <div className="relative z-20 max-w-6xl mx-auto px-8 py-8">
                     {/* Welcome section with APP logo and greeting */}
                     <div className="text-center mb-8">
                         <div className="inline-flex items-center justify-center mb-2">
@@ -228,11 +233,11 @@ export default function LandingPage() {
                             />
                         </div>
                         
-                        <h2 className="text-3xl font-bold text-green-800 mb-3 animate-fade-in">
-                            Hello, <span className="text-green-600 hover:text-green-700 transition-colors duration-300 cursor-default">{user?.first_name || user?.name || 'User'}</span>!
+                        <h2 className="text-3xl font-bold mb-3 animate-fade-in text-white drop-shadow-lg">
+                            Hello, <span className="text-yellow-400 hover:text-yellow-300 transition-colors duration-300 cursor-default drop-shadow-lg">{user?.first_name || user?.name || 'User'}</span>!
                         </h2>
                         
-                        <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed hover:text-gray-700 transition-colors duration-300 cursor-default">
+                        <p className="text-lg text-gray-100 max-w-2xl mx-auto leading-relaxed hover:text-white transition-colors duration-300 cursor-default drop-shadow-md">
                             Welcome to your comprehensive document tracking and monitoring dashboard. 
                             Manage all your accounting documents with ease and efficiency.
                         </p>
@@ -243,7 +248,7 @@ export default function LandingPage() {
                         {/* Incoming DVs Card */}
                         <Link
                             href={route('incoming-dvs')}
-                            className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-6 text-center border border-gray-200 hover:border-green-300 cursor-pointer hover:bg-green-50"
+                            className="group bg-white/90 backdrop-blur-sm aurora-green-glow rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-6 text-center border border-gray-200 hover:border-green-300 cursor-pointer hover:bg-green-50/80 aurora-border"
                         >
                             <div className="bg-green-600 rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center group-hover:bg-green-700 transition-all duration-300 group-hover:scale-110 transform group-hover:rotate-3">
                                 <svg className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
@@ -347,10 +352,7 @@ export default function LandingPage() {
                     animation: gentle-pulse 3s ease-in-out infinite;
                 }
                 
-                /* Custom cursor styles */
-                .cursor-magic {
-                    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23059669"><circle cx="12" cy="12" r="6" opacity="0.5"/><circle cx="12" cy="12" r="2"/></svg>'), auto;
-                }
+                // ...existing code...
             `}</style>
              {/* Modern Glassy Footer - Landing Page Only */}
             <footer className="relative mt-8 bg-gradient-to-r from-white/10 via-white/5 to-white/10 backdrop-blur-md border-t border-white/20 shadow-2xl">

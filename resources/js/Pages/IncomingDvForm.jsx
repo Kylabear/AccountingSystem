@@ -358,8 +358,8 @@ export default function IncomingDvForm() {
       {processing && <LoadingSpinner />}
       {showSuccess && <SuccessMessage />}
       
-      {/* Fixed Header - Completely locked outside of scroll area */}
-      <div className="bg-green-700 text-white p-4 shadow-xl header-fixed">
+      {/* Fixed Header with aurora styling - Completely locked outside of scroll area */}
+      <div className="bg-green-700/90 backdrop-blur-sm text-white p-4 shadow-xl header-fixed relative z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center group">
             <img 
@@ -394,16 +394,20 @@ export default function IncomingDvForm() {
         </div>
       </div>
 
-      {/* Scrollable Content Area */}
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-200 content-with-header">
+      {/* Scrollable Content Area with Aurora Background */}
+      <div className="min-h-screen aurora-background content-with-header">
+        {/* Aurora overlay effects */}
+        <div className="aurora-waves"></div>
+        <div className="aurora-overlay"></div>
+        <div className="aurora-particles"></div>
 
         {/* Background pattern overlay */}
-        <div className="absolute inset-0 opacity-5 bg-repeat pointer-events-none" style={{
+        <div className="absolute inset-0 opacity-5 bg-repeat pointer-events-none z-10" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
         }}></div>
 
-        {/* Main content area */}
-        <div className="relative max-w-7xl mx-auto p-8">
+        {/* Main content area with proper z-index */}
+        <div className="relative max-w-7xl mx-auto p-8 z-20">
           {/* Page title with animation */}
           <div className="text-center mb-8 animate-fade-in">
             <h2 className="text-3xl font-bold text-green-800 mb-2 hover:text-green-700 transition-colors duration-300 cursor-default">

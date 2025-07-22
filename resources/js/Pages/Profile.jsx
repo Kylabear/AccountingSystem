@@ -69,9 +69,14 @@ export default function Profile() {
     };
 
     return (
-            <div className="min-h-screen bg-gray-100">
-                {/* Fixed Header - Always visible while scrolling */}
-                <div className="bg-green-700 text-white p-4 flex items-center justify-between shadow-xl backdrop-blur-sm bg-opacity-95 header-fixed">
+            <div className="min-h-screen aurora-background">
+                {/* Aurora overlay effects */}
+                <div className="aurora-waves"></div>
+                <div className="aurora-overlay"></div>
+                <div className="aurora-particles"></div>
+                
+                {/* Fixed Header with aurora styling - Always visible while scrolling */}
+                <div className="bg-green-700/90 backdrop-blur-sm text-white p-4 flex items-center justify-between shadow-xl header-fixed relative z-50">
                     <div className="flex items-center">
                         <img 
                             src="/DALOGO.png" 
@@ -105,9 +110,9 @@ export default function Profile() {
                     </div>
                 </div>
 
-                {/* Content with proper header spacing */}
-                <div className="content-with-header max-w-4xl mx-auto py-8 px-4">
-                    <div className="bg-white rounded-lg shadow-lg p-8">
+                {/* Content with proper header spacing and z-index */}
+                <div className="content-with-header max-w-4xl mx-auto py-8 px-4 relative z-20">
+                    <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-xl p-8 border border-white/20">
                         {/* Profile Header */}
                         <div className="flex items-center justify-between mb-8">
                             <h1 className="text-3xl font-bold text-gray-800">User Profile</h1>

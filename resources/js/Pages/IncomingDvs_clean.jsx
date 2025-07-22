@@ -271,9 +271,9 @@ export default function IncomingDvs() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            {/* Fixed Header - Simple design */}
-            <div className="bg-green-700 text-white p-4 flex items-center justify-between header-fixed shadow-lg">
+        <div className="min-h-screen aurora-background">
+            {/* Fixed Header - Simple design with backdrop blur */}
+            <div className="bg-green-700/90 backdrop-blur-sm text-white p-4 flex items-center justify-between header-fixed shadow-lg relative z-50">
                 <div className="flex items-center">
                     <img 
                         src="/DALOGO.png" 
@@ -321,12 +321,12 @@ export default function IncomingDvs() {
                 </div>
             </div>
 
-            {/* Content with proper header spacing */}
-            <div className="content-with-header">
-                <div className="flex">
+            {/* Content with proper header spacing and z-index - transparent background */}
+            <div className="content-with-header relative z-20 bg-transparent">
+                <div className="flex bg-transparent min-h-screen">
                     {/* Mobile toggle for sidebar */}
                     {isMobile && (
-                        <div className="lg:hidden p-4 bg-white shadow-md">
+                        <div className="lg:hidden p-4 bg-white/80 backdrop-blur-sm shadow-md">
                             <button 
                                 className="w-full bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-colors duration-200 hover:bg-green-700"
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -344,7 +344,7 @@ export default function IncomingDvs() {
                                 ? `fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-80 z-50 transition-transform duration-300 shadow-lg`
                                 : 'w-64 flex-shrink-0 sidebar-fixed'
                             } 
-                            bg-white overflow-y-auto
+                            bg-white/95 backdrop-blur-sm overflow-y-auto shadow-xl border-r border-white/20
                         `} 
                         style={isMobile ? {} : { minHeight: '600px' }}
                     >
@@ -438,8 +438,8 @@ export default function IncomingDvs() {
                         </div>
                     </div>
 
-                    {/* Main Content Area - Simple responsive design */}
-                    <div className={`flex-1 p-6 ${isMobile ? '' : 'ml-64'}`}>
+                    {/* Main Content Area with transparent background to show aurora */}
+                    <div className={`flex-1 p-6 bg-transparent ${isMobile ? '' : 'ml-64'}`}>
                         {/* Search Bar and Add Button */}
                         <div className="flex flex-col sm:flex-row gap-4 mb-6">
                             <div className="flex-1 max-w-lg">
@@ -514,7 +514,7 @@ export default function IncomingDvs() {
                                 sortedDvs.map((dv) => (
                                     <div 
                                         key={dv.id} 
-                                        className={`bg-white rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
+                                        className={`bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer ${getCurrentStatusColor(dv.status)}`}
                                         style={getBorderStyle(dv.status)}
                                         onClick={() => handleDvClick(dv)}
                                     >

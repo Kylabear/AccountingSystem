@@ -3,9 +3,14 @@ import { Link } from '@inertiajs/react';
 
 export default function GuestLayout({ children, backgroundImage = null }) {
     return (
-        <div className="min-h-screen flex">
-            {/* Left Panel - Dark Green with DA Branding */}
-            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-800 to-green-900 relative overflow-hidden group">
+        <div className="min-h-screen flex aurora-background">
+            {/* Aurora overlay effects */}
+            <div className="aurora-waves"></div>
+            <div className="aurora-overlay"></div>
+            <div className="aurora-particles"></div>
+            
+            {/* Left Panel - Enhanced with aurora effects */}
+            <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden group z-10">
                 {/* Background Image with Green Overlay */}
                 {backgroundImage && (
                     <div 
@@ -113,10 +118,10 @@ export default function GuestLayout({ children, backgroundImage = null }) {
                 </div>
             </div>
 
-            {/* Right Panel - White Form Area */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center bg-white relative overflow-hidden group">
+            {/* Right Panel - Semi-transparent form area to show aurora */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center bg-white/85 backdrop-blur-sm relative overflow-hidden group z-10">
                 {/* Subtle animated background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-50 to-green-50 opacity-50 group-hover:opacity-70 transition-opacity duration-1000"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-white/50 via-gray-50/30 to-green-50/50 opacity-50 group-hover:opacity-70 transition-opacity duration-1000"></div>
                 
                 {/* Mobile Logo (shown only on small screens) */}
                 <div className="lg:hidden absolute top-2 left-1/2 transform -translate-x-1/2 animate-bounce-gentle">
@@ -139,10 +144,10 @@ export default function GuestLayout({ children, backgroundImage = null }) {
                                 className="h-10 object-contain transform hover:scale-110 hover:rotate-3 transition-all duration-500"
                             />
                         </div>
-                        <h2 className="text-xl font-bold text-green-800 mb-1 transform hover:scale-105 transition-all duration-300">
+                        <h2 className="text-xl font-bold aurora-text mb-1 transform hover:scale-105 transition-all duration-300">
                             WELCOME TO DA-CAR
                         </h2>
-                        <h3 className="text-sm font-semibold text-green-700 mb-1 animate-slide-in-right-delayed">
+                        <h3 className="text-sm font-semibold aurora-text mb-1 animate-slide-in-right-delayed">
                             ACCOUNTING SECTION
                         </h3>
                         <h4 className="text-sm font-semibold text-green-700 animate-slide-in-right-delayed">
@@ -150,9 +155,11 @@ export default function GuestLayout({ children, backgroundImage = null }) {
                         </h4>
                     </div>
 
-                    {/* Form Content */}
-                    <div className="animate-slideInUp transform hover:scale-[1.02] transition-all duration-300">
-                        {children}
+                    {/* Form Content with aurora effects */}
+                    <div className="animate-slideInUp transform hover:scale-[1.02] transition-all duration-300 aurora-border aurora-green-glow">
+                        <div className="bg-white/95 backdrop-blur-sm p-6 rounded-lg">
+                            {children}
+                        </div>
                     </div>
                 </div>
             </div>
