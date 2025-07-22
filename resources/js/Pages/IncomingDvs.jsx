@@ -719,16 +719,18 @@ export default function IncomingDvs() {
             {/* Fixed Header - Simple design */}
             <div className="bg-green-700 text-white p-4 flex items-center justify-between header-fixed shadow-lg">
                 <div className="flex items-center">
-                    <img 
-                        src="/DALOGO.png" 
-                        alt="DA Logo" 
-                        className="w-12 h-12 lg:w-16 lg:h-16 mr-4 object-contain transition-transform duration-200 hover:scale-105"
-                    />
                     <Link 
                         href="/"
-                        className="text-lg lg:text-xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors duration-200"
+                        className="flex items-center hover:scale-105 transition-all duration-300"
                     >
-                        {isMobile ? 'DA-CAR Accounting' : 'DA-CAR Accounting Section Monitoring System'}
+                        <img 
+                            src="/DALOGO.png" 
+                            alt="DA Logo" 
+                            className="w-12 h-12 lg:w-16 lg:h-16 mr-4 object-contain drop-shadow-lg"
+                        />
+                        <div className="text-lg lg:text-2xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors duration-200 cursor-pointer" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+                            {isMobile ? 'DA-CAR Accounting' : 'DA-CAR Accounting Section Monitoring System'}
+                        </div>
                     </Link>
                 </div>
                 <div className="flex items-center space-x-4">

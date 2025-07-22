@@ -4,7 +4,7 @@ export default function LandingPage() {
     const user = usePage().props.auth.user;
 
     return (
-        <div className="min-h-screen bg-gray-200 relative overflow-hidden">
+        <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-50 to-green-100 relative overflow-hidden">
             {/* Animated Accounting Icons - scattered around the page */}
             <div className="fixed inset-0 pointer-events-none z-10 opacity-10">
                 {/* Top-left: Calculator icon */}
@@ -173,10 +173,10 @@ export default function LandingPage() {
                         />
                         <Link 
                             href="/incoming-dvs"
-                            className="text-3xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors duration-200 cursor-pointer"
+                            className="text-lg lg:text-2xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors duration-200 cursor-pointer"
                             style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                         >
-                            Accounting Monitoring and Tracking System
+                            DA-CAR Accounting Section Monitoring System
                         </Link>
                     </Link>
                 </div>
@@ -211,10 +211,10 @@ export default function LandingPage() {
             </div>
 
             {/* Main content area with aurora background pattern */}
-            <div className="relative aurora-background min-h-screen content-with-header">
+            <div className="relative aurora-background min-h-screen content-with-header bg-gradient-to-br from-blue-200/20 via-purple-200/15 to-green-200/25">
                 {/* Aurora overlay effects */}
-                <div className="aurora-waves"></div>
-                <div className="aurora-overlay"></div>
+                <div className="aurora-waves bg-gradient-to-r from-blue-400/30 via-purple-400/20 to-green-400/30"></div>
+                <div className="aurora-overlay bg-gradient-to-br from-cyan-300/20 via-indigo-300/15 to-emerald-300/25"></div>
                 <div className="aurora-particles"></div>
                 
                 {/* Background pattern overlay */}
