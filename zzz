@@ -1,3 +1,24 @@
+Design a web dashboard in green Neumorphism style for an accounting system used by a government department. Use a soft matte green background with subtle texture. All interface elements—buttons, tabs, cards, status chips—should feature smooth extrusion or pressed-in depth using dual-direction shadows (light top-left, dark bottom-right). Prioritize clarity, hierarchy, and tactile feel.
+
+Include:
+- A top navigation bar with the title “DA-CAR Accounting Section,” embossed or softly inset into the surface.
+- Tabbed filters (Recents, For Review, For Indexing, For Approval) designed as pill-shaped buttons, slightly raised.
+- DV record entries as horizontal tile rows showing payee name, reference number, transaction amount, and status. Each tile should use depth to differentiate sections.
+- Action buttons (edit, view details) as circular icons with glowing borders on hover.
+- A prominent “Add Incoming DV” button at bottom right, shaped like a pill, in darker green with soft elevation and pulse animation.
+- Status indicators using monochromatic green shades (mint, sage, forest) to denote workflow stage.
+Use a modular layout with clean spacing, rounded corners (12–16px), and consistent padding. No harsh contrasts or flat fills—maintain the soft UI aesthetic throughout.
+
+
+
+
+
+
+
+
+
+
+
 // NORSA number format validation (NN-NN-NNNN)
 const norsaPattern = /^\d{2}-\d{2}-\d{4}$/;
 const isNorsaValid = norsaPattern.test(norsaNumber);
