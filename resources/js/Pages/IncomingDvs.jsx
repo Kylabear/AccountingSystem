@@ -738,12 +738,6 @@ export default function IncomingDvs() {
                     </Link>
                 </div>
                 <div className="flex items-center space-x-4">
-                    <Link 
-                        href="/statistics"
-                        className="bg-green-600 text-white px-3 py-2 lg:px-4 lg:py-2 rounded text-sm hover:bg-green-800 transition-colors duration-200"
-                    >
-                        📊 <span className="hidden sm:inline ml-1">Statistics</span>
-                    </Link>
                     <Link
                         href="/logout"
                         method="post"
@@ -800,15 +794,20 @@ export default function IncomingDvs() {
                             ></div>
                         )}
 
-                        {/* DA Logo */}
+                        {/* DA Logo and Dashboard */}
                         <div className="p-6 text-center border-b border-white/30">
                             <img 
                                 src="/APPLOGO.png" 
                                 alt="DA App Logo" 
                                 className="w-32 h-32 lg:w-40 lg:h-40 mx-auto object-contain mb-4"
                             />
-                            <div className="text-lg font-bold text-white">DA-CAR</div>
-                            <div className="text-sm text-white/80">Accounting Section</div>
+                            <Link 
+                                href="/statistics"
+                                className="w-full bg-green-600/80 backdrop-blur-sm text-white px-6 py-4 rounded-lg text-base font-semibold hover:bg-green-700/80 transition-all duration-200 flex items-center justify-center space-x-3 border border-white/30 hover:border-white/50"
+                            >
+                                <span className="text-lg">📊</span>
+                                <span>Dashboard</span>
+                            </Link>
                         </div>
 
                         {/* Legend with Color Dots */}
@@ -865,13 +864,13 @@ export default function IncomingDvs() {
                                                 className="w-3 h-3 rounded-full mr-3 flex-shrink-0"
                                                 style={status.bgColor ? { backgroundColor: status.bgColor } : {}}
                                             ></div>
-                                            <span className={`text-xs font-medium flex-1 ${
+                                            <span className={`text-sm font-medium flex-1 ${
                                                 activeTab === status.key ? 'text-white font-semibold' : 'text-white/90'
                                             }`}>
                                                 {status.label}
                                             </span>
                                             {count > 0 && (
-                                                <span className={`text-xs ml-2 px-2 py-1 rounded-full ${
+                                                <span className={`text-sm ml-2 px-2 py-1 rounded-full ${
                                                     activeTab === status.key 
                                                         ? 'text-white bg-green-500/80' 
                                                         : 'text-white/80 bg-white/20'
