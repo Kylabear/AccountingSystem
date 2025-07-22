@@ -173,7 +173,7 @@ export default function LandingPage() {
                         />
                         <Link 
                             href="/incoming-dvs"
-                            className="text-xl font-bold aurora-text hover:text-yellow-300 transition-colors duration-200 cursor-pointer"
+                            className="text-2xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors duration-200 cursor-pointer"
                             style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                         >
                             Accounting Monitoring and Tracking System
