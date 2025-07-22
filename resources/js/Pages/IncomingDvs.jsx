@@ -785,12 +785,12 @@ export default function IncomingDvs() {
                     <div 
                         className={`
                             ${isMobile 
-                                ? `fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-80 z-50 transition-transform duration-300 shadow-lg`
+                                ? `fixed top-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-80 z-50 transition-transform duration-300 shadow-lg`
                                 : 'w-64 flex-shrink-0 sidebar-fixed'
                             } 
-                            bg-white/20 backdrop-blur-md border border-white/30 overflow-y-auto
+                            bg-white/20 backdrop-blur-md border border-white/30 overflow-y-auto pb-4
                         `} 
-                        style={isMobile ? {} : { minHeight: '600px' }}
+                        style={isMobile ? { height: 'auto', maxHeight: 'fit-content' } : { minHeight: 'auto', maxHeight: 'fit-content' }}
                     >
                         {/* Mobile overlay */}
                         {isMobile && sidebarOpen && (
@@ -812,13 +812,13 @@ export default function IncomingDvs() {
                         </div>
 
                         {/* Legend with Color Dots */}
-                        <div className="p-4">
+                        <div className="p-4 pb-6">
                             <h3 className="text-md font-bold text-white mb-3 uppercase tracking-wide">
-                                📊 Legend
+                                📊 Stages
                             </h3>
                             
                             {/* Main Process Statuses */}
-                            <div className="space-y-2">
+                            <div className="space-y-2 mb-4">
                                 {statuses
                                   .filter(status => status.key !== 'for_rts_in' && status.key !== 'for_norsa_in' && status.key !== 'for_cash_reallocation' && status.key !== 'out_to_cashiering')
                                   .map((status) => {
@@ -964,29 +964,29 @@ export default function IncomingDvs() {
       <div className="flex space-x-4">
         <button
           className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-white'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
           onClick={() => setForReviewSection('for_review')}
         >
           <span className="mr-2">🔄</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-white'}`}>For Review</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-white'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Review</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-500/80 text-white' : 'bg-white/20 text-red-400'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
         </button>
         <button
           className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_rts_in' ? 'text-red-400' : 'text-white'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
           onClick={() => setForReviewSection('for_rts_in')}
         >
           <span className="mr-2">📦</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-red-600' : 'text-black'}`}>For RTS In</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-red-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For RTS In</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-600 text-white' : 'bg-transparent text-red-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
         </button>
         <button
           className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_norsa_in' ? 'text-red-600' : 'text-black'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
           onClick={() => setForReviewSection('for_norsa_in')}
         >
           <span className="mr-2">🌐</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-red-600' : 'text-black'}`}>For NORSA In</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-red-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For NORSA In</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-600 text-white' : 'bg-transparent text-red-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
         </button>
       </div>
@@ -1086,13 +1086,13 @@ export default function IncomingDvs() {
                                     <button
                                       key={key}
                                       className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-600' : 'text-black'} ${boxCHoveredButton !== null && boxCHoveredButton !== key ? 'opacity-20' : 'opacity-100'}`}
-                                      style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+                                      style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
                                       onClick={() => setBoxCSection(key)}
                                       onMouseEnter={() => setBoxCHoveredButton(key)}
                                       onMouseLeave={() => setBoxCHoveredButton(null)}
                                     >
                                       <span className="mr-2">{icon}</span>
-                                      <span className={`transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-600' : 'text-black'}`}>{label}</span>
+                                      <span className={`transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>{label}</span>
                                       <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'bg-yellow-400 text-white' : 'bg-transparent text-yellow-600'}`}>{count}</span>
                                     </button>
                                   );
@@ -1130,20 +1130,20 @@ export default function IncomingDvs() {
                               <div className="flex space-x-4">
                                 <button
                                   className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${approvalSection === 'for_approval' ? 'text-gray-700' : 'text-black'}`}
-                                  style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+                                  style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
                                   onClick={() => setApprovalSection('for_approval')}
                                 >
                                   <span className="mr-2">✅</span>
-                                  <span className={`transition-colors duration-200 ${approvalSection === 'for_approval' ? 'text-gray-700' : 'text-black'}`}>For Approval</span>
+                                  <span className={`transition-colors duration-200 ${approvalSection === 'for_approval' ? 'text-gray-700' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Approval</span>
                                   <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${approvalSection === 'for_approval' ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-700'}`}>{sortedDvs.length}</span>
                                 </button>
                                 <button
                                   className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${approvalSection === 'out_for_approval' ? 'text-gray-700' : 'text-black'}`}
-                                  style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+                                  style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
                                   onClick={() => setApprovalSection('out_for_approval')}
                                 >
                                   <span className="mr-2">📤</span>
-                                  <span className={`transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'text-gray-700' : 'text-black'}`}>Out For Approval</span>
+                                  <span className={`transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'text-gray-700' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>Out For Approval</span>
                                   <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-700'}`}>{approvalOutDvs.length}</span>
                                 </button>
                               </div>
@@ -1194,20 +1194,20 @@ export default function IncomingDvs() {
       <div className="flex space-x-4">
         <button
           className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
           onClick={() => setPaymentSection('for_payment')}
         >
           <span className="mr-2">💳</span>
-          <span className={`transition-colors duration-200 ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}>For Mode of Payment</span>
+          <span className={`transition-colors duration-200 ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Mode of Payment</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'for_payment' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{dvs.filter(dv => dv.status === 'for_payment' || dv.status === 'for_mode_of_payment').length}</span>
         </button>
         <button
           className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
           onClick={() => setPaymentSection('out_to_cashiering')}
         >
           <span className="mr-2">💵</span>
-          <span className={`transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}>Out for Cashiering</span>
+          <span className={`transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>Out for Cashiering</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{dvs.filter(dv => dv.status === 'out_to_cashiering').length}</span>
         </button>
       </div>
@@ -1340,20 +1340,20 @@ export default function IncomingDvs() {
                                     <div className="flex space-x-4">
                                         <button
                                             className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${cashSection === 'allocation' ? 'text-orange-600' : 'text-black'}`}
-                                            style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+                                            style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
                                             onClick={() => setCashSection('allocation')}
                                         >
                                             <span className="mr-2">💰</span>
-                                            <span className={`transition-colors duration-200 ${cashSection === 'allocation' ? 'text-orange-600' : 'text-black'}`}>For Cash Allocation</span>
+                                            <span className={`transition-colors duration-200 ${cashSection === 'allocation' ? 'text-orange-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Cash Allocation</span>
                                             <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${cashSection === 'allocation' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.length}</span>
                                         </button>
                                         <button
                                             className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${cashSection === 'reallocation' ? 'text-orange-600' : 'text-black'}`}
-                                            style={{ background: 'none', boxShadow: 'none', border: 'none' }}
+                                            style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
                                             onClick={() => setCashSection('reallocation')}
                                         >
                                             <span className="mr-2">🔄</span>
-                                            <span className={`transition-colors duration-200 ${cashSection === 'reallocation' ? 'text-orange-600' : 'text-black'}`}>For Cash Reallocation</span>
+                                            <span className={`transition-colors duration-200 ${cashSection === 'reallocation' ? 'text-orange-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Cash Reallocation</span>
                                             <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${cashSection === 'reallocation' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{reallocatedDvs.length}</span>
                                         </button>
                                     </div>
