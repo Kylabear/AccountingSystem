@@ -55,7 +55,7 @@ class IncomingDvController extends Controller
         $validated = Validator::make($request->all(), [
             'transaction_type' => 'required|string|max:255',
             'implementing_unit' => 'nullable|string|max:255',
-            'dv_number' => 'required|string|max:255',
+            'dv_number' => 'required|string|max:255|unique:incoming_dvs,dv_number',
             'payee' => 'required|string|max:255',
             'account_number' => 'nullable|string|max:255',
             'amount' => 'required|numeric|min:0',
@@ -111,7 +111,7 @@ class IncomingDvController extends Controller
         $validated = Validator::make($request->all(), [
             'transaction_type' => 'required|string|max:255',
             'implementing_unit' => 'nullable|string|max:255',
-            'dv_number' => 'required|string|max:255',
+            'dv_number' => 'required|string|max:255|unique:incoming_dvs,dv_number,' . $id,
             'payee' => 'required|string|max:255',
             'account_number' => 'nullable|string|max:255',
             'amount' => 'required|numeric|min:0',
@@ -175,14 +175,27 @@ class IncomingDvController extends Controller
                 'nullable',
                 'string',
                 'regex:/^\d{4}-\d{2}-\d{5}$/',
-                function ($attribute, $value, $fail) {
+                function ($attribute, $value, $fail) use ($dv) {
                     if ($value) {
                         $parts = explode('-', $value);
                         if (count($parts) === 3) {
                             $year = (int)$parts[0];
                             $month = (int)$parts[1];
+                            $number = $parts[2]; // The unique part we want to check
+                            
+                            // Validate year and month
                             if ($year < 2020 || $year > (date('Y') + 1) || $month < 1 || $month > 12) {
                                 $fail('The NORSA number has an invalid year or month.');
+                                return;
+                            }
+                            
+                            // Check if the number part (last 5 digits) already exists
+                            $existingRecord = \App\Models\IncomingDv::where('norsa_number', 'LIKE', '%-' . $number)
+                                ->where('id', '!=', $dv->id)
+                                ->first();
+                            
+                            if ($existingRecord) {
+                                $fail('The NORSA number ' . $number . ' is already in use.');
                             }
                         }
                     }
@@ -325,7 +338,21 @@ class IncomingDvController extends Controller
 
         $validated = $request->validate([
             'cash_allocation_date' => 'required|date',
-            'cash_allocation_number' => 'required|string|max:255',
+            'cash_allocation_number' => [
+                'required',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($dv) {
+                    // Check if cash allocation number already exists (excluding current record)
+                    $existingRecord = \App\Models\IncomingDv::where('cash_allocation_number', $value)
+                        ->where('id', '!=', $dv->id)
+                        ->first();
+                    
+                    if ($existingRecord) {
+                        $fail('The Cash Allocation number ' . $value . ' is already in use.');
+                    }
+                }
+            ],
             'net_amount' => 'required|numeric|min:0.01',
         ]);
 
@@ -376,7 +403,36 @@ class IncomingDvController extends Controller
             'rts_out_date' => 'nullable|date',
             'rts_reason' => 'nullable|string',
             'norsa_date' => 'nullable|date',
-            'norsa_number' => 'nullable|string',
+            'norsa_number' => [
+                'nullable',
+                'string',
+                'regex:/^\d{4}-\d{2}-\d{5}$/',
+                function ($attribute, $value, $fail) use ($dv) {
+                    if ($value) {
+                        $parts = explode('-', $value);
+                        if (count($parts) === 3) {
+                            $year = (int)$parts[0];
+                            $month = (int)$parts[1];
+                            $number = $parts[2]; // The unique part we want to check
+                            
+                            // Validate year and month
+                            if ($year < 2020 || $year > (date('Y') + 1) || $month < 1 || $month > 12) {
+                                $fail('The NORSA number has an invalid year or month.');
+                                return;
+                            }
+                            
+                            // Check if the number part (last 5 digits) already exists
+                            $existingRecord = \App\Models\IncomingDv::where('norsa_number', 'LIKE', '%-' . $number)
+                                ->where('id', '!=', $dv->id)
+                                ->first();
+                            
+                            if ($existingRecord) {
+                                $fail('The NORSA number ' . $number . ' is already in use.');
+                            }
+                        }
+                    }
+                }
+            ],
         ]);
 
         // Get current user
@@ -553,7 +609,23 @@ class IncomingDvController extends Controller
     {
         $validated = $request->validate([
             'payment_method' => 'required|string|in:check,lddap,payroll',
-            'lddap_number' => 'nullable|required_if:payment_method,lddap|string',
+            'lddap_number' => [
+                'nullable',
+                'required_if:payment_method,lddap',
+                'string',
+                function ($attribute, $value, $fail) use ($dv) {
+                    if ($value) {
+                        // Check if LDDAP number already exists (excluding current record)
+                        $existingRecord = \App\Models\IncomingDv::where('lddap_number', $value)
+                            ->where('id', '!=', $dv->id)
+                            ->first();
+                        
+                        if ($existingRecord) {
+                            $fail('The LDDAP number ' . $value . ' is already in use.');
+                        }
+                    }
+                }
+            ],
         ]);
         
         $currentUser = Auth::user()->name ?? 'Unknown User';
@@ -720,7 +792,23 @@ class IncomingDvController extends Controller
         // Validate the request
         $request->validate([
             'lddap_date' => 'required|date',
-            'lddap_number' => 'nullable|string|max:255',
+            'lddap_number' => [
+                'nullable',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail) use ($dv) {
+                    if ($value) {
+                        // Check if LDDAP number already exists (excluding current record)
+                        $existingRecord = \App\Models\IncomingDv::where('lddap_number', $value)
+                            ->where('id', '!=', $dv->id)
+                            ->first();
+                        
+                        if ($existingRecord) {
+                            $fail('The LDDAP number ' . $value . ' is already in use.');
+                        }
+                    }
+                }
+            ],
         ]);
 
         $currentUser = Auth::user()->name ?? 'Unknown User';
