@@ -618,29 +618,29 @@ export default function IncomingDvs() {
       return (
         <div
           key={dv.id}
-          className="bg-white/90 backdrop-blur-sm rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer flex flex-row min-h-[56px]"
+          className="bg-white/20 backdrop-blur-md border border-white/30 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-row min-h-[56px] hover:bg-white/30"
           onClick={() => handleDvClick(dv)}
         >
           {/* Main content */}
           <div className="flex-1 p-2 md:p-3 flex flex-col justify-center">
-            <h3 className="font-semibold text-gray-800 text-base md:text-lg mb-0.5 truncate">
+            <h3 className="font-semibold text-white text-base md:text-lg mb-0.5 truncate">
               {dv.payee}
             </h3>
-            <p className="text-gray-600 text-xs md:text-sm mb-0.5 truncate">
+            <p className="text-white/80 text-xs md:text-sm mb-0.5 truncate">
               {dv.dv_number}
             </p>
-            <p className="text-gray-600 text-xs md:text-sm mb-0.5 italic truncate">
+            <p className="text-white/80 text-xs md:text-sm mb-0.5 italic truncate">
               {dv.particulars && dv.particulars.length > 50
                 ? dv.particulars.substring(0, 50) + '...'
                 : dv.particulars || 'No particulars specified'}
             </p>
-            <p className="text-gray-800 font-medium text-xs md:text-sm mb-0.5">
+            <p className="text-white font-medium text-xs md:text-sm mb-0.5">
               ₱{parseFloat(dv.net_amount || dv.amount).toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}
               {dv.net_amount && (
-                <span className="text-xs text-gray-500 ml-1">(Net)</span>
+                <span className="text-xs text-white/70 ml-1">(Net)</span>
               )}
             </p>
           </div>
@@ -770,9 +770,9 @@ export default function IncomingDvs() {
                 <div className="flex">
                     {/* Mobile toggle for sidebar */}
                     {isMobile && (
-                        <div className="lg:hidden p-4 bg-white/90 backdrop-blur-sm shadow-md">
+                        <div className="lg:hidden p-4 bg-white/20 backdrop-blur-md border border-white/30 shadow-md">
                             <button 
-                                className="w-full bg-green-600 text-white px-4 py-2 rounded-lg flex items-center justify-center transition-colors duration-200 hover:bg-green-700"
+                                className="w-full bg-green-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg flex items-center justify-center transition-all duration-200 hover:bg-green-700/90"
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
                             >
                                 <span className="mr-2">📊</span>
@@ -788,7 +788,7 @@ export default function IncomingDvs() {
                                 ? `fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-80 z-50 transition-transform duration-300 shadow-lg`
                                 : 'w-64 flex-shrink-0 sidebar-fixed'
                             } 
-                            bg-white/90 backdrop-blur-sm overflow-y-auto
+                            bg-white/20 backdrop-blur-md border border-white/30 overflow-y-auto
                         `} 
                         style={isMobile ? {} : { minHeight: '600px' }}
                     >
@@ -801,19 +801,19 @@ export default function IncomingDvs() {
                         )}
 
                         {/* DA Logo */}
-                        <div className="p-6 text-center border-b border-gray-200">
+                        <div className="p-6 text-center border-b border-white/30">
                             <img 
                                 src="/APPLOGO.png" 
                                 alt="DA App Logo" 
                                 className="w-32 h-32 lg:w-40 lg:h-40 mx-auto object-contain mb-4"
                             />
-                            <div className="text-lg font-bold text-gray-700">DA-CAR</div>
-                            <div className="text-sm text-gray-500">Accounting Section</div>
+                            <div className="text-lg font-bold text-white">DA-CAR</div>
+                            <div className="text-sm text-white/80">Accounting Section</div>
                         </div>
 
                         {/* Legend with Color Dots */}
                         <div className="p-4">
-                            <h3 className="text-md font-bold text-gray-700 mb-3 uppercase tracking-wide">
+                            <h3 className="text-md font-bold text-white mb-3 uppercase tracking-wide">
                                 📊 Legend
                             </h3>
                             
@@ -855,9 +855,9 @@ export default function IncomingDvs() {
                                                 handleTabChange(status.key);
                                                 if (isMobile) setSidebarOpen(false);
                                             }}
-                                            className={`w-full text-left p-2 rounded-lg flex items-center transition-all duration-200 hover:bg-gray-50 ${
+                                            className={`w-full text-left p-2 rounded-lg flex items-center transition-all duration-200 hover:bg-white/20 ${
                                                 activeTab === status.key 
-                                                    ? 'bg-green-100 border-l-4 border-green-600' 
+                                                    ? 'bg-white/30 border-l-4 border-green-400' 
                                                     : ''
                                             }`}
                                         >
@@ -866,15 +866,15 @@ export default function IncomingDvs() {
                                                 style={status.bgColor ? { backgroundColor: status.bgColor } : {}}
                                             ></div>
                                             <span className={`text-xs font-medium flex-1 ${
-                                                activeTab === status.key ? 'text-green-700 font-semibold' : 'text-gray-700'
+                                                activeTab === status.key ? 'text-white font-semibold' : 'text-white/90'
                                             }`}>
                                                 {status.label}
                                             </span>
                                             {count > 0 && (
                                                 <span className={`text-xs ml-2 px-2 py-1 rounded-full ${
                                                     activeTab === status.key 
-                                                        ? 'text-green-700 bg-green-200' 
-                                                        : 'text-gray-500 bg-gray-200'
+                                                        ? 'text-white bg-green-500/80' 
+                                                        : 'text-white/80 bg-white/20'
                                                 }`}>
                                                     {count}
                                                 </span>
@@ -889,7 +889,11 @@ export default function IncomingDvs() {
                     </div>
 
                     {/* Main Content Area - Simple responsive design */}
+<<<<<<< Updated upstream
                     <div className={`flex-1 p-6 ${isMobile ? '' : 'ml-64'}`} style={{background: 'transparent', boxShadow: 'none', outline: 'none', border: 'none', filter: 'none'}}>
+=======
+                    <div className={`flex-1 p-6 bg-white/20 backdrop-blur-md border border-white/30 rounded-lg shadow-lg ${isMobile ? '' : 'ml-64'}`}>
+>>>>>>> Stashed changes
         {/* Search Bar and Add Button - Responsive, same height, button right-aligned */}
         <div className="mb-6 w-full flex flex-col sm:flex-row gap-4 items-stretch sm:items-stretch">
             {/* Search Bar */}
@@ -900,10 +904,10 @@ export default function IncomingDvs() {
                         placeholder="Search by DV No., Payee, Transaction Type, Account No., or Particulars..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 text-base transition-all duration-200 h-full min-h-[56px]"
+                        className="w-full pl-12 pr-4 py-4 border border-white/30 bg-white/20 backdrop-blur-md rounded-lg focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-400/50 text-base transition-all duration-200 h-full min-h-[56px] text-white placeholder-white/70"
                     />
                     <svg 
-                        className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" 
+                        className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70" 
                         fill="none" 
                         stroke="currentColor" 
                         viewBox="0 0 24 24"
@@ -913,9 +917,9 @@ export default function IncomingDvs() {
                     {searchTerm && (
                         <button
                             onClick={() => setSearchTerm('')}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-200 transition-colors duration-200"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition-colors duration-200"
                         >
-                            <svg className="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-white/70 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
@@ -926,7 +930,7 @@ export default function IncomingDvs() {
             <div className="flex-shrink-0 flex items-stretch w-full sm:w-auto">
                 <Link
                     href="/incoming-dvs/new"
-                    className="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 flex items-center justify-center text-lg font-bold transition-all duration-200 hover:scale-[1.02] shadow-lg whitespace-nowrap w-full sm:w-auto h-full min-h-[56px]"
+                    className="bg-green-600/80 backdrop-blur-sm text-white px-8 py-4 rounded-lg hover:bg-green-700/90 flex items-center justify-center text-lg font-bold transition-all duration-200 hover:scale-[1.02] shadow-lg whitespace-nowrap w-full sm:w-auto h-full min-h-[56px]"
                     style={{ height: '100%' }}
                 >
                     <span className="mr-3 text-2xl">+</span>
@@ -952,7 +956,7 @@ export default function IncomingDvs() {
                               {sortedDvs.length > 0 ? (
                                 sortedDvs.map((dv) => renderDvCard(dv))
                               ) : (
-                                <p className="text-gray-500 text-center py-4">No disbursement vouchers available. All DV activities will appear here in chronological order.</p>
+                                <p className="text-white/70 text-center py-4">No disbursement vouchers available. All DV activities will appear here in chronological order.</p>
                               )}
                             </div>
                           </div>
@@ -963,16 +967,16 @@ export default function IncomingDvs() {
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-red-600' : 'text-black'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-white'}`}
           style={{ background: 'none', boxShadow: 'none', border: 'none' }}
           onClick={() => setForReviewSection('for_review')}
         >
           <span className="mr-2">🔄</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-600' : 'text-black'}`}>For Review</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-600 text-white' : 'bg-transparent text-red-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-white'}`}>For Review</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-500/80 text-white' : 'bg-white/20 text-red-400'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_rts_in' ? 'text-red-600' : 'text-black'}`}
+          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_rts_in' ? 'text-red-400' : 'text-white'}`}
           style={{ background: 'none', boxShadow: 'none', border: 'none' }}
           onClick={() => setForReviewSection('for_rts_in')}
         >
@@ -1015,29 +1019,29 @@ export default function IncomingDvs() {
                         )}
                         {activeTab === 'for_rts_in' && (
                           <>
-<div className="bg-green-100 rounded-xl shadow-md">
+<div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-blue-700 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
-                                <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length}</span>
+                                <h3 className="text-xl font-bold text-white flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
+                                <span className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length}</span>
                               </div>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length > 0 ? (
                                   sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers are under review at the moment. Check back later.</p>
+                                  <p className="text-white/70 text-center py-4">No disbursement vouchers are under review at the moment. Check back later.</p>
                                 )}
                               </div>
                             </div>
-<div className="bg-green-100 rounded-xl shadow-md">
+<div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-blue-700 flex items-center"><span className="mr-2">📦</span>Under For Box C Certification</h3>
-                                <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length}</span>
+                                <h3 className="text-xl font-bold text-white flex items-center"><span className="mr-2">📦</span>Under For Box C Certification</h3>
+                                <span className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length}</span>
                               </div>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length > 0 ? (
                                   sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
+                                  <p className="text-white/70 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
                                 )}
                               </div>
                             </div>
@@ -1045,29 +1049,29 @@ export default function IncomingDvs() {
                         )}
                         {activeTab === 'for_norsa_in' && (
                           <>
-<div className="bg-green-100 rounded-xl shadow-md">
+<div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-blue-700 flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
-                                <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length}</span>
+                                <h3 className="text-xl font-bold text-white flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
+                                <span className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length}</span>
                               </div>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length > 0 ? (
                                   sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers are under review at the moment. Check back later.</p>
+                                  <p className="text-white/70 text-center py-4">No disbursement vouchers are under review at the moment. Check back later.</p>
                                 )}
                               </div>
                             </div>
-<div className="bg-green-100 rounded-xl shadow-md">
+<div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md">
                               <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold text-blue-700 flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
-                                <span className="bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length}</span>
+                                <h3 className="text-xl font-bold text-white flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
+                                <span className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length}</span>
                               </div>
                               <div className="space-y-4">
                                 {sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length > 0 ? (
                                   sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').map((dv) => renderDvCard(dv))
                                 ) : (
-                                  <p className="text-gray-500 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
+                                  <p className="text-white/70 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
                                 )}
                               </div>
                             </div>

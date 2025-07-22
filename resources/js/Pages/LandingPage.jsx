@@ -5,7 +5,20 @@ export default function LandingPage() {
     const user = usePage().props.auth.user;
 
     return (
-        <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black overflow-hidden">
+        <>
+            <style>
+                {`
+                    @keyframes glow {
+                        from {
+                            filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 60px rgba(255, 255, 255, 0.4));
+                        }
+                        to {
+                            filter: drop-shadow(0 0 30px rgba(255, 255, 255, 1)) drop-shadow(0 0 60px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 80px rgba(255, 255, 255, 0.6));
+                        }
+                    }
+                `}
+            </style>
+            <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black overflow-hidden">
             {/* Animated Background */}
             <AnimatedBackground />
             
@@ -229,6 +242,10 @@ export default function LandingPage() {
                                 src="/APPLOGO.png" 
                                 alt="DA App Logo" 
                                 className="w-58 h-58 object-contain hover:scale-105 transition-transform duration-500 drop-shadow-lg"
+                                style={{
+                                    filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 40px rgba(255, 255, 255, 0.6)) drop-shadow(0 0 60px rgba(255, 255, 255, 0.4))',
+                                    animation: 'glow 2s ease-in-out infinite alternate'
+                                }}
                             />
                         </div>
                         
@@ -447,5 +464,6 @@ export default function LandingPage() {
                 </div>  
             </footer>
         </div>
+        </>
     );
 }
