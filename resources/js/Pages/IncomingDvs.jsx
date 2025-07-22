@@ -618,11 +618,15 @@ export default function IncomingDvs() {
       return (
         <div
           key={dv.id}
-          className="bg-white/20 backdrop-blur-md border border-white/30 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex flex-row min-h-[56px] hover:bg-white/30"
+          className="bg-white/25 backdrop-blur-lg border border-white/40 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-row min-h-[56px] hover:bg-white/35 relative overflow-hidden group"
           onClick={() => handleDvClick(dv)}
         >
+          {/* Glassy highlight overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+          <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent"></div>
           {/* Main content */}
-          <div className="flex-1 p-2 md:p-3 flex flex-col justify-center">
+          <div className="flex-1 p-2 md:p-3 flex flex-col justify-center relative z-10">
             <h3 className="font-semibold text-white text-base md:text-lg mb-0.5 truncate">
               {dv.payee}
             </h3>
@@ -764,7 +768,10 @@ export default function IncomingDvs() {
                 <div className="flex">
                     {/* Mobile toggle for sidebar */}
                     {isMobile && (
-                        <div className="lg:hidden p-4 bg-white/20 backdrop-blur-md border border-white/30 shadow-md">
+                        <div className="lg:hidden p-4 bg-white/25 backdrop-blur-lg border border-white/40 shadow-lg rounded-xl relative overflow-hidden">
+                            {/* Glassy highlight */}
+                            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                            <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent"></div>
                             <button 
                                 className="w-full bg-green-600/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg flex items-center justify-center transition-all duration-200 hover:bg-green-700/90"
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -782,10 +789,14 @@ export default function IncomingDvs() {
                                 ? `fixed top-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} w-80 z-50 transition-transform duration-300 shadow-lg`
                                 : 'w-64 flex-shrink-0 sidebar-fixed'
                             } 
-                            bg-white/20 backdrop-blur-md border border-white/30 overflow-y-auto pb-4
+                            bg-white/25 backdrop-blur-lg border border-white/40 overflow-y-auto pb-4 relative
                         `} 
                         style={isMobile ? { height: 'auto', maxHeight: 'fit-content' } : { minHeight: 'auto', maxHeight: 'fit-content' }}
                     >
+                        {/* Glassy highlight overlays for sidebar */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none"></div>
+                        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                        <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent"></div>
                         {/* Mobile overlay */}
                         {isMobile && sidebarOpen && (
                             <div 
@@ -899,7 +910,7 @@ export default function IncomingDvs() {
                         placeholder="Search by DV No., Payee, Transaction Type, Account No., or Particulars..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-4 border border-white/30 bg-white/20 backdrop-blur-md rounded-lg focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-400/50 text-base transition-all duration-200 h-full min-h-[56px] text-white placeholder-white/70"
+                        className="w-full pl-12 pr-4 py-4 border border-white/40 bg-white/25 backdrop-blur-lg rounded-xl focus:outline-none focus:border-green-400 focus:ring-2 focus:ring-green-400/50 text-base transition-all duration-300 h-full min-h-[56px] text-white placeholder-white/70 shadow-lg hover:bg-white/30"
                     />
                     <svg 
                         className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70" 
@@ -1014,7 +1025,12 @@ export default function IncomingDvs() {
                         )}
                         {activeTab === 'for_rts_in' && (
                           <>
-<div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md">
+<div className="bg-white/25 backdrop-blur-lg border border-white/40 rounded-xl shadow-lg relative overflow-hidden mb-6">
+                              {/* Glassy highlights */}
+                              <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none"></div>
+                              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                              <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent"></div>
+                              <div className="relative z-10 p-4">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-white flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
                                 <span className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.rts_origin || dv.rts_origin === 'review').length}</span>
@@ -1027,7 +1043,13 @@ export default function IncomingDvs() {
                                 )}
                               </div>
                             </div>
-<div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md">
+                            </div>
+<div className="bg-white/25 backdrop-blur-lg border border-white/40 rounded-xl shadow-lg relative overflow-hidden mb-6">
+                              {/* Glassy highlights */}
+                              <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none"></div>
+                              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                              <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent"></div>
+                              <div className="relative z-10 p-4">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-white flex items-center"><span className="mr-2">📦</span>Under For Box C Certification</h3>
                                 <span className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.rts_origin === 'cash_allocation').length}</span>
@@ -1040,11 +1062,17 @@ export default function IncomingDvs() {
                                 )}
                               </div>
                             </div>
+                            </div>
                           </>
                         )}
                         {activeTab === 'for_norsa_in' && (
                           <>
-<div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md">
+<div className="bg-white/25 backdrop-blur-lg border border-white/40 rounded-xl shadow-lg relative overflow-hidden mb-6">
+                              {/* Glassy highlights */}
+                              <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none"></div>
+                              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                              <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent"></div>
+                              <div className="relative z-10 p-4">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-white flex items-center"><span className="mr-2">🔄</span>Under For Review</h3>
                                 <span className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => !dv.norsa_origin || dv.norsa_origin === 'review').length}</span>
@@ -1057,7 +1085,13 @@ export default function IncomingDvs() {
                                 )}
                               </div>
                             </div>
-<div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-xl shadow-md">
+                            </div>
+<div className="bg-white/25 backdrop-blur-lg border border-white/40 rounded-xl shadow-lg relative overflow-hidden mb-6">
+                              {/* Glassy highlights */}
+                              <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none"></div>
+                              <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                              <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-transparent to-transparent"></div>
+                              <div className="relative z-10 p-4">
                               <div className="flex items-center justify-between mb-4">
                                 <h3 className="text-xl font-bold text-white flex items-center"><span className="mr-2">📋</span>Under For Box C Certification</h3>
                                 <span className="bg-blue-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">{sortedDvs.filter(dv => dv.norsa_origin === 'cash_allocation').length}</span>
@@ -1069,6 +1103,7 @@ export default function IncomingDvs() {
                                   <p className="text-white/70 text-center py-4">No disbursement vouchers are pending Box C certification. You're up to date.</p>
                                 )}
                               </div>
+                            </div>
                             </div>
                           </>
                         )}
