@@ -173,7 +173,7 @@ export default function LandingPage() {
                         />
                         <Link 
                             href="/incoming-dvs"
-                            className="text-2xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors duration-200 cursor-pointer"
+                            className="text-3xl font-bold text-yellow-400 hover:text-yellow-300 transition-colors duration-200 cursor-pointer"
                             style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}
                         >
                             Accounting Monitoring and Tracking System
@@ -233,7 +233,7 @@ export default function LandingPage() {
                             />
                         </div>
                         
-                        <h2 className="text-3xl font-bold mb-3 animate-fade-in text-white drop-shadow-lg">
+                        <h2 className="text-8xl font-bold mb-3 animate-fade-in text-white drop-shadow-lg">
                             Hello, <span className="text-yellow-400 hover:text-yellow-300 transition-colors duration-300 cursor-default drop-shadow-lg">{user?.first_name || user?.name || 'User'}</span>!
                         </h2>
                         
@@ -248,64 +248,80 @@ export default function LandingPage() {
                         {/* Incoming DVs Card */}
                         <Link
                             href={route('incoming-dvs')}
-                            className="group bg-white/90 backdrop-blur-sm aurora-green-glow rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-6 text-center border border-gray-200 hover:border-green-300 cursor-pointer hover:bg-green-50/80 aurora-border"
+                            className="group bg-white/20 backdrop-blur-6xl rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 p-6 text-center border border-white/30 hover:border-green-400/50 cursor-pointer hover:bg-white/30 relative overflow-hidden"
                         >
-                            <div className="bg-green-600 rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center group-hover:bg-green-700 transition-all duration-300 group-hover:scale-110 transform group-hover:rotate-3">
-                                <svg className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
-                                </svg>
+                            {/* Glass effect overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent rounded-2xl"></div>
+                            <div className="relative z-10">
+                                <div className="bg-green-600/80 backdrop-blur-sm rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center group-hover:bg-green-500/90 transition-all duration-300 group-hover:scale-110 transform group-hover:rotate-3 shadow-lg">
+                                    <svg className="w-8 h-8 text-white group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 11-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-base font-bold text-white group-hover:text-green-300 transition-colors duration-300 drop-shadow-lg">
+                                    Incoming DVs
+                                </h3>
+                                <p className="text-xs text-gray-200 mt-1 group-hover:text-green-200 transition-colors duration-300 drop-shadow-md">
+                                    Track and manage disbursement vouchers
+                                </p>
                             </div>
-                            <h3 className="text-base font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-300">
-                                Incoming DVs
-                            </h3>
-                            <p className="text-xs text-gray-500 mt-1 group-hover:text-green-600 transition-colors duration-300">
-                                Track and manage disbursement vouchers
-                            </p>
                         </Link>
 
                         {/* POs, JOs, MOAs, Contracts Card */}
-                        <div className="group bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-200 opacity-60 cursor-not-allowed hover:opacity-70 transition-opacity duration-300">
-                            <div className="bg-gray-400 rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center">
-                                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                                </svg>
+                        <div className="group bg-white/10 backdrop-blur-3xl rounded-2xl shadow-lg p-6 text-center border border-white/20 opacity-60 cursor-not-allowed hover:opacity-80 transition-all duration-300 relative overflow-hidden">
+                            {/* Glass effect overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl"></div>
+                            <div className="relative z-10">
+                                <div className="bg-gray-500/60 backdrop-blur-sm rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center shadow-lg">
+                                    <svg className="w-8 h-8 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-base font-bold text-white/80 drop-shadow-lg">
+                                    POs, JOs, MOAs, Contracts
+                                </h3>
+                                <p className="text-xs text-gray-300/80 mt-1 drop-shadow-md">
+                                    Coming soon
+                                </p>
                             </div>
-                            <h3 className="text-base font-bold text-gray-600">
-                                POs, JOs, MOAs, Contracts
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-1">
-                                Coming soon
-                            </p>
                         </div>
 
                         {/* Other Documents Card */}
-                        <div className="group bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-200 opacity-60 cursor-not-allowed hover:opacity-70 transition-opacity duration-300">
-                            <div className="bg-gray-400 rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center">
-                                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                                </svg>
+                        <div className="group bg-white/10 backdrop-blur-3xl rounded-2xl shadow-lg p-6 text-center border border-white/20 opacity-60 cursor-not-allowed hover:opacity-80 transition-all duration-300 relative overflow-hidden">
+                            {/* Glass effect overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl"></div>
+                            <div className="relative z-10">
+                                <div className="bg-gray-500/60 backdrop-blur-sm rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center shadow-lg">
+                                    <svg className="w-8 h-8 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-base font-bold text-white/80 drop-shadow-lg">
+                                    Other Documents
+                                </h3>
+                                <p className="text-xs text-gray-300/80 mt-1 drop-shadow-md">
+                                    Coming soon
+                                </p>
                             </div>
-                            <h3 className="text-base font-bold text-gray-600">
-                                Other Documents
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-1">
-                                Coming soon
-                            </p>
                         </div>
 
                         {/* Reports Card */}
-                        <div className="group bg-white rounded-2xl shadow-lg p-6 text-center border border-gray-200 opacity-60 cursor-not-allowed hover:opacity-70 transition-opacity duration-300">
-                            <div className="bg-gray-400 rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center">
-                                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-                                </svg>
+                        <div className="group bg-white/10 backdrop-blur-3xl rounded-2xl shadow-lg p-6 text-center border border-white/20 opacity-60 cursor-not-allowed hover:opacity-80 transition-all duration-300 relative overflow-hidden">
+                            {/* Glass effect overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl"></div>
+                            <div className="relative z-10">
+                                <div className="bg-gray-500/60 backdrop-blur-sm rounded-2xl p-4 mx-auto mb-4 w-16 h-16 flex items-center justify-center shadow-lg">
+                                    <svg className="w-8 h-8 text-white/80" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-base font-bold text-white/80 drop-shadow-lg">
+                                    Reports
+                                </h3>
+                                <p className="text-xs text-gray-300/80 mt-1 drop-shadow-md">
+                                    Coming soon
+                                </p>
                             </div>
-                            <h3 className="text-base font-bold text-gray-600">
-                                Reports
-                            </h3>
-                            <p className="text-xs text-gray-400 mt-1">
-                                Coming soon
-                            </p>
                         </div>
                     </div>
 
