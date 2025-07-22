@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import ImageCropper from '@/Components/ImageCropper';
+import AnimatedBackground from '@/Components/AnimatedBackground';
 
 export default function Profile() {
     const { auth } = usePage().props;
@@ -79,11 +80,9 @@ export default function Profile() {
     };
 
     return (
-            <div className="min-h-screen aurora-background">
-                {/* Aurora overlay effects */}
-                <div className="aurora-waves"></div>
-                <div className="aurora-overlay"></div>
-                <div className="aurora-particles"></div>
+            <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+                {/* Animated Background */}
+                <AnimatedBackground />
                 
                 {/* Fixed Header with aurora styling - Always visible while scrolling */}
                 <div className="bg-green-700/90 backdrop-blur-sm text-white p-4 flex items-center justify-between shadow-xl header-fixed relative z-50">

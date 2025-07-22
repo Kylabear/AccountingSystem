@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
+import AnimatedBackground from '../Components/AnimatedBackground';
 import DvDetailsModal from '../Components/DvDetailsModal';
     // Handler to update DV status using PUT
     const handleStatusUpdate = (dvId, newStatus, extraData = {}) => {
@@ -271,7 +272,9 @@ export default function IncomingDvs() {
     };
 
     return (
-        <div className="min-h-screen aurora-background">
+        <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+            {/* Animated Background */}
+            <AnimatedBackground />
             {/* Fixed Header - Simple design with backdrop blur */}
             <div className="bg-green-700/90 backdrop-blur-sm text-white p-4 flex items-center justify-between header-fixed shadow-lg relative z-50">
                 <div className="flex items-center">

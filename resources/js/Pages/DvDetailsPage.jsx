@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
+import AnimatedBackground from '../Components/AnimatedBackground';
 
 export default function DvDetailsPage({ dv }) {
     const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
@@ -110,9 +111,12 @@ export default function DvDetailsPage({ dv }) {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+            {/* Animated Background */}
+            <AnimatedBackground />
+            
             {/* Sticky Header */}
-            <div className="bg-green-700 text-white p-4 sticky top-0 z-10">
+            <div className="bg-green-700/90 backdrop-blur-sm text-white p-4 sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center">
                         <img 
@@ -129,7 +133,7 @@ export default function DvDetailsPage({ dv }) {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto p-6">
+            <div className="max-w-7xl mx-auto p-6 relative z-20">
                 {/* Back button */}
                 <div className="mb-6">
                     <Link 

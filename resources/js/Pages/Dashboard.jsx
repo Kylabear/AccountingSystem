@@ -1,4 +1,5 @@
 import { Head, usePage, Link } from '@inertiajs/react';
+import AnimatedBackground from '../Components/AnimatedBackground';
 
 export default function Dashboard() {
     const { props } = usePage();
@@ -59,14 +60,12 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Scrollable Content Area - Positioned below fixed header with aurora background */}
-            <div className="min-h-screen aurora-background content-with-header">
-                {/* Aurora overlay effects */}
-                <div className="aurora-waves"></div>
-                <div className="aurora-overlay"></div>
-                <div className="aurora-particles"></div>
+            {/* Scrollable Content Area - Positioned below fixed header with animated background */}
+            <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black content-with-header">
+                {/* Animated Background */}
+                <AnimatedBackground />
                 
-                <div className="py-12 relative z-10">
+                <div className="py-12 relative z-20">
                     <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                         <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                             <div className="p-6 text-gray-900">

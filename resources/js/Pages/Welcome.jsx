@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import AnimatedBackground from '../Components/AnimatedBackground';
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
     const handleImageError = () => {
@@ -15,7 +16,10 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
     return (
         <>
             <Head title="Welcome" />
-            <div className="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
+            <div className="relative min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+                {/* Animated Background */}
+                <AnimatedBackground />
+                
                 <img
                     id="background"
                     className="absolute -left-20 top-0 max-w-[877px]"

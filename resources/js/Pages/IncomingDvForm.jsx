@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useForm } from '@inertiajs/react';
+import React, { useState, useEffect } from 'react';
+import { useForm, Link } from '@inertiajs/react';
 import ComboBox from '../Components/ComboBox';
+import AnimatedBackground from '../Components/AnimatedBackground';
 
 const typeOptions = [
   'Professional/General/Job Order Services',
@@ -394,20 +395,18 @@ export default function IncomingDvForm() {
         </div>
       </div>
 
-      {/* Scrollable Content Area with Aurora Background */}
-      <div className="min-h-screen aurora-background content-with-header">
-        {/* Aurora overlay effects */}
-        <div className="aurora-waves"></div>
-        <div className="aurora-overlay"></div>
-        <div className="aurora-particles"></div>
+      {/* Scrollable Content Area with Animated Background */}
+      <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black content-with-header">
+        {/* Animated Background */}
+        <AnimatedBackground />
 
         {/* Background pattern overlay */}
-        <div className="absolute inset-0 opacity-5 bg-repeat pointer-events-none z-10" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        <div className="absolute inset-0 opacity-5 bg-repeat pointer-events-none z-30" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
         }}></div>
 
         {/* Main content area with proper z-index */}
-        <div className="relative max-w-7xl mx-auto p-8 z-20">
+        <div className="relative max-w-7xl mx-auto p-8 z-40">
           {/* Page title with animation */}
           <div className="text-center mb-8 animate-fade-in">
             <h2 className="text-3xl font-bold text-green-800 mb-2 hover:text-green-700 transition-colors duration-300 cursor-default">

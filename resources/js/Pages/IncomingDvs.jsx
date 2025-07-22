@@ -11,6 +11,7 @@ import LddapModal from '../Components/LddapModal';
 import EditDvModal from '../Components/EditDvModal';
 import DownloadModal from '../Components/DownloadModal';
 import ProcessedDvModal from '../Components/ProcessedDvModal';
+import AnimatedBackground from '../Components/AnimatedBackground';
 
 
 const statuses = [
@@ -715,9 +716,12 @@ export default function IncomingDvs() {
       ? sortedDvs.filter(dv => dv.status === 'out_to_cashiering')
       : [];
     return (
-        <div className="min-h-screen aurora-background">
+        <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+            {/* Animated Background */}
+            <AnimatedBackground />
+            
             {/* Fixed Header - Simple design */}
-            <div className="bg-green-700 text-white p-4 flex items-center justify-between header-fixed shadow-lg">
+            <div className="bg-green-700/90 backdrop-blur-sm text-white p-4 flex items-center justify-between header-fixed shadow-lg relative z-50">
                 <div className="flex items-center">
                     <Link 
                         href="/"

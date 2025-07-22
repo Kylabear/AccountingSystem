@@ -1,12 +1,16 @@
 import { Link, usePage } from '@inertiajs/react';
+import AnimatedBackground from '../Components/AnimatedBackground';
 
 export default function LandingPage() {
     const user = usePage().props.auth.user;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-50 to-green-100 relative overflow-hidden">
+        <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black overflow-hidden">
+            {/* Animated Background */}
+            <AnimatedBackground />
+            
             {/* Animated Accounting Icons - scattered around the page */}
-            <div className="fixed inset-0 pointer-events-none z-10 opacity-10">
+            <div className="fixed inset-0 pointer-events-none z-20 opacity-10">
                 {/* Top-left: Calculator icon */}
                 <div className="absolute" style={{
                     left: '12%',
@@ -210,19 +214,14 @@ export default function LandingPage() {
                 </div>
             </div>
 
-            {/* Main content area with aurora background pattern */}
-            <div className="relative aurora-background min-h-screen content-with-header bg-gradient-to-br from-blue-200/20 via-purple-200/15 to-green-200/25">
-                {/* Aurora overlay effects */}
-                <div className="aurora-waves bg-gradient-to-r from-blue-400/30 via-purple-400/20 to-green-400/30"></div>
-                <div className="aurora-overlay bg-gradient-to-br from-cyan-300/20 via-indigo-300/15 to-emerald-300/25"></div>
-                <div className="aurora-particles"></div>
-                
+            {/* Main content area with animated background pattern */}
+            <div className="relative min-h-screen content-with-header">                
                 {/* Background pattern overlay */}
-                <div className="absolute inset-0 opacity-10 bg-repeat z-10" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                <div className="absolute inset-0 opacity-10 bg-repeat z-30" style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
                 }}></div>
 
-                <div className="relative z-20 max-w-6xl mx-auto px-8 py-8">
+                <div className="relative z-40 max-w-6xl mx-auto px-8 py-8">
                     {/* Welcome section with APP logo and greeting */}
                     <div className="text-center mb-8">
                         <div className="inline-flex items-center justify-center mb-2">

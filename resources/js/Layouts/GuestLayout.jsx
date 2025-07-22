@@ -1,13 +1,12 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import AnimatedBackground from '@/Components/AnimatedBackground';
 import { Link } from '@inertiajs/react';
 
 export default function GuestLayout({ children, backgroundImage = null }) {
     return (
-        <div className="min-h-screen flex aurora-background">
-            {/* Aurora overlay effects */}
-            <div className="aurora-waves"></div>
-            <div className="aurora-overlay"></div>
-            <div className="aurora-particles"></div>
+        <div className="min-h-screen flex relative bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+            {/* Animated Background */}
+            <AnimatedBackground />
             
             {/* Left Panel - Enhanced with aurora effects */}
             <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden group z-10">

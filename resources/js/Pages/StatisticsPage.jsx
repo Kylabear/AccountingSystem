@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import AnimatedBackground from '../Components/AnimatedBackground';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -301,9 +302,12 @@ export default function StatisticsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-100 via-green-50 to-blue-50 relative overflow-hidden">
+        <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black overflow-hidden">
+            {/* Animated Background */}
+            <AnimatedBackground />
+            
             {/* Floating background elements - analytics themed */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
                 {/* Chart icons */}
                 <div className="absolute top-20 left-10 text-green-300 opacity-10 animate-float">
                     <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">

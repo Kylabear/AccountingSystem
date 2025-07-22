@@ -2,6 +2,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
+import AnimatedBackground from '@/Components/AnimatedBackground';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -12,11 +13,9 @@ export default function AuthenticatedLayout({ header, children }) {
         useState(false);
 
     return (
-        <div className="min-h-screen aurora-background">
-            {/* Aurora overlay effects */}
-            <div className="aurora-waves"></div>
-            <div className="aurora-overlay"></div>
-            <div className="aurora-particles"></div>
+        <div className="min-h-screen relative bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+            {/* Animated Background */}
+            <AnimatedBackground />
             
             <nav className="border-b border-gray-100 bg-white/90 backdrop-blur-sm relative z-50">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
