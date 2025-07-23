@@ -1,6 +1,7 @@
 
 // ...existing code...
 import { useState, useEffect } from 'react';
+import NorsaInputForm from './NorsaInputForm';
 
 export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStatusUpdate }) {
   // Early return if dv is null or undefined to prevent errors
@@ -8,13 +9,14 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
     return null;
   }
 
-  // Use the original DV data without any mock injection
   let dv = originalDv;
   const [activeAction, setActiveAction] = useState(null);
   const [rtsReason, setRtsReason] = useState('');
   const [rtsDate, setRtsDate] = useState('');
   const [norsaNumber, setNorsaNumber] = useState('');
   const [norsaError, setNorsaError] = useState('');
+  const [showNorsaForm, setShowNorsaForm] = useState(false);
+  const [processing, setProcessing] = useState(false);
   // LLDAP payment modal state
   const [lldapNumber, setLldapNumber] = useState('');
   const [lldapError, setLldapError] = useState('');
@@ -429,6 +431,46 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       onClose();
       setActiveAction(null);
       setIndexingDate('');
+    }
+  };
+
+  const handleNorsaSubmit = async (norsaNumber) => {
+    try {
+      // Validate NORSA number format first
+      const norsaPattern = /^\d{4}-\d{2}-\d{4}$/;
+      if (!norsaPattern.test(norsaNumber)) {
+        alert('Invalid NORSA number format. Must be YYYY-MM-NNNN');
+        return;
+      }
+
+      // Parse and validate year and month
+      const [year, month] = norsaNumber.split('-');
+      const yearNum = parseInt(year);
+      const monthNum = parseInt(month);
+      const currentYear = new Date().getFullYear();
+
+      if (yearNum < 2020 || yearNum > currentYear + 1) {
+        alert(`Year must be between 2020 and ${currentYear + 1}`);
+        return;
+      }
+
+      if (monthNum < 1 || monthNum > 12) {
+        alert('Month must be between 01 and 12');
+        return;
+      }
+
+      setProcessing(true);
+      onStatusUpdate(dv.id, 'for_review', {
+        norsa_number: norsaNumber,
+        norsa_in_date: new Date().toISOString().split('T')[0]
+      });
+      setShowNorsaForm(false);
+      onClose();
+    } catch (error) {
+      console.error('Error:', error);
+      alert(error.message || 'An error occurred while processing your request');
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -2004,6 +2046,68 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     </button>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* For NORSA In Actions - Show NORSA form and 'Returned After NORSA' button */}
+            {dv.status === 'for_norsa_in' && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4 text-purple-800">For NORSA In</h3>
+                
+                {showNorsaForm ? (
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h4 className="font-semibold text-purple-800">NORSA Entry</h4>
+                      <button
+                        onClick={() => setShowNorsaForm(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <NorsaInputForm 
+                      onSubmit={handleNorsaSubmit}
+                      onCancel={() => setShowNorsaForm(false)}
+                    />
+                  </div>
+                ) : (
+                  <div className="mb-6 p-4 border-2 border-purple-200 rounded-lg bg-purple-50">
+                    <h4 className="font-semibold text-purple-800 mb-3">Current NORSA In Details</h4>
+                    {dv.norsa_number && (
+                      <div className="bg-white p-4 rounded border mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Number:</span>
+                            <p>{dv.norsa_number}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Date of NORSA Out:</span>
+                            <p>{dv.norsa_out_date ? new Date(dv.norsa_out_date).toLocaleDateString() : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Date Returned After NORSA:</span>
+                            <p>{dv.norsa_in_date ? new Date(dv.norsa_in_date).toLocaleDateString() : 'Pending'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex gap-2 mt-4 items-center">
+                      <button
+                        onClick={() => {
+                          if (confirm('Return this DV after NORSA?')) {
+                            onStatusUpdate(dv.id, 'for_review', {
+                              norsa_returned_date: new Date().toISOString().split('T')[0]
+                            });
+                            onClose();
+                          }
+                        }}
+                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        Returned After NORSA
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
