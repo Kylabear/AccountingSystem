@@ -12,6 +12,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   let dv = originalDv;
   const [activeAction, setActiveAction] = useState(null);
   const [rtsReason, setRtsReason] = useState('');
+  const [rtsGeneralReason, setRtsGeneralReason] = useState('');
   const [rtsDate, setRtsDate] = useState('');
   const [norsaNumber, setNorsaNumber] = useState('');
   const [norsaError, setNorsaError] = useState('');
@@ -21,6 +22,21 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   // LLDAP payment modal state
   const [lldapNumber, setLldapNumber] = useState('');
   const [lldapError, setLldapError] = useState('');
+
+  // RTS predefined reasons
+  const [predefinedRtsReasons, setPredefinedRtsReasons] = useState([
+    'Incomplete Documents',
+    'Incorrect Amount',
+    'Missing Signature',
+    'Invalid Supporting Documents',
+    'Budget Allocation Issue',
+    'Payee Information Error',
+    'Account Number Mismatch',
+    'Duplicate Entry',
+    'Other'
+  ]);
+  const [showCustomReasonInput, setShowCustomReasonInput] = useState(false);
+  const [customGeneralReason, setCustomGeneralReason] = useState('');
 
   // Helper function to determine which sections to show based on workflow progression
   const getVisibleSections = (dvStatus) => {
@@ -1506,24 +1522,89 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Reason for RTS</label>
-                        <textarea
-                          value={rtsReason}
-                          onChange={(e) => setRtsReason(e.target.value)}
-                          placeholder="Enter reason for returning to sender..."
-                          className="w-full border border-gray-300 rounded-lg p-2 h-20 focus:border-orange-500 focus:outline-none resize-none"
+                        <label className="block text-sm font-medium text-gray-700 mb-1">General Reason of RTS</label>
+                        <select
+                          value={rtsGeneralReason}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setRtsGeneralReason(value);
+                            if (value === 'Other') {
+                              setShowCustomReasonInput(true);
+                            } else {
+                              setShowCustomReasonInput(false);
+                              setCustomGeneralReason('');
+                            }
+                          }}
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none"
                           required
-                        />
+                        >
+                          <option value="">Select a reason...</option>
+                          {predefinedRtsReasons.map((reason, index) => (
+                            <option key={index} value={reason}>
+                              {reason}
+                            </option>
+                          ))}
+                        </select>
                       </div>
+                      {showCustomReasonInput && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Custom General Reason</label>
+                          <input
+                            type="text"
+                            value={customGeneralReason}
+                            onChange={(e) => setCustomGeneralReason(e.target.value)}
+                            placeholder="Enter custom general reason..."
+                            className="w-full border border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none"
+                            required
+                          />
+                        </div>
+                      )}
+                      {rtsGeneralReason && (rtsGeneralReason !== 'Other' || customGeneralReason.trim()) && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Notes (full details of RTS)</label>
+                          <textarea
+                            value={rtsReason}
+                            onChange={(e) => setRtsReason(e.target.value)}
+                            placeholder="Enter detailed notes about the RTS..."
+                            className="w-full border border-gray-300 rounded-lg p-2 h-20 focus:border-orange-500 focus:outline-none resize-none"
+                            required
+                          />
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <button
-                          onClick={handleRTS}
-                          className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                          onClick={() => {
+                            // Save custom reason to predefined list if it's new
+                            if (rtsGeneralReason === 'Other' && customGeneralReason.trim()) {
+                              const newReason = customGeneralReason.trim();
+                              if (!predefinedRtsReasons.includes(newReason)) {
+                                setPredefinedRtsReasons(prev => {
+                                  const newList = [...prev.slice(0, -1), newReason, 'Other'];
+                                  return newList;
+                                });
+                              }
+                            }
+                            handleRTS();
+                          }}
+                          disabled={
+                            !rtsDate || 
+                            !rtsGeneralReason || 
+                            (rtsGeneralReason === 'Other' && !customGeneralReason.trim()) || 
+                            !rtsReason.trim()
+                          }
+                          className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
                         >
                           Confirm RTS
                         </button>
                         <button
-                          onClick={() => setActiveAction(null)}
+                          onClick={() => {
+                            setActiveAction(null);
+                            setRtsGeneralReason('');
+                            setCustomGeneralReason('');
+                            setShowCustomReasonInput(false);
+                            setRtsReason('');
+                            setRtsDate('');
+                          }}
                           className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                         >
                           Cancel
