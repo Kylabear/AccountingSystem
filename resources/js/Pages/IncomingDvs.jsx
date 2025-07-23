@@ -656,7 +656,7 @@ export default function IncomingDvs() {
                     e.stopPropagation();
                     handleSendForApproval(dv);
                   }}
-                  className="bg-green-500 text-white px-2 py-0.5 rounded text-xs hover:bg-green-600 transition-colors duration-200"
+                  className="bg-green-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-green-600 transition-colors duration-200"
                 >
                   Out
                 </button>
@@ -667,7 +667,7 @@ export default function IncomingDvs() {
                     e.stopPropagation();
                     handleApprovalIn(dv);
                   }}
-                  className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                  className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-600 transition-colors duration-200"
                 >
                   In
                 </button>
@@ -678,7 +678,7 @@ export default function IncomingDvs() {
                   setSelectedDv(dv);
                   setIsEditModalOpen(true);
                 }}
-                className="bg-blue-500 text-white px-2 py-0.5 rounded text-xs hover:bg-blue-600 transition-colors duration-200"
+                className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-600 transition-colors duration-200"
               >
                 Edit
               </button>
@@ -941,10 +941,10 @@ export default function IncomingDvs() {
 {activeTab === 'recents' && (
 <div className="flex flex-col" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-600" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
+      <div className="flex items-center px-6 py-3 rounded-lg bg-white/30 backdrop-blur-md border border-white/60 shadow-xl w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-cyan-700">
           <span className="mr-2">🕐</span>Recents
-          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 bg-cyan-400 text-white">{sortedDvs.length}</span>
+          <span className="ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 bg-cyan-700 text-white">{sortedDvs.length}</span>
         </h3>
       </div>
     </div>
@@ -963,31 +963,28 @@ export default function IncomingDvs() {
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-red-400'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+          className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${forReviewSection === 'for_review' ? 'text-red-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
           onClick={() => setForReviewSection('for_review')}
         >
           <span className="mr-2">🔄</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-400' : 'text-red-400'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Review</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-500/80 text-white' : 'bg-white/20 text-red-400'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_review' ? 'text-red-700' : 'text-black'}`}>For Review</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_review' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_review').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_rts_in' ? 'text-red-400' : 'text-white'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+          className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${forReviewSection === 'for_rts_in' ? 'text-red-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
           onClick={() => setForReviewSection('for_rts_in')}
         >
           <span className="mr-2">📦</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-red-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For RTS In</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-600 text-white' : 'bg-transparent text-red-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-red-700' : 'text-black'}`}>For RTS In</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${forReviewSection === 'for_norsa_in' ? 'text-red-600' : 'text-black'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+          className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${forReviewSection === 'for_norsa_in' ? 'text-red-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
           onClick={() => setForReviewSection('for_norsa_in')}
         >
           <span className="mr-2">🌐</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-red-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For NORSA In</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-600 text-white' : 'bg-transparent text-red-600'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-red-700' : 'text-black'}`}>For NORSA In</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
         </button>
       </div>
     </div>
@@ -1109,15 +1106,14 @@ export default function IncomingDvs() {
                                   return (
                                     <button
                                       key={key}
-                                      className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-600' : 'text-black'} ${boxCHoveredButton !== null && boxCHoveredButton !== key ? 'opacity-20' : 'opacity-100'}`}
-                                      style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+                                      className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'} ${boxCHoveredButton !== null && boxCHoveredButton !== key ? 'opacity-20' : 'opacity-100'}`}
                                       onClick={() => setBoxCSection(key)}
                                       onMouseEnter={() => setBoxCHoveredButton(key)}
                                       onMouseLeave={() => setBoxCHoveredButton(null)}
                                     >
                                       <span className="mr-2">{icon}</span>
-                                      <span className={`transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>{label}</span>
-                                      <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'bg-yellow-400 text-white' : 'bg-transparent text-yellow-600'}`}>{count}</span>
+                                      <span className={`transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'text-yellow-700' : 'text-black'}`}>{label}</span>
+                                      <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${((boxCHoveredButton === key) || (boxCSection === key)) ? 'bg-yellow-700 text-white' : 'bg-transparent text-yellow-700'}`}>{count}</span>
                                     </button>
                                   );
                                 })}
@@ -1153,21 +1149,19 @@ export default function IncomingDvs() {
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4">
                                 <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${approvalSection === 'for_approval' ? 'text-gray-700' : 'text-black'}`}
-                                  style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+                                  className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${approvalSection === 'for_approval' ? 'text-gray-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
                                   onClick={() => setApprovalSection('for_approval')}
                                 >
                                   <span className="mr-2">✅</span>
-                                  <span className={`transition-colors duration-200 ${approvalSection === 'for_approval' ? 'text-gray-700' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Approval</span>
+                                  <span className={`transition-colors duration-200 ${approvalSection === 'for_approval' ? 'text-gray-700' : 'text-black'}`}>For Approval</span>
                                   <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${approvalSection === 'for_approval' ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-700'}`}>{sortedDvs.length}</span>
                                 </button>
                                 <button
-                                  className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${approvalSection === 'out_for_approval' ? 'text-gray-700' : 'text-black'}`}
-                                  style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+                                  className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${approvalSection === 'out_for_approval' ? 'text-gray-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
                                   onClick={() => setApprovalSection('out_for_approval')}
                                 >
                                   <span className="mr-2">📤</span>
-                                  <span className={`transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'text-gray-700' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>Out For Approval</span>
+                                  <span className={`transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'text-gray-700' : 'text-black'}`}>Out For Approval</span>
                                   <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${approvalSection === 'out_for_approval' ? 'bg-gray-700 text-white' : 'bg-transparent text-gray-700'}`}>{approvalOutDvs.length}</span>
                                 </button>
                               </div>
@@ -1196,8 +1190,8 @@ export default function IncomingDvs() {
 {activeTab === 'for_indexing' && (
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-blue-700" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
+      <div className="flex items-center px-6 py-3 rounded-lg bg-white/30 backdrop-blur-md border border-white/60 shadow-xl w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-blue-700">
           <span className="mr-2">📇</span>For Indexing
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_indexing' ? 'bg-blue-700 text-white' : 'bg-transparent text-blue-700'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1217,21 +1211,19 @@ export default function IncomingDvs() {
     <div className="flex items-center justify-between mb-4 flex-shrink-0">
       <div className="flex space-x-4">
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+          className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${paymentSection === 'for_payment' ? 'text-purple-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
           onClick={() => setPaymentSection('for_payment')}
         >
           <span className="mr-2">💳</span>
-          <span className={`transition-colors duration-200 ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Mode of Payment</span>
+          <span className={`transition-colors duration-200 ${paymentSection === 'for_payment' ? 'text-purple-700' : 'text-black'}`}>For Mode of Payment</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'for_payment' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{dvs.filter(dv => dv.status === 'for_payment' || dv.status === 'for_mode_of_payment').length}</span>
         </button>
         <button
-          className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}
-          style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+          className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${paymentSection === 'out_to_cashiering' ? 'text-purple-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
           onClick={() => setPaymentSection('out_to_cashiering')}
         >
           <span className="mr-2">💵</span>
-          <span className={`transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>Out for Cashiering</span>
+          <span className={`transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'text-purple-700' : 'text-black'}`}>Out for Cashiering</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${paymentSection === 'out_to_cashiering' ? 'bg-purple-700 text-white' : 'bg-transparent text-purple-700'}`}>{dvs.filter(dv => dv.status === 'out_to_cashiering').length}</span>
         </button>
       </div>
@@ -1281,8 +1273,8 @@ export default function IncomingDvs() {
 {activeTab === 'for_engas' && (
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-pink-700" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
+      <div className="flex items-center px-6 py-3 rounded-lg bg-white/30 backdrop-blur-md border border-white/60 shadow-xl w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-pink-700">
           <span className="mr-2">🌐</span>For E-NGAS Recording
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_engas' ? 'bg-pink-700 text-white' : 'bg-transparent text-pink-700'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1300,8 +1292,8 @@ export default function IncomingDvs() {
 {activeTab === 'for_cdj' && (
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-orange-600" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
+      <div className="flex items-center px-6 py-3 rounded-lg bg-white/30 backdrop-blur-md border border-white/60 shadow-xl w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-orange-600">
           <span className="mr-2">📊</span>For CDJ Recording
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_cdj' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1319,8 +1311,8 @@ export default function IncomingDvs() {
 {activeTab === 'for_lddap' && (
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-black" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
+      <div className="flex items-center px-6 py-3 rounded-lg bg-white/30 backdrop-blur-md border border-white/60 shadow-xl w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-black">
           <span className="mr-2">🔒</span>For LDDAP Preparation
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'for_lddap' ? 'bg-black text-white' : 'bg-transparent text-black'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1338,8 +1330,8 @@ export default function IncomingDvs() {
 {activeTab === 'processed' && (
 <div className="flex flex-col flex-1" style={{ minHeight: '400px', maxHeight: 'calc(100vh - 220px)', height: 'calc(100vh - 220px)', background: 'transparent', boxShadow: 'none', border: 'none' }}>
     <div className="mb-4">
-      <div className="flex items-center px-4 py-2 rounded-lg bg-transparent w-fit">
-        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-green-700" style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>
+      <div className="flex items-center px-6 py-3 rounded-lg bg-white/30 backdrop-blur-md border border-white/60 shadow-xl w-fit">
+        <h3 className="text-xl font-bold flex items-center m-0 transition-colors duration-200 text-green-700">
           <span className="mr-2">✨</span>Processed
           <span className={`ml-3 px-3 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${activeTab === 'processed' ? 'bg-green-700 text-white' : 'bg-transparent text-green-700'}`}>{sortedDvs.length}</span>
         </h3>
@@ -1363,21 +1355,19 @@ export default function IncomingDvs() {
                                 <div className="flex items-center justify-between mb-4 flex-shrink-0">
                                     <div className="flex space-x-4">
                                         <button
-                                            className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${cashSection === 'allocation' ? 'text-orange-600' : 'text-black'}`}
-                                            style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+                                            className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${cashSection === 'allocation' ? 'text-orange-600 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
                                             onClick={() => setCashSection('allocation')}
                                         >
                                             <span className="mr-2">💰</span>
-                                            <span className={`transition-colors duration-200 ${cashSection === 'allocation' ? 'text-orange-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Cash Allocation</span>
+                                            <span className={`transition-colors duration-200 ${cashSection === 'allocation' ? 'text-orange-600' : 'text-black'}`}>For Cash Allocation</span>
                                             <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${cashSection === 'allocation' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{sortedDvs.length}</span>
                                         </button>
                                         <button
-                                            className={`text-xl font-bold flex items-center px-4 py-2 rounded-lg transition-colors duration-200 bg-transparent shadow-none border-none ${cashSection === 'reallocation' ? 'text-orange-600' : 'text-black'}`}
-                                            style={{ background: 'none', boxShadow: 'none', border: 'none', textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}
+                                            className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${cashSection === 'reallocation' ? 'text-orange-600 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
                                             onClick={() => setCashSection('reallocation')}
                                         >
                                             <span className="mr-2">🔄</span>
-                                            <span className={`transition-colors duration-200 ${cashSection === 'reallocation' ? 'text-orange-600' : 'text-black'}`} style={{ textShadow: '1px 0 0 white, -1px 0 0 white, 0 1px 0 white, 0 -1px 0 white, 0.5px 0.5px 0 white, -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white' }}>For Cash Reallocation</span>
+                                            <span className={`transition-colors duration-200 ${cashSection === 'reallocation' ? 'text-orange-600' : 'text-black'}`}>For Cash Reallocation</span>
                                             <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${cashSection === 'reallocation' ? 'bg-orange-600 text-white' : 'bg-transparent text-orange-600'}`}>{reallocatedDvs.length}</span>
                                         </button>
                                     </div>

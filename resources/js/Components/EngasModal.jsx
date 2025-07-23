@@ -611,23 +611,6 @@ export default function EngasModal({ dv, isOpen, onClose, onSubmit }) {
                                         >
                                             🌐 Record E-NGAS
                                         </button>
-                                        {isFormValid && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (confirm('Send this DV for CDJ recording?')) {
-                                                        onSubmit({
-                                                            engas_number: engasNumber,
-                                                            engas_date: engasDate,
-                                                            action: 'for_cdj'
-                                                        });
-                                                    }
-                                                }}
-                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                                            >
-                                                📊 For CDJ Recording
-                                            </button>
-                                        )}
                                     </div>
                                 </div>
                             </div>

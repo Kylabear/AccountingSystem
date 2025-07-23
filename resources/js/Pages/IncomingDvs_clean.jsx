@@ -410,9 +410,9 @@ export default function IncomingDvs() {
                                                 handleTabChange(status.key);
                                                 if (isMobile) setSidebarOpen(false);
                                             }}
-                                            className={`w-full text-left p-2 rounded-lg flex items-center transition-all duration-200 hover:bg-gray-50 ${
+                                            className={`w-full text-left p-3 rounded-lg flex items-center transition-all duration-200 hover:bg-white/40 hover:backdrop-blur-lg bg-white/30 backdrop-blur-md border border-white/60 shadow-xl ${
                                                 activeTab === status.key 
-                                                    ? 'bg-green-100 border-l-4 border-green-600' 
+                                                    ? 'bg-green-100/90 border-l-4 border-green-600 backdrop-blur-lg shadow-2xl' 
                                                     : ''
                                             }`}
                                         >

@@ -202,7 +202,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   };
 
   // Handler for sending DV out for approval from modal
-  const handleModalApprovalOut = async () => {
+  const handleModalApprovalOut = async (selectedDate) => {
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       
@@ -219,7 +219,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          out_date: new Date().toISOString().split('T')[0] // Auto-populate current date
+          out_date: selectedDate || new Date().toISOString().split('T')[0]
         })
       });
 
@@ -237,7 +237,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   };
 
   // Handler for marking DV as returned from approval from modal
-  const handleModalApprovalIn = async () => {
+  const handleModalApprovalIn = async (selectedDate) => {
     try {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       
@@ -254,7 +254,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          in_date: new Date().toISOString().split('T')[0], // Auto-populate current date
+          in_date: selectedDate || new Date().toISOString().split('T')[0],
           approval_status: 'approved'
         })
       });
@@ -1549,26 +1549,46 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                 {!activeAction && dv.status === 'for_approval' && (
                   <div className="space-y-3">
                     {!dv.approval_out_date && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded">
-                          Date: {new Date().toLocaleDateString()}
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Out Date:</label>
+                          <input
+                            type="date"
+                            defaultValue={new Date().toISOString().split('T')[0]}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-green-500 focus:outline-none"
+                            id="approval-out-date"
+                          />
+                        </div>
                         <button
-                          onClick={handleModalApprovalOut}
-                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                          onClick={() => {
+                            const dateInput = document.getElementById('approval-out-date');
+                            const selectedDate = dateInput?.value || new Date().toISOString().split('T')[0];
+                            handleModalApprovalOut(selectedDate);
+                          }}
+                          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors mt-6 text-base font-medium min-w-[100px]"
                         >
                           📤 Out
                         </button>
                       </div>
                     )}
                     {dv.approval_out_date && !dv.approval_in_date && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded">
-                          Date: {new Date().toLocaleDateString()}
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">In Date:</label>
+                          <input
+                            type="date"
+                            defaultValue={new Date().toISOString().split('T')[0]}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none"
+                            id="approval-in-date"
+                          />
+                        </div>
                         <button
-                          onClick={handleModalApprovalIn}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                          onClick={() => {
+                            const dateInput = document.getElementById('approval-in-date');
+                            const selectedDate = dateInput?.value || new Date().toISOString().split('T')[0];
+                            handleModalApprovalIn(selectedDate);
+                          }}
+                          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors mt-6 text-base font-medium min-w-[100px]"
                         >
                           📥 In
                         </button>
