@@ -1,7 +1,6 @@
 
 // ...existing code...
 import { useState, useEffect } from 'react';
-import NorsaInputForm from './NorsaInputForm';
 
 export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStatusUpdate }) {
   // Early return if dv is null or undefined to prevent errors
@@ -9,25 +8,16 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
     return null;
   }
 
+  // Use the original DV data without any mock injection
   let dv = originalDv;
   const [activeAction, setActiveAction] = useState(null);
   const [rtsReason, setRtsReason] = useState('');
-  const [rtsGeneralReason, setRtsGeneralReason] = useState('');
   const [rtsDate, setRtsDate] = useState('');
-  const [rtsReturnDate, setRtsReturnDate] = useState(new Date().toISOString().split('T')[0]);
   const [norsaNumber, setNorsaNumber] = useState('');
-  const [norsaReturnDate, setNorsaReturnDate] = useState(new Date().toISOString().split('T')[0]);
   const [norsaError, setNorsaError] = useState('');
-  const [certifyDate, setCertifyDate] = useState(new Date().toISOString().split('T')[0]);
-  const [showNorsaForm, setShowNorsaForm] = useState(false);
-  const [showRtsForm, setShowRtsForm] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  // LLDAP payment modal state
-  const [lldapNumber, setLldapNumber] = useState('');
-  const [lldapError, setLldapError] = useState('');
-
+  
   // RTS predefined reasons
-  const [predefinedRtsReasons, setPredefinedRtsReasons] = useState([
+  const [predefinedRtsReasons] = useState([
     'Incomplete Documents',
     'Incorrect Amount',
     'Missing Signature',
@@ -38,8 +28,13 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
     'Duplicate Entry',
     'Other'
   ]);
-  const [showCustomReasonInput, setShowCustomReasonInput] = useState(false);
-  const [customGeneralReason, setCustomGeneralReason] = useState('');
+  const [showCustomRtsReason, setShowCustomRtsReason] = useState(false);
+  const [customRtsReason, setCustomRtsReason] = useState('');
+  const [rtsDetailedReason, setRtsDetailedReason] = useState('');
+  
+  // LLDAP payment modal state
+  const [lldapNumber, setLldapNumber] = useState('');
+  const [lldapError, setLldapError] = useState('');
 
   // Helper function to determine which sections to show based on workflow progression
   const getVisibleSections = (dvStatus) => {
@@ -200,78 +195,6 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       onClose();
     }
   };
-
-  // Handler for sending DV out for approval from modal
-  const handleModalApprovalOut = async (selectedDate) => {
-    try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
-      if (!csrfToken) {
-        alert('CSRF token not found. Please refresh the page and try again.');
-        return;
-      }
-
-      const response = await fetch(`/incoming-dvs/${dv.id}/approval-out`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          out_date: selectedDate || new Date().toISOString().split('T')[0]
-        })
-      });
-
-      const responseData = await response.json();
-
-      if (response.ok) {
-        onClose(); // Close modal
-        window.location.reload(); // Refresh to show updated status
-      } else {
-        alert(`Error sending DV for approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
-      }
-    } catch (error) {
-      alert(`Error sending DV for approval: ${error.message}`);
-    }
-  };
-
-  // Handler for marking DV as returned from approval from modal
-  const handleModalApprovalIn = async (selectedDate) => {
-    try {
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
-      if (!csrfToken) {
-        alert('CSRF token not found. Please refresh the page and try again.');
-        return;
-      }
-
-      const response = await fetch(`/incoming-dvs/${dv.id}/approval-in`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken,
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          in_date: selectedDate || new Date().toISOString().split('T')[0],
-          approval_status: 'approved'
-        })
-      });
-
-      const responseData = await response.json();
-
-      if (response.ok) {
-        onClose(); // Close modal
-        window.location.reload(); // Refresh to show updated status
-      } else {
-        alert(`Error marking DV as returned from approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
-      }
-    } catch (error) {
-      alert(`Error marking DV as returned from approval: ${error.message}`);
-    }
-  };
-
   // Strict NORSA number input handler (auto-format as YYYY-MM-NNNNN)
   const handleNorsaNumberChange = (e) => {
     let value = e.target.value.replace(/\D/g, ''); // Only digits
@@ -353,8 +276,15 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   useEffect(() => {
     if (activeAction === 'rts' || activeAction === 'box_c_rts') {
       setRtsDate(getTodayDate());
+      // Reset RTS form states
+      setRtsReason('');
+      setCustomRtsReason('');
+      setShowCustomRtsReason(false);
+      setRtsDetailedReason('');
     } else if (activeAction === 'norsa' || activeAction === 'box_c_norsa') {
       setNorsaDate(getTodayDate());
+      setNorsaNumber('');
+      setNorsaError('');
     } else if (activeAction === 'cash_allocation') {
       setCashAllocationDate(getTodayDate());
       setNetAmount(dv?.amount || ''); // Pre-fill with original amount
@@ -380,20 +310,51 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   };
 
   const handleRTS = () => {
-    if (!rtsReason.trim() || !rtsDate) {
-      alert('Please fill in both RTS date and reason.');
+    // Determine the final reason to use
+    let finalReason = '';
+    if (rtsReason === 'Other') {
+      if (!customRtsReason.trim()) {
+        alert('Please enter a custom reason for RTS.');
+        return;
+      }
+      finalReason = customRtsReason.trim();
+    } else {
+      if (!rtsReason.trim()) {
+        alert('Please select a reason for RTS.');
+        return;
+      }
+      finalReason = rtsReason;
+    }
+    
+    if (!rtsDate) {
+      alert('Please fill in the RTS date.');
       return;
+    }
+    
+    // Require detailed reason if general reason is selected
+    if (rtsReason && rtsReason !== 'Other' && !rtsDetailedReason.trim()) {
+      alert('Please provide detailed reason/notes for RTS.');
+      return;
+    }
+    
+    // Combine general and detailed reasons
+    let combinedReason = finalReason;
+    if (rtsDetailedReason.trim() && rtsReason !== 'Other') {
+      combinedReason = `${finalReason} - ${rtsDetailedReason.trim()}`;
     }
     
     if (confirm('Return this DV to sender?')) {
       onStatusUpdate(dv.id, 'for_rts_in', {
         rts_out_date: rtsDate,
-        rts_reason: rtsReason
+        rts_reason: combinedReason
       });
       onClose();
       setActiveAction(null);
       setRtsReason('');
       setRtsDate('');
+      setCustomRtsReason('');
+      setShowCustomRtsReason(false);
+      setRtsDetailedReason('');
     }
   };
 
@@ -458,10 +419,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       onStatusUpdate(
         dv.id,
         'for_approval',
-        { 
-          action: 'certify',
-          certification_date: certifyDate
-        },
+        { action: 'certify' },
         () => {
           // After status update, use Inertia to visit For Approval tab
           if (typeof window !== 'undefined' && window.route) {
@@ -479,28 +437,79 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   };
 
   const handleBoxCRTS = () => {
-    if (!rtsReason.trim() || !rtsDate) {
-      alert('Please fill in both RTS date and reason.');
+    // Determine the final reason to use
+    let finalReason = '';
+    if (rtsReason === 'Other') {
+      if (!customRtsReason.trim()) {
+        alert('Please enter a custom reason for RTS.');
+        return;
+      }
+      finalReason = customRtsReason.trim();
+    } else {
+      if (!rtsReason.trim()) {
+        alert('Please select a reason for RTS.');
+        return;
+      }
+      finalReason = rtsReason;
+    }
+    
+    if (!rtsDate) {
+      alert('Please fill in the RTS date.');
       return;
     }
+    
+    // Require detailed reason if general reason is selected
+    if (rtsReason && rtsReason !== 'Other' && !rtsDetailedReason.trim()) {
+      alert('Please provide detailed reason/notes for RTS.');
+      return;
+    }
+    
+    // Combine general and detailed reasons
+    let combinedReason = finalReason;
+    if (rtsDetailedReason.trim() && rtsReason !== 'Other') {
+      combinedReason = `${finalReason} - ${rtsDetailedReason.trim()}`;
+    }
+    
     if (confirm('Return this DV to sender from Box C?')) {
       onStatusUpdate(dv.id, 'for_rts_in', {
         action: 'rts',
         rts_out_date: rtsDate,
-        rts_reason: rtsReason
+        rts_reason: combinedReason
       });
       onClose();
       setActiveAction(null);
       setRtsReason('');
       setRtsDate('');
+      setCustomRtsReason('');
+      setShowCustomRtsReason(false);
+      setRtsDetailedReason('');
     }
   };
 
   const handleBoxCNORSA = () => {
+    const norsaPattern = /^\d{4}-\d{2}-\d{5}$/;
     if (!norsaNumber.trim() || !norsaDate) {
-      alert('Please fill in both NORSA number and date.');
+      setNorsaError('Please fill in both NORSA number and date.');
       return;
     }
+    if (!norsaPattern.test(norsaNumber)) {
+      setNorsaError('Format: YYYY-MM-NNNNN');
+      return;
+    }
+    // Validate year and month
+    const [year, month, serial] = norsaNumber.split('-');
+    const yearNum = parseInt(year);
+    const monthNum = parseInt(month);
+    const currentYear = new Date().getFullYear();
+    if (yearNum < 2020 || yearNum > currentYear + 1) {
+      setNorsaError(`Year must be 2020-${currentYear + 1}`);
+      return;
+    }
+    if (monthNum < 1 || monthNum > 12) {
+      setNorsaError('Month must be 01-12');
+      return;
+    }
+    setNorsaError('');
     if (confirm('Process NORSA for this DV from Box C?')) {
       onStatusUpdate(dv.id, 'for_norsa_in', {
         action: 'norsa',
@@ -511,6 +520,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       setActiveAction(null);
       setNorsaNumber('');
       setNorsaDate('');
+      setNorsaError('');
     }
   };
 
@@ -526,65 +536,6 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       onClose();
       setActiveAction(null);
       setIndexingDate('');
-    }
-  };
-
-  const handleNorsaSubmit = async (norsaNumber) => {
-    try {
-      // Validate NORSA number format first
-      const norsaPattern = /^\d{4}-\d{2}-\d{4}$/;
-      if (!norsaPattern.test(norsaNumber)) {
-        alert('Invalid NORSA number format. Must be YYYY-MM-NNNN');
-        return;
-      }
-
-      // Parse and validate year and month
-      const [year, month] = norsaNumber.split('-');
-      const yearNum = parseInt(year);
-      const monthNum = parseInt(month);
-      const currentYear = new Date().getFullYear();
-
-      if (yearNum < 2020 || yearNum > currentYear + 1) {
-        alert(`Year must be between 2020 and ${currentYear + 1}`);
-        return;
-      }
-
-      if (monthNum < 1 || monthNum > 12) {
-        alert('Month must be between 01 and 12');
-        return;
-      }
-
-      setProcessing(true);
-      onStatusUpdate(dv.id, 'for_review', {
-        norsa_number: norsaNumber,
-        norsa_in_date: new Date().toISOString().split('T')[0]
-      });
-      setShowNorsaForm(false);
-      onClose();
-    } catch (error) {
-      console.error('Error:', error);
-      alert(error.message || 'An error occurred while processing your request');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleRTSIn = () => {
-    if (!rtsReason.trim() || !rtsDate) {
-      alert('Please fill in both RTS date and reason.');
-      return;
-    }
-    
-    if (confirm('Process this RTS entry?')) {
-      onStatusUpdate(dv.id, 'for_rts_in', {
-        rts_out_date: rtsDate,
-        rts_reason: rtsReason,
-        rts_processed_date: new Date().toISOString().split('T')[0]
-      });
-      setShowRtsForm(false);
-      setRtsReason('');
-      setRtsDate('');
-      onClose();
     }
   };
 
@@ -1495,13 +1446,9 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
             )}
 
             {/* Action Buttons */}
-            {(dv.status === 'for_review' || dv.status === 'for_payment' || dv.status === 'for_approval') && (
+            {(dv.status === 'for_review' || dv.status === 'for_payment') && (
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">
-                  {dv.status === 'for_review' ? 'Review Actions' : 
-                   dv.status === 'for_payment' ? 'Mode of Payment Actions' : 
-                   'Approval Actions'}
-                </h3>
+                <h3 className="text-lg font-semibold mb-4">{dv.status === 'for_review' ? 'Review Actions' : 'Mode of Payment Actions'}</h3>
                 {!activeAction && dv.status === 'for_review' && (
                   <div className="flex flex-wrap gap-3">
                     <button
@@ -1544,61 +1491,6 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     >
                       📋 PR (Payroll Register)
                     </button>
-                  </div>
-                )}
-                {!activeAction && dv.status === 'for_approval' && (
-                  <div className="space-y-3">
-                    {!dv.approval_out_date && (
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Out Date:</label>
-                          <input
-                            type="date"
-                            defaultValue={new Date().toISOString().split('T')[0]}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-green-500 focus:outline-none"
-                            id="approval-out-date"
-                          />
-                        </div>
-                        <button
-                          onClick={() => {
-                            const dateInput = document.getElementById('approval-out-date');
-                            const selectedDate = dateInput?.value || new Date().toISOString().split('T')[0];
-                            handleModalApprovalOut(selectedDate);
-                          }}
-                          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors mt-6 text-base font-medium min-w-[100px]"
-                        >
-                          📤 Out
-                        </button>
-                      </div>
-                    )}
-                    {dv.approval_out_date && !dv.approval_in_date && (
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">In Date:</label>
-                          <input
-                            type="date"
-                            defaultValue={new Date().toISOString().split('T')[0]}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-blue-500 focus:outline-none"
-                            id="approval-in-date"
-                          />
-                        </div>
-                        <button
-                          onClick={() => {
-                            const dateInput = document.getElementById('approval-in-date');
-                            const selectedDate = dateInput?.value || new Date().toISOString().split('T')[0];
-                            handleModalApprovalIn(selectedDate);
-                          }}
-                          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors mt-6 text-base font-medium min-w-[100px]"
-                        >
-                          📥 In
-                        </button>
-                      </div>
-                    )}
-                    {dv.approval_out_date && dv.approval_in_date && (
-                      <div className="text-green-600 font-medium">
-                        ✅ Approval process completed
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -1659,17 +1551,14 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">General Reason of RTS</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Reason for RTS</label>
                         <select
-                          value={rtsGeneralReason}
+                          value={rtsReason}
                           onChange={(e) => {
-                            const value = e.target.value;
-                            setRtsGeneralReason(value);
-                            if (value === 'Other') {
-                              setShowCustomReasonInput(true);
-                            } else {
-                              setShowCustomReasonInput(false);
-                              setCustomGeneralReason('');
+                            setRtsReason(e.target.value);
+                            setShowCustomRtsReason(e.target.value === 'Other');
+                            if (e.target.value !== 'Other') {
+                              setCustomRtsReason('');
                             }
                           }}
                           className="w-full border border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none"
@@ -1677,70 +1566,52 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                         >
                           <option value="">Select a reason...</option>
                           {predefinedRtsReasons.map((reason, index) => (
-                            <option key={index} value={reason}>
-                              {reason}
-                            </option>
+                            <option key={index} value={reason}>{reason}</option>
                           ))}
                         </select>
                       </div>
-                      {showCustomReasonInput && (
+                      {showCustomRtsReason && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Custom General Reason</label>
-                          <input
-                            type="text"
-                            value={customGeneralReason}
-                            onChange={(e) => setCustomGeneralReason(e.target.value)}
-                            placeholder="Enter custom general reason..."
-                            className="w-full border border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none"
-                            required
-                          />
-                        </div>
-                      )}
-                      {rtsGeneralReason && (rtsGeneralReason !== 'Other' || customGeneralReason.trim()) && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Notes (full details of RTS)</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Custom Reason</label>
                           <textarea
-                            value={rtsReason}
-                            onChange={(e) => setRtsReason(e.target.value)}
-                            placeholder="Enter detailed notes about the RTS..."
+                            value={customRtsReason}
+                            onChange={(e) => setCustomRtsReason(e.target.value)}
+                            placeholder="Enter custom reason for returning to sender..."
                             className="w-full border border-gray-300 rounded-lg p-2 h-20 focus:border-orange-500 focus:outline-none resize-none"
                             required
                           />
                         </div>
                       )}
+                      {rtsReason && rtsReason !== 'Other' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Detailed Reason/Notes <span className="text-red-500">*</span></label>
+                          <textarea
+                            value={rtsDetailedReason}
+                            onChange={(e) => setRtsDetailedReason(e.target.value)}
+                            placeholder="Enter detailed explanation or additional notes..."
+                            className="w-full border border-gray-300 rounded-lg p-2 h-24 focus:border-orange-500 focus:outline-none resize-none"
+                            required
+                          />
+                          <p className="text-gray-500 text-xs mt-1">
+                            Please provide specific details about why this DV is being returned.
+                          </p>
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <button
-                          onClick={() => {
-                            // Save custom reason to predefined list if it's new
-                            if (rtsGeneralReason === 'Other' && customGeneralReason.trim()) {
-                              const newReason = customGeneralReason.trim();
-                              if (!predefinedRtsReasons.includes(newReason)) {
-                                setPredefinedRtsReasons(prev => {
-                                  const newList = [...prev.slice(0, -1), newReason, 'Other'];
-                                  return newList;
-                                });
-                              }
-                            }
-                            handleRTS();
-                          }}
-                          disabled={
-                            !rtsDate || 
-                            !rtsGeneralReason || 
-                            (rtsGeneralReason === 'Other' && !customGeneralReason.trim()) || 
-                            !rtsReason.trim()
-                          }
-                          className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                          onClick={handleRTS}
+                          className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
                         >
                           Confirm RTS
                         </button>
                         <button
                           onClick={() => {
                             setActiveAction(null);
-                            setRtsGeneralReason('');
-                            setCustomGeneralReason('');
-                            setShowCustomReasonInput(false);
                             setRtsReason('');
                             setRtsDate('');
+                            setCustomRtsReason('');
+                            setShowCustomRtsReason(false);
+                            setRtsDetailedReason('');
                           }}
                           className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                         >
@@ -1807,22 +1678,8 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                 <h3 className="text-lg font-semibold mb-4">Box C Certification Actions</h3>
                 
                 {!activeAction && (
-                  <div className="space-y-4">
-                    {/* Certification Date Input */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Certification Date
-                      </label>
-                      <input
-                        type="date"
-                        value={certifyDate}
-                        onChange={(e) => setCertifyDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      />
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-3">
-                      <button
+                  <div className="flex flex-wrap gap-3">
+                    <button
                       onClick={handleCertify}
                       className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
                     >
@@ -1840,7 +1697,6 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     >
                       📄 NORSA
                     </button>
-                    </div>
                   </div>
                 )}
 
@@ -1861,14 +1717,51 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Reason for RTS</label>
-                        <textarea
+                        <select
                           value={rtsReason}
-                          onChange={(e) => setRtsReason(e.target.value)}
-                          placeholder="Enter reason for returning to sender..."
-                          className="w-full border border-gray-300 rounded-lg p-2 h-20 focus:border-orange-500 focus:outline-none resize-none"
+                          onChange={(e) => {
+                            setRtsReason(e.target.value);
+                            setShowCustomRtsReason(e.target.value === 'Other');
+                            if (e.target.value !== 'Other') {
+                              setCustomRtsReason('');
+                            }
+                          }}
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none"
                           required
-                        />
+                        >
+                          <option value="">Select a reason...</option>
+                          {predefinedRtsReasons.map((reason, index) => (
+                            <option key={index} value={reason}>{reason}</option>
+                          ))}
+                        </select>
                       </div>
+                      {showCustomRtsReason && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Custom Reason</label>
+                          <textarea
+                            value={customRtsReason}
+                            onChange={(e) => setCustomRtsReason(e.target.value)}
+                            placeholder="Enter custom reason for returning to sender..."
+                            className="w-full border border-gray-300 rounded-lg p-2 h-20 focus:border-orange-500 focus:outline-none resize-none"
+                            required
+                          />
+                        </div>
+                      )}
+                      {rtsReason && rtsReason !== 'Other' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Detailed Reason/Notes <span className="text-red-500">*</span></label>
+                          <textarea
+                            value={rtsDetailedReason}
+                            onChange={(e) => setRtsDetailedReason(e.target.value)}
+                            placeholder="Enter detailed explanation or additional notes..."
+                            className="w-full border border-gray-300 rounded-lg p-2 h-24 focus:border-orange-500 focus:outline-none resize-none"
+                            required
+                          />
+                          <p className="text-gray-500 text-xs mt-1">
+                            Please provide specific details about why this DV is being returned.
+                          </p>
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <button
                           onClick={handleBoxCRTS}
@@ -1877,7 +1770,14 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                           Confirm RTS
                         </button>
                         <button
-                          onClick={() => setActiveAction(null)}
+                          onClick={() => {
+                            setActiveAction(null);
+                            setRtsReason('');
+                            setRtsDate('');
+                            setCustomRtsReason('');
+                            setShowCustomRtsReason(false);
+                            setRtsDetailedReason('');
+                          }}
                           className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                         >
                           Cancel
@@ -1907,11 +1807,15 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                         <input
                           type="text"
                           value={norsaNumber}
-                          onChange={(e) => setNorsaNumber(e.target.value)}
-                          placeholder="Enter NORSA number..."
-                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                          onChange={handleNorsaNumberChange}
+                          placeholder="YYYY-MM-NNNNN"
+                          className={`w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none ${norsaError ? 'border-red-500' : ''}`}
+                          maxLength={13}
                           required
                         />
+                        {norsaError && (
+                          <p className="text-red-500 text-xs mt-1">{norsaError}</p>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -1921,7 +1825,12 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                           Confirm NORSA
                         </button>
                         <button
-                          onClick={() => setActiveAction(null)}
+                          onClick={() => {
+                            setActiveAction(null);
+                            setNorsaNumber('');
+                            setNorsaDate('');
+                            setNorsaError('');
+                          }}
                           className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                         >
                           Cancel
@@ -2049,14 +1958,51 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Reason for RTS</label>
-                        <textarea
+                        <select
                           value={rtsReason}
-                          onChange={(e) => setRtsReason(e.target.value)}
-                          placeholder="Enter reason for returning to sender..."
-                          className="w-full border border-gray-300 rounded-lg p-2 h-20 focus:border-orange-500 focus:outline-none resize-none"
+                          onChange={(e) => {
+                            setRtsReason(e.target.value);
+                            setShowCustomRtsReason(e.target.value === 'Other');
+                            if (e.target.value !== 'Other') {
+                              setCustomRtsReason('');
+                            }
+                          }}
+                          className="w-full border border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none"
                           required
-                        />
+                        >
+                          <option value="">Select a reason...</option>
+                          {predefinedRtsReasons.map((reason, index) => (
+                            <option key={index} value={reason}>{reason}</option>
+                          ))}
+                        </select>
                       </div>
+                      {showCustomRtsReason && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Custom Reason</label>
+                          <textarea
+                            value={customRtsReason}
+                            onChange={(e) => setCustomRtsReason(e.target.value)}
+                            placeholder="Enter custom reason for returning to sender..."
+                            className="w-full border border-gray-300 rounded-lg p-2 h-20 focus:border-orange-500 focus:outline-none resize-none"
+                            required
+                          />
+                        </div>
+                      )}
+                      {rtsReason && rtsReason !== 'Other' && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Detailed Reason/Notes <span className="text-red-500">*</span></label>
+                          <textarea
+                            value={rtsDetailedReason}
+                            onChange={(e) => setRtsDetailedReason(e.target.value)}
+                            placeholder="Enter detailed explanation or additional notes..."
+                            className="w-full border border-gray-300 rounded-lg p-2 h-24 focus:border-orange-500 focus:outline-none resize-none"
+                            required
+                          />
+                          <p className="text-gray-500 text-xs mt-1">
+                            Please provide specific details about why this DV is being returned.
+                          </p>
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <button
                           onClick={handleRTS}
@@ -2065,7 +2011,14 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                           Confirm RTS
                         </button>
                         <button
-                          onClick={() => setActiveAction(null)}
+                          onClick={() => {
+                            setActiveAction(null);
+                            setRtsReason('');
+                            setRtsDate('');
+                            setCustomRtsReason('');
+                            setShowCustomRtsReason(false);
+                            setRtsDetailedReason('');
+                          }}
                           className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors"
                         >
                           Cancel
@@ -2242,140 +2195,63 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
             )}
 
             {/* For RTS In Actions - Show latest RTS info and 'Returned After RTS' button */}
-            {dv.status === 'for_rts_in' && (
+            {dv.status === 'for_rts_in' && dv.rts_history && dv.rts_history.length > 0 && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4 text-orange-800">For RTS In</h3>
-                
                 <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
-                  <h4 className="font-semibold text-orange-800 mb-3">Current RTS In Details</h4>
-                  {dv.rts_history && dv.rts_history.length > 0 && (
-                    <div className="bg-white p-4 rounded border mb-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="font-medium text-gray-700">Date of RTS:</span>
-                          <p>{dv.rts_history[dv.rts_history.length - 1]?.date || 'N/A'}</p>
+                  <h4 className="font-semibold text-orange-800 mb-3">Current RTS Cycle Details</h4>
+                  {(() => {
+                    const latestRTS = dv.rts_history[dv.rts_history.length - 1];
+                    return (
+                      <div className="bg-white p-4 rounded border mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">Date of RTS:</span>
+                            <p>{latestRTS.date}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Reason of RTS:</span>
+                            <p>{latestRTS.reason}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Date Returned After RTS:</span>
+                            <p>{latestRTS.returned_date ? latestRTS.returned_date : 'Pending'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Reviewed by:</span>
+                            <p>{latestRTS.reviewed_by || '<name>'}</p>
+                          </div>
                         </div>
-                        <div>
-                          <span className="font-medium text-gray-700">Reason of RTS:</span>
-                          <p>{dv.rts_history[dv.rts_history.length - 1]?.reason || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">Date Returned After RTS:</span>
-                          <p>{dv.rts_history[dv.rts_history.length - 1]?.returned_date || 'Pending'}</p>
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-700">Reviewed by:</span>
-                          <p>{dv.rts_history[dv.rts_history.length - 1]?.reviewed_by || '<name>'}</p>
-                        </div>
+                        {/* Removed Accounting Staff in-charge and Date when review was done */}
                       </div>
-                    </div>
-                  )}
-                  
-                  {/* RTS Return Date Input */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Date Returned After RTS
-                    </label>
-                    <input
-                      type="date"
-                      value={rtsReturnDate}
-                      onChange={(e) => setRtsReturnDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  </div>
-                  
+                    );
+                  })()}
                   <div className="flex gap-2 mt-4 items-center">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Return Date</label>
+                      <input
+                        type="date"
+                        value={rtsDate || getTodayDate()}
+                        onChange={e => setRtsDate(e.target.value)}
+                        className="border border-gray-300 rounded-lg p-2 text-gray-700 w-36"
+                      />
+                    </div>
                     <button
                       onClick={() => {
+                        const dateToUse = rtsDate || getTodayDate();
                         if (confirm('Return this DV after RTS?')) {
                           onStatusUpdate(dv.id, 'for_review', {
-                            rts_returned_date: rtsReturnDate
+                            rts_returned_date: dateToUse
                           });
                           onClose();
                         }
                       }}
-                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                      className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors mt-5"
                     >
                       Returned After RTS
                     </button>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* For NORSA In Actions - Show NORSA form and 'Returned After NORSA' button */}
-            {dv.status === 'for_norsa_in' && (
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4 text-purple-800">For NORSA In</h3>
-                
-                {showNorsaForm ? (
-                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                    <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-semibold text-purple-800">NORSA Entry</h4>
-                      <button
-                        onClick={() => setShowNorsaForm(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        ×
-                      </button>
-                    </div>
-                    <NorsaInputForm 
-                      onSubmit={handleNorsaSubmit}
-                      onCancel={() => setShowNorsaForm(false)}
-                    />
-                  </div>
-                ) : (
-                  <div className="mb-6 p-4 border-2 border-purple-200 rounded-lg bg-purple-50">
-                    <h4 className="font-semibold text-purple-800 mb-3">Current NORSA In Details</h4>
-                    {dv.norsa_number && (
-                      <div className="bg-white p-4 rounded border mb-4">
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium text-gray-700">NORSA Number:</span>
-                            <p>{dv.norsa_number}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">Date of NORSA Out:</span>
-                            <p>{dv.norsa_out_date ? new Date(dv.norsa_out_date).toLocaleDateString() : 'N/A'}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">Date Returned After NORSA:</span>
-                            <p>{dv.norsa_in_date ? new Date(dv.norsa_in_date).toLocaleDateString() : 'Pending'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* NORSA Return Date Input */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Date Returned After NORSA
-                      </label>
-                      <input
-                        type="date"
-                        value={norsaReturnDate}
-                        onChange={(e) => setNorsaReturnDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      />
-                    </div>
-                    
-                    <div className="flex gap-2 mt-4 items-center">
-                      <button
-                        onClick={() => {
-                          if (confirm('Return this DV after NORSA?')) {
-                            onStatusUpdate(dv.id, 'for_review', {
-                              norsa_returned_date: norsaReturnDate
-                            });
-                            onClose();
-                          }
-                        }}
-                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        Returned After NORSA
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
