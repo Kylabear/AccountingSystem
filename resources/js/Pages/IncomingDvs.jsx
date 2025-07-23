@@ -197,25 +197,20 @@ export default function IncomingDvs() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    out_date: new Date().toISOString().split('T')[0] // Today's date
+                    out_date: new Date().toISOString().split('T')[0] // Auto-populate current date
                 })
             });
 
             const responseData = await response.json();
 
             if (response.ok) {
-                alert('✅ DV successfully sent out for approval! Page will refresh.');
-                // Force page refresh to show updated DV status
+                // Auto-reload to show updated status and transaction history
                 window.location.reload();
             } else {
-                alert(`❌ Error sending DV for approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
+                alert(`Error sending DV for approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
             }
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                alert('❌ Network error: Could not connect to server. Please check if the server is running.');
-            } else {
-                alert(`❌ Error sending DV for approval: ${error.message}`);
-            }
+            alert(`Error sending DV for approval: ${error.message}`);
         }
     };
 
@@ -362,26 +357,21 @@ export default function IncomingDvs() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    in_date: new Date().toISOString().split('T')[0], // Today's date
-                    approval_status: 'approved' // Default to approved, could be made configurable
+                    in_date: new Date().toISOString().split('T')[0], // Auto-populate current date
+                    approval_status: 'approved'
                 })
             });
 
             const responseData = await response.json();
 
             if (response.ok) {
-                alert('✅ DV successfully marked as returned from approval! Page will refresh.');
-                // Force page refresh to show updated DV status
+                // Auto-reload to show updated status and transaction history
                 window.location.reload();
             } else {
-                alert(`❌ Error marking DV as returned from approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
+                alert(`Error marking DV as returned from approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
             }
         } catch (error) {
-            if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                alert('❌ Network error: Could not connect to server. Please check if the server is running.');
-            } else {
-                alert(`❌ Error marking DV as returned from approval: ${error.message}`);
-            }
+            alert(`Error marking DV as returned from approval: ${error.message}`);
         }
     };
 

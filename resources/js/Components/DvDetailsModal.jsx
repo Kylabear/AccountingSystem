@@ -200,6 +200,78 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       onClose();
     }
   };
+
+  // Handler for sending DV out for approval from modal
+  const handleModalApprovalOut = async () => {
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      if (!csrfToken) {
+        alert('CSRF token not found. Please refresh the page and try again.');
+        return;
+      }
+
+      const response = await fetch(`/incoming-dvs/${dv.id}/approval-out`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          out_date: new Date().toISOString().split('T')[0] // Auto-populate current date
+        })
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok) {
+        onClose(); // Close modal
+        window.location.reload(); // Refresh to show updated status
+      } else {
+        alert(`Error sending DV for approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
+      }
+    } catch (error) {
+      alert(`Error sending DV for approval: ${error.message}`);
+    }
+  };
+
+  // Handler for marking DV as returned from approval from modal
+  const handleModalApprovalIn = async () => {
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      if (!csrfToken) {
+        alert('CSRF token not found. Please refresh the page and try again.');
+        return;
+      }
+
+      const response = await fetch(`/incoming-dvs/${dv.id}/approval-in`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          in_date: new Date().toISOString().split('T')[0], // Auto-populate current date
+          approval_status: 'approved'
+        })
+      });
+
+      const responseData = await response.json();
+
+      if (response.ok) {
+        onClose(); // Close modal
+        window.location.reload(); // Refresh to show updated status
+      } else {
+        alert(`Error marking DV as returned from approval: ${responseData.message || responseData.error || 'Unknown server error'}`);
+      }
+    } catch (error) {
+      alert(`Error marking DV as returned from approval: ${error.message}`);
+    }
+  };
+
   // Strict NORSA number input handler (auto-format as YYYY-MM-NNNNN)
   const handleNorsaNumberChange = (e) => {
     let value = e.target.value.replace(/\D/g, ''); // Only digits
@@ -1423,9 +1495,13 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
             )}
 
             {/* Action Buttons */}
-            {(dv.status === 'for_review' || dv.status === 'for_payment') && (
+            {(dv.status === 'for_review' || dv.status === 'for_payment' || dv.status === 'for_approval') && (
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">{dv.status === 'for_review' ? 'Review Actions' : 'Mode of Payment Actions'}</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  {dv.status === 'for_review' ? 'Review Actions' : 
+                   dv.status === 'for_payment' ? 'Mode of Payment Actions' : 
+                   'Approval Actions'}
+                </h3>
                 {!activeAction && dv.status === 'for_review' && (
                   <div className="flex flex-wrap gap-3">
                     <button
@@ -1468,6 +1544,41 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     >
                       📋 PR (Payroll Register)
                     </button>
+                  </div>
+                )}
+                {!activeAction && dv.status === 'for_approval' && (
+                  <div className="space-y-3">
+                    {!dv.approval_out_date && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded">
+                          Date: {new Date().toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={handleModalApprovalOut}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          📤 Out
+                        </button>
+                      </div>
+                    )}
+                    {dv.approval_out_date && !dv.approval_in_date && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded">
+                          Date: {new Date().toLocaleDateString()}
+                        </span>
+                        <button
+                          onClick={handleModalApprovalIn}
+                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          📥 In
+                        </button>
+                      </div>
+                    )}
+                    {dv.approval_out_date && dv.approval_in_date && (
+                      <div className="text-green-600 font-medium">
+                        ✅ Approval process completed
+                      </div>
+                    )}
                   </div>
                 )}
 
