@@ -409,8 +409,8 @@ export default function IncomingDvForm() {
         <div className="relative max-w-7xl mx-auto p-8 z-40">
           {/* Page title with animation */}
           <div className="text-center mb-8 animate-fade-in">
-            <h2 className="text-3xl font-bold text-green-800 mb-2 hover:text-green-700 transition-colors duration-300 cursor-default">
-              New Disbursement Voucher
+            <h2 className="text-3xl font-bold text-white mb-2 hover:text-white/90 transition-colors duration-300 cursor-default">
+              New Incoming Disbursement Voucher
             </h2>
           </div>
 

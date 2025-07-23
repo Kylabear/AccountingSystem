@@ -50,17 +50,22 @@ class ProfileController extends Controller
         ]);
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
             'profile_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,gif', 'max:2048'],
         ]);
 
         $user = $request->user();
         
-        // Format name to ensure proper capitalization (First Letter Capital, rest lowercase)
-        $formattedName = ucwords(strtolower(trim($request->name)));
+        // Format names to ensure proper capitalization (First Letter Capital, rest lowercase)
+        $formattedFirstName = ucwords(strtolower(trim($request->first_name)));
+        $formattedLastName = ucwords(strtolower(trim($request->last_name)));
         
-        // Update name
-        $user->name = $formattedName;
+        // Update names
+        $user->first_name = $formattedFirstName;
+        $user->last_name = $formattedLastName;
+        // Also update the legacy name field for compatibility
+        $user->name = $formattedFirstName . ' ' . $formattedLastName;
         
         // Handle profile image upload
         if ($request->hasFile('profile_image')) {

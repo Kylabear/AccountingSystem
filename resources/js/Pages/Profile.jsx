@@ -28,7 +28,8 @@ export default function Profile() {
     }
 
     const { data, setData, post, processing, errors } = useForm({
-        name: auth.user.name || '',
+        first_name: auth.user.first_name || '',
+        last_name: auth.user.last_name || '',
         profile_image: null,
     });
 
@@ -38,8 +39,9 @@ export default function Profile() {
     };
 
     const handleNameChange = (e) => {
-        const formattedName = formatName(e.target.value);
-        setData('name', formattedName);
+        const { name, value } = e.target;
+        const formattedName = formatName(value);
+        setData(name, formattedName);
     };
 
     const handleImageChange = (e) => {
@@ -134,7 +136,7 @@ export default function Profile() {
                                     href="/incoming-dvs"
                                     className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm flex items-center"
                                 >
-                                    ← Back to Dashboard
+                                    ← Back to Home
                                 </Link>
                                 {!isEditing && (
                                     <button
@@ -183,22 +185,43 @@ export default function Profile() {
                                     )}
                                 </div>
 
-                                {/* Name Field */}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Full Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.name}
-                                        onChange={handleNameChange}
-                                        className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                        placeholder="Enter your full name"
-                                        required
-                                    />
-                                    {errors.name && (
-                                        <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-                                    )}
+                                {/* Name Fields */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            First Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="first_name"
+                                            value={data.first_name}
+                                            onChange={handleNameChange}
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                            placeholder="Enter your first name"
+                                            required
+                                        />
+                                        {errors.first_name && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Last Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            name="last_name"
+                                            value={data.last_name}
+                                            onChange={handleNameChange}
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                            placeholder="Enter your last name"
+                                            required
+                                        />
+                                        {errors.last_name && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>
+                                        )}
+                                    </div>
                                 </div>
 
                                 {/* Email Field (Read-only) */}
@@ -243,7 +266,8 @@ export default function Profile() {
                                         onClick={() => {
                                             setIsEditing(false);
                                             setPreviewImage(null);
-                                            setData('name', auth.user.name);
+                                            setData('first_name', auth.user.first_name);
+                                            setData('last_name', auth.user.last_name);
                                             setData('profile_image', null);
                                         }}
                                         className="w-full sm:w-auto bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-medium"
@@ -268,10 +292,19 @@ export default function Profile() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Full Name
+                                            First Name
                                         </label>
                                         <div className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-50">
-                                            {auth.user.name || 'Not specified'}
+                                            {auth.user.first_name || 'Not specified'}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Last Name
+                                        </label>
+                                        <div className="w-full border border-gray-300 rounded-lg px-4 py-3 bg-gray-50">
+                                            {auth.user.last_name || 'Not specified'}
                                         </div>
                                     </div>
 
