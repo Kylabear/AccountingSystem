@@ -132,22 +132,24 @@ export default function Profile() {
                         <div className="flex items-center justify-between mb-8">
                             <h1 className="text-3xl font-bold text-gray-800">User Profile</h1>
                             <div className="flex items-center space-x-3">
-                                <Link 
-                                    href="/incoming-dvs"
-                                    className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm flex items-center"
-                                >
-                                    ← Back to Home
-                                </Link>
                                 {!isEditing && (
-                                    <button
-                                        onClick={() => {
-                                            console.log('Edit Profile clicked, setting isEditing to true');
-                                            setIsEditing(true);
-                                        }}
-                                        className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                                    >
-                                        Edit Profile
-                                    </button>
+                                    <>
+                                        <Link 
+                                            href="/incoming-dvs"
+                                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm flex items-center"
+                                        >
+                                            ← Back to Home
+                                        </Link>
+                                        <button
+                                            onClick={() => {
+                                                console.log('Edit Profile clicked, setting isEditing to true');
+                                                setIsEditing(true);
+                                            }}
+                                            className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                                        >
+                                            Edit Profile
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         </div>
