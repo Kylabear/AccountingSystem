@@ -16,6 +16,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   const [norsaNumber, setNorsaNumber] = useState('');
   const [norsaError, setNorsaError] = useState('');
   const [showNorsaForm, setShowNorsaForm] = useState(false);
+  const [showRtsForm, setShowRtsForm] = useState(false);
   const [processing, setProcessing] = useState(false);
   // LLDAP payment modal state
   const [lldapNumber, setLldapNumber] = useState('');
@@ -471,6 +472,25 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       alert(error.message || 'An error occurred while processing your request');
     } finally {
       setProcessing(false);
+    }
+  };
+
+  const handleRTSIn = () => {
+    if (!rtsReason.trim() || !rtsDate) {
+      alert('Please fill in both RTS date and reason.');
+      return;
+    }
+    
+    if (confirm('Process this RTS entry?')) {
+      onStatusUpdate(dv.id, 'for_rts_in', {
+        rts_out_date: rtsDate,
+        rts_reason: rtsReason,
+        rts_processed_date: new Date().toISOString().split('T')[0]
+      });
+      setShowRtsForm(false);
+      setRtsReason('');
+      setRtsDate('');
+      onClose();
     }
   };
 
@@ -1989,58 +2009,45 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
             )}
 
             {/* For RTS In Actions - Show latest RTS info and 'Returned After RTS' button */}
-            {dv.status === 'for_rts_in' && dv.rts_history && dv.rts_history.length > 0 && (
+            {dv.status === 'for_rts_in' && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4 text-orange-800">For RTS In</h3>
+                
                 <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
-                  <h4 className="font-semibold text-orange-800 mb-3">Current RTS Cycle Details</h4>
-                  {(() => {
-                    const latestRTS = dv.rts_history[dv.rts_history.length - 1];
-                    return (
-                      <div className="bg-white p-4 rounded border mb-4">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium text-gray-700">Date of RTS:</span>
-                            <p>{latestRTS.date}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">Reason of RTS:</span>
-                            <p>{latestRTS.reason}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">Date Returned After RTS:</span>
-                            <p>{latestRTS.returned_date ? latestRTS.returned_date : 'Pending'}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-700">Reviewed by:</span>
-                            <p>{latestRTS.reviewed_by || '<name>'}</p>
-                          </div>
+                  <h4 className="font-semibold text-orange-800 mb-3">Current RTS In Details</h4>
+                  {dv.rts_history && dv.rts_history.length > 0 && (
+                    <div className="bg-white p-4 rounded border mb-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="font-medium text-gray-700">Date of RTS:</span>
+                          <p>{dv.rts_history[dv.rts_history.length - 1]?.date || 'N/A'}</p>
                         </div>
-                        {/* Removed Accounting Staff in-charge and Date when review was done */}
+                        <div>
+                          <span className="font-medium text-gray-700">Reason of RTS:</span>
+                          <p>{dv.rts_history[dv.rts_history.length - 1]?.reason || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Date Returned After RTS:</span>
+                          <p>{dv.rts_history[dv.rts_history.length - 1]?.returned_date || 'Pending'}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Reviewed by:</span>
+                          <p>{dv.rts_history[dv.rts_history.length - 1]?.reviewed_by || '<name>'}</p>
+                        </div>
                       </div>
-                    );
-                  })()}
-                  <div className="flex gap-2 mt-4 items-center">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">Return Date</label>
-                      <input
-                        type="date"
-                        value={rtsDate || getTodayDate()}
-                        onChange={e => setRtsDate(e.target.value)}
-                        className="border border-gray-300 rounded-lg p-2 text-gray-700 w-36"
-                      />
                     </div>
+                  )}
+                  <div className="flex gap-2 mt-4 items-center">
                     <button
                       onClick={() => {
-                        const dateToUse = rtsDate || getTodayDate();
                         if (confirm('Return this DV after RTS?')) {
                           onStatusUpdate(dv.id, 'for_review', {
-                            rts_returned_date: dateToUse
+                            rts_returned_date: new Date().toISOString().split('T')[0]
                           });
                           onClose();
                         }
                       }}
-                      className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors mt-5"
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                     >
                       Returned After RTS
                     </button>
