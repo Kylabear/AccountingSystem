@@ -24,11 +24,36 @@ ChartJS.register(
 );
 
 export default function StatisticsPage() {
-    const user = usePage().props.auth.user;
+    const { auth, statistics, breakdownData, filterOptions, currentFilters, dvs } = usePage().props;
+    const user = auth.user;
     const [selectedPeriod, setSelectedPeriod] = useState('monthly');
     const [selectedCategory, setSelectedCategory] = useState('implementing-unit');
     const [animatedCards, setAnimatedCards] = useState(false);
     const [showExportDropdown, setShowExportDropdown] = useState(false);
+    
+    // Calculate dashboard statistics from DVs data
+    const getDashboardStats = () => {
+        if (!dvs || !Array.isArray(dvs)) {
+            return {
+                totalReceived: 0,
+                totalProcessed: 0,
+                processing: 0,
+                outsideAccounting: 0
+            };
+        }
+        
+        const totalReceived = dvs.length;
+        const totalProcessed = dvs.filter(dv => dv.status === 'processed').length;
+        const processing = dvs.filter(dv => !['processed'].includes(dv.status)).length;
+        const outsideAccounting = dvs.filter(dv => ['out_to_cashiering', 'for_lddap'].includes(dv.status)).length;
+        
+        return {
+            totalReceived,
+            totalProcessed,
+            processing,
+            outsideAccounting
+        };
+    };
     
     // New states for enhanced filtering
     const [selectedChartCategory, setSelectedChartCategory] = useState('all'); // For chart category filtering
@@ -355,7 +380,7 @@ export default function StatisticsPage() {
                             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 flex items-center justify-center text-sm sm:text-base"
                         >
                             <span className="mr-2">🏠</span>
-                            Dashboard
+                            Home
                         </Link>
                         <div className="flex space-x-2 sm:space-x-4">
                             <Link
@@ -463,6 +488,64 @@ export default function StatisticsPage() {
                                 onClick={() => setShowExportDropdown(false)}
                             ></div>
                         )}
+                    </div>
+
+                    {/* Dashboard Statistics Cards - Always Visible */}
+                    <div className="space-y-6 mb-8">
+                        {/* Dashboard Statistics Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                            {/* Total DV Received */}
+                            <div className="bg-gradient-to-br from-blue-500/80 to-blue-600/80 backdrop-blur-lg text-white p-6 rounded-xl shadow-lg border border-white/20">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-blue-100 text-sm font-medium">Total DV Received</p>
+                                        <p className="text-3xl font-bold">{getDashboardStats().totalReceived.toLocaleString()}</p>
+                                    </div>
+                                    <div className="p-3 bg-white/20 rounded-full">
+                                        <span className="text-2xl">📥</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Total Processed */}
+                            <div className="bg-gradient-to-br from-green-500/80 to-green-600/80 backdrop-blur-lg text-white p-6 rounded-xl shadow-lg border border-white/20">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-green-100 text-sm font-medium">Total Processed</p>
+                                        <p className="text-3xl font-bold">{getDashboardStats().totalProcessed.toLocaleString()}</p>
+                                    </div>
+                                    <div className="p-3 bg-white/20 rounded-full">
+                                        <span className="text-2xl">✅</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Processing */}
+                            <div className="bg-gradient-to-br from-orange-500/80 to-orange-600/80 backdrop-blur-lg text-white p-6 rounded-xl shadow-lg border border-white/20">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-orange-100 text-sm font-medium">Currently Processing</p>
+                                        <p className="text-3xl font-bold">{getDashboardStats().processing.toLocaleString()}</p>
+                                    </div>
+                                    <div className="p-3 bg-white/20 rounded-full">
+                                        <span className="text-2xl">⚙️</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Outside Accounting */}
+                            <div className="bg-gradient-to-br from-purple-500/80 to-purple-600/80 backdrop-blur-lg text-white p-6 rounded-xl shadow-lg border border-white/20">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-purple-100 text-sm font-medium">Outside Accounting</p>
+                                        <p className="text-3xl font-bold">{getDashboardStats().outsideAccounting.toLocaleString()}</p>
+                                    </div>
+                                    <div className="p-3 bg-white/20 rounded-full">
+                                        <span className="text-2xl">🏢</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Processing Time Analysis Chart with Enhanced Filters */}

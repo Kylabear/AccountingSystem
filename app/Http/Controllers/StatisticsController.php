@@ -50,6 +50,19 @@ class StatisticsController extends Controller
                 ];
             });
 
+        // Get all DVs for dashboard statistics
+        $allDvs = IncomingDv::select('id', 'status', 'amount', 'dv_number', 'created_at')
+            ->get()
+            ->map(function ($dv) {
+                return [
+                    'id' => $dv->id,
+                    'status' => $dv->status,
+                    'amount' => $dv->amount,
+                    'dv_number' => $dv->dv_number,
+                    'created_at' => $dv->created_at->format('Y-m-d'),
+                ];
+            });
+
         return Inertia::render('StatisticsPage', [
             'statistics' => [
                 'totalDVs' => $totalDVs,
@@ -62,7 +75,8 @@ class StatisticsController extends Controller
             'currentFilters' => [
                 'filter_by' => $filterBy,
                 'time_period' => $timePeriod,
-            ]
+            ],
+            'dvs' => $allDvs, // Add DVs data for dashboard
         ]);
     }
 
