@@ -471,7 +471,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
     }
     
     if (confirm('Return this DV to sender from Box C?')) {
-      onStatusUpdate(dv.id, 'for_rts_in', {
+      onStatusUpdate(dv.id, 'for_bc_rts_in', {
         action: 'rts',
         rts_out_date: rtsDate,
         rts_reason: combinedReason
@@ -511,7 +511,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
     }
     setNorsaError('');
     if (confirm('Process NORSA for this DV from Box C?')) {
-      onStatusUpdate(dv.id, 'for_norsa_in', {
+      onStatusUpdate(dv.id, 'for_bc_norsa_in', {
         action: 'norsa',
         norsa_date: norsaDate,
         norsa_number: norsaNumber
@@ -2195,9 +2195,11 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
             )}
 
             {/* For RTS In Actions - Show latest RTS info and 'Returned After RTS' button */}
-            {dv.status === 'for_rts_in' && dv.rts_history && dv.rts_history.length > 0 && (
+            {(dv.status === 'for_rts_in' || dv.status === 'for_bc_rts_in') && dv.rts_history && dv.rts_history.length > 0 && (
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4 text-orange-800">For RTS In</h3>
+                <h3 className="text-lg font-semibold mb-4 text-orange-800">
+                  {dv.status === 'for_rts_in' ? 'For RTS In' : 'For Bx C RTS In'}
+                </h3>
                 <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
                   <h4 className="font-semibold text-orange-800 mb-3">Current RTS Cycle Details</h4>
                   {(() => {
@@ -2239,8 +2241,13 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     <button
                       onClick={() => {
                         const dateToUse = rtsDate || getTodayDate();
-                        if (confirm('Return this DV after RTS?')) {
-                          onStatusUpdate(dv.id, 'for_review', {
+                        const nextStatus = dv.status === 'for_rts_in' ? 'for_review' : 'for_box_c';
+                        const confirmMessage = dv.status === 'for_rts_in' 
+                          ? 'Return this DV after RTS to Review stage?' 
+                          : 'Return this DV after RTS to Box C stage?';
+                        
+                        if (confirm(confirmMessage)) {
+                          onStatusUpdate(dv.id, nextStatus, {
                             rts_returned_date: dateToUse
                           });
                           onClose();
@@ -2249,6 +2256,73 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                       className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors mt-5"
                     >
                       Returned After RTS
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* For NORSA In Actions - Show latest NORSA info and 'Returned After NORSA' button */}
+            {(dv.status === 'for_norsa_in' || dv.status === 'for_bc_norsa_in') && dv.norsa_history && dv.norsa_history.length > 0 && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4 text-blue-800">
+                  {dv.status === 'for_norsa_in' ? 'For NORSA In' : 'For Bx C NORSA In'}
+                </h3>
+                <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+                  <h4 className="font-semibold text-blue-800 mb-3">Current NORSA Cycle Details</h4>
+                  {(() => {
+                    const latestNORSA = dv.norsa_history[dv.norsa_history.length - 1];
+                    return (
+                      <div className="bg-white p-4 rounded border mb-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-gray-700">Date of NORSA:</span>
+                            <p>{latestNORSA.date}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">NORSA Number:</span>
+                            <p>{latestNORSA.number}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Date Returned After NORSA:</span>
+                            <p>{latestNORSA.returned_date ? latestNORSA.returned_date : 'Pending'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-gray-700">Reviewed by:</span>
+                            <p>{latestNORSA.reviewed_by || '<name>'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  <div className="flex gap-2 mt-4 items-center">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Return Date</label>
+                      <input
+                        type="date"
+                        value={norsaDate || getTodayDate()}
+                        onChange={e => setNorsaDate(e.target.value)}
+                        className="border border-gray-300 rounded-lg p-2 text-gray-700 w-36"
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        const dateToUse = norsaDate || getTodayDate();
+                        const nextStatus = dv.status === 'for_norsa_in' ? 'for_review' : 'for_box_c';
+                        const confirmMessage = dv.status === 'for_norsa_in' 
+                          ? 'Return this DV after NORSA to Review stage?' 
+                          : 'Return this DV after NORSA to Box C stage?';
+                        
+                        if (confirm(confirmMessage)) {
+                          onStatusUpdate(dv.id, nextStatus, {
+                            norsa_returned_date: dateToUse
+                          });
+                          onClose();
+                        }
+                      }}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mt-5"
+                    >
+                      Returned After NORSA
                     </button>
                   </div>
                 </div>
