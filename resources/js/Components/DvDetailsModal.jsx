@@ -14,8 +14,11 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   const [rtsReason, setRtsReason] = useState('');
   const [rtsGeneralReason, setRtsGeneralReason] = useState('');
   const [rtsDate, setRtsDate] = useState('');
+  const [rtsReturnDate, setRtsReturnDate] = useState(new Date().toISOString().split('T')[0]);
   const [norsaNumber, setNorsaNumber] = useState('');
+  const [norsaReturnDate, setNorsaReturnDate] = useState(new Date().toISOString().split('T')[0]);
   const [norsaError, setNorsaError] = useState('');
+  const [certifyDate, setCertifyDate] = useState(new Date().toISOString().split('T')[0]);
   const [showNorsaForm, setShowNorsaForm] = useState(false);
   const [showRtsForm, setShowRtsForm] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -383,7 +386,10 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       onStatusUpdate(
         dv.id,
         'for_approval',
-        { action: 'certify' },
+        { 
+          action: 'certify',
+          certification_date: certifyDate
+        },
         () => {
           // After status update, use Inertia to visit For Approval tab
           if (typeof window !== 'undefined' && window.route) {
@@ -1670,8 +1676,22 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                 <h3 className="text-lg font-semibold mb-4">Box C Certification Actions</h3>
                 
                 {!activeAction && (
-                  <div className="flex flex-wrap gap-3">
-                    <button
+                  <div className="space-y-4">
+                    {/* Certification Date Input */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Certification Date
+                      </label>
+                      <input
+                        type="date"
+                        value={certifyDate}
+                        onChange={(e) => setCertifyDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      <button
                       onClick={handleCertify}
                       className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
                     >
@@ -1689,6 +1709,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     >
                       📄 NORSA
                     </button>
+                    </div>
                   </div>
                 )}
 
@@ -2118,12 +2139,26 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                       </div>
                     </div>
                   )}
+                  
+                  {/* RTS Return Date Input */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Date Returned After RTS
+                    </label>
+                    <input
+                      type="date"
+                      value={rtsReturnDate}
+                      onChange={(e) => setRtsReturnDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+                  
                   <div className="flex gap-2 mt-4 items-center">
                     <button
                       onClick={() => {
                         if (confirm('Return this DV after RTS?')) {
                           onStatusUpdate(dv.id, 'for_review', {
-                            rts_returned_date: new Date().toISOString().split('T')[0]
+                            rts_returned_date: rtsReturnDate
                           });
                           onClose();
                         }
@@ -2179,12 +2214,26 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                         </div>
                       </div>
                     )}
+                    
+                    {/* NORSA Return Date Input */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Date Returned After NORSA
+                      </label>
+                      <input
+                        type="date"
+                        value={norsaReturnDate}
+                        onChange={(e) => setNorsaReturnDate(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    
                     <div className="flex gap-2 mt-4 items-center">
                       <button
                         onClick={() => {
                           if (confirm('Return this DV after NORSA?')) {
                             onStatusUpdate(dv.id, 'for_review', {
-                              norsa_returned_date: new Date().toISOString().split('T')[0]
+                              norsa_returned_date: norsaReturnDate
                             });
                             onClose();
                           }
