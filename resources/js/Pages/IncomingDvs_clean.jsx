@@ -35,7 +35,7 @@ const statuses = [
     { key: 'for_rts_in', label: 'For RTS In', color: 'text-white', bgColor: '#F08784' },
     { key: 'for_norsa_in', label: 'For NORSA In', color: 'text-white', bgColor: '#FFBAB3' },
     { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'text-white', bgColor: '#F07B1D' },
-    { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
+    { key: 'for_box_c', label: 'For Box C', color: 'text-black', bgColor: '#FFF449' },
     { key: 'for_approval', label: 'For Approval', color: 'text-white', bgColor: '#6B6B6B' },
     { key: 'for_indexing', label: 'For Indexing', color: 'text-white', bgColor: '#0023F5' },
     { key: 'for_payment', label: 'For Mode of Payment', color: 'text-white', bgColor: '#6B28E3' },

@@ -1094,7 +1094,7 @@ export default function IncomingDvs() {
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4 group" onMouseLeave={() => setBoxCHoveredButton(null)}>
                                 {['box_c', 'rts_in', 'norsa_in'].map((key) => {
-                                  const label = key === 'box_c' ? 'For Box C Certification' : key === 'rts_in' ? 'For Box C RTS In' : 'For Box C NORSA In'; // Updated labels
+                                  const label = key === 'box_c' ? 'For Box C' : key === 'rts_in' ? 'For Box C RTS In' : 'For Box C NORSA In'; // Updated labels
                                   const icon = key === 'box_c' ? '📦' : key === 'rts_in' ? '🔄' : '🌐';
                                   const count = sortedDvs.filter(dv =>
                                     key === 'box_c' ? dv.status === 'for_box_c' :

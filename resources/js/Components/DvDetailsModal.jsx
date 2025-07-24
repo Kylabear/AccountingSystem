@@ -65,7 +65,14 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
     
     // Map sub-statuses to their main workflow stage
     const getMainStage = (status) => {
-      if (['for_rts_in', 'for_norsa_in'].includes(status)) return 'for_review';
+      // For unified statuses, check origin to determine correct stage
+      if (status === 'for_rts_in') {
+        return (dv.rts_origin === 'box_c') ? 'for_box_c' : 'for_review';
+      }
+      if (status === 'for_norsa_in') {
+        return (dv.norsa_origin === 'box_c') ? 'for_box_c' : 'for_review';
+      }
+      // Legacy status mappings for backward compatibility
       if (['for_bc_rts_in', 'for_bc_norsa_in'].includes(status)) return 'for_box_c';
       if (status === 'out_for_approval') return 'for_approval';
       return status;
@@ -515,10 +522,11 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
     }
     
     if (confirm('Return this DV to sender from Box C?')) {
-      onStatusUpdate(dv.id, 'for_bc_rts_in', {
+      onStatusUpdate(dv.id, 'for_rts_in', {
         action: 'rts',
         rts_out_date: rtsDate,
-        rts_reason: combinedReason
+        rts_reason: combinedReason,
+        rts_origin: 'box_c'  // Set origin to track where RTS originated
       });
       onClose();
       setActiveAction(null);
@@ -555,10 +563,11 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
     }
     setNorsaError('');
     if (confirm('Process NORSA for this DV from Box C?')) {
-      onStatusUpdate(dv.id, 'for_bc_norsa_in', {
+      onStatusUpdate(dv.id, 'for_norsa_in', {
         action: 'norsa',
         norsa_date: norsaDate,
-        norsa_number: norsaNumber
+        norsa_number: norsaNumber,
+        norsa_origin: 'box_c'  // Set origin to track where NORSA originated
       });
       onClose();
       setActiveAction(null);
@@ -2347,10 +2356,11 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     <button
                       onClick={() => {
                         const dateToUse = rtsDate || getTodayDate();
-                        const nextStatus = dv.status === 'for_rts_in' ? 'for_review' : 'for_box_c';
-                        const confirmMessage = dv.status === 'for_rts_in' 
-                          ? 'Return this DV after RTS to Review stage?' 
-                          : 'Return this DV after RTS to Box C stage?';
+                        // Check rts_origin to determine where to return the DV
+                        const nextStatus = (dv.rts_origin === 'box_c') ? 'for_box_c' : 'for_review';
+                        const confirmMessage = (dv.rts_origin === 'box_c')
+                          ? 'Return this DV after RTS to Box C stage?' 
+                          : 'Return this DV after RTS to Review stage?';
                         
                         if (confirm(confirmMessage)) {
                           onStatusUpdate(dv.id, nextStatus, {
@@ -2414,10 +2424,11 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     <button
                       onClick={() => {
                         const dateToUse = norsaDate || getTodayDate();
-                        const nextStatus = dv.status === 'for_norsa_in' ? 'for_review' : 'for_box_c';
-                        const confirmMessage = dv.status === 'for_norsa_in' 
-                          ? 'Return this DV after NORSA to Review stage?' 
-                          : 'Return this DV after NORSA to Box C stage?';
+                        // Check norsa_origin to determine where to return the DV
+                        const nextStatus = (dv.norsa_origin === 'box_c') ? 'for_box_c' : 'for_review';
+                        const confirmMessage = (dv.norsa_origin === 'box_c')
+                          ? 'Return this DV after NORSA to Box C stage?' 
+                          : 'Return this DV after NORSA to Review stage?';
                         
                         if (confirm(confirmMessage)) {
                           onStatusUpdate(dv.id, nextStatus, {
