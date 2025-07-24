@@ -16,6 +16,11 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
   const [norsaNumber, setNorsaNumber] = useState('');
   const [norsaError, setNorsaError] = useState('');
   
+  // States for RTS In and NORSA In return dates (auto-populated)
+  const [rtsReturnDate, setRtsReturnDate] = useState(new Date().toISOString().split('T')[0]);
+  const [norsaReturnDate, setNorsaReturnDate] = useState(new Date().toISOString().split('T')[0]);
+  const [norsaDate, setNorsaDate] = useState('');
+  
   // RTS predefined reasons
   const [predefinedRtsReasons] = useState([
     'Incomplete Documents',
@@ -235,7 +240,6 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       setNorsaError('');
     }
   };
-  const [norsaDate, setNorsaDate] = useState('');
   
   // Cash allocation state variables
   const [cashAllocationDate, setCashAllocationDate] = useState('');
@@ -391,6 +395,46 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
       setActiveAction(null);
       setNorsaNumber('');
       setNorsaDate('');
+    }
+  };
+
+  // Handler for RTS In - mark as returned after RTS
+  const handleRtsIn = () => {
+    if (confirm('Mark this DV as returned after RTS?')) {
+      onStatusUpdate(dv.id, 'for_review', {
+        rts_in_date: rtsReturnDate
+      });
+      onClose();
+    }
+  };
+
+  // Handler for NORSA In - mark as returned after NORSA
+  const handleNorsaIn = () => {
+    if (confirm('Mark this DV as returned after NORSA?')) {
+      onStatusUpdate(dv.id, 'for_review', {
+        norsa_in_date: norsaReturnDate
+      });
+      onClose();
+    }
+  };
+
+  // Handler for Box C RTS In - mark as returned after RTS from Box C
+  const handleBoxCRtsIn = () => {
+    if (confirm('Mark this DV as returned after RTS from Box C?')) {
+      onStatusUpdate(dv.id, 'for_box_c', {
+        bc_rts_in_date: rtsReturnDate
+      });
+      onClose();
+    }
+  };
+
+  // Handler for Box C NORSA In - mark as returned after NORSA from Box C
+  const handleBoxCNorsaIn = () => {
+    if (confirm('Mark this DV as returned after NORSA from Box C?')) {
+      onStatusUpdate(dv.id, 'for_box_c', {
+        bc_norsa_in_date: norsaReturnDate
+      });
+      onClose();
     }
   };
 
@@ -1669,6 +1713,70 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* RTS In Actions */}
+            {(dv.status === 'for_rts_in' || dv.status === 'for_bc_rts_in') && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">RTS In Actions</h3>
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-orange-800 mb-3">
+                    {dv.status === 'for_bc_rts_in' ? 'For Box C RTS In' : 'For RTS In'}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Return Date</label>
+                      <input
+                        type="date"
+                        value={rtsReturnDate}
+                        onChange={(e) => setRtsReturnDate(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg p-2 focus:border-orange-500 focus:outline-none"
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={dv.status === 'for_bc_rts_in' ? handleBoxCRtsIn : handleRtsIn}
+                        className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors"
+                      >
+                        ✓ Returned After RTS
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* NORSA In Actions */}
+            {(dv.status === 'for_norsa_in' || dv.status === 'for_bc_norsa_in') && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">NORSA In Actions</h3>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-blue-800 mb-3">
+                    {dv.status === 'for_bc_norsa_in' ? 'For Box C NORSA In' : 'For NORSA In'}
+                  </h4>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Return Date</label>
+                      <input
+                        type="date"
+                        value={norsaReturnDate}
+                        onChange={(e) => setNorsaReturnDate(e.target.value)}
+                        className="w-full border border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:outline-none"
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={dv.status === 'for_bc_norsa_in' ? handleBoxCNorsaIn : handleNorsaIn}
+                        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        ✓ Returned After NORSA
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
