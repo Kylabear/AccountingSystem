@@ -1,4 +1,5 @@
 // Helper component for For Review tab with section buttons
+// Cache bust: Updated Box C labels - July 24, 2025
 import React, { useState, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import DvDetailsModal from '../Components/DvDetailsModal';
@@ -17,8 +18,8 @@ import AnimatedBackground from '../Components/AnimatedBackground';
 const statuses = [
     { key: 'recents', label: 'Recent Activity', color: 'text-white', bgColor: '#73FBFD' },
     { key: 'for_review', label: 'For Review', color: 'text-white', bgColor: '#D92F21' },
-    { key: 'for_rts_in', label: 'For RTS In', color: 'text-white', bgColor: '#FF6E63' },
-    { key: 'for_norsa_in', label: 'For NORSA In', color: 'text-white', bgColor: '#CD5C5C' },
+    { key: 'for_rts_in', label: 'For Box C RTS In', color: 'text-white', bgColor: '#FF6E63' },
+    { key: 'for_norsa_in', label: 'For Box C NORSA In', color: 'text-white', bgColor: '#CD5C5C' },
     { key: 'for_cash_allocation', label: 'For Cash Allocation', color: 'text-white', bgColor: '#F07B1D' },
     { key: 'for_cash_reallocation', label: 'For Cash Reallocation', color: 'text-orange-900', bgColor: '#FFD9B3' }, // lighter orange
     { key: 'for_box_c', label: 'For Box C Certification', color: 'text-black', bgColor: '#FFF449' },
@@ -975,7 +976,7 @@ export default function IncomingDvs() {
           onClick={() => setForReviewSection('for_rts_in')}
         >
           <span className="mr-2">📦</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-red-700' : 'text-black'}`}>For RTS In</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-red-700' : 'text-black'}`}>For Box C RTS In</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
         </button>
         <button
@@ -983,7 +984,7 @@ export default function IncomingDvs() {
           onClick={() => setForReviewSection('for_norsa_in')}
         >
           <span className="mr-2">🌐</span>
-          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-red-700' : 'text-black'}`}>For NORSA In</span>
+          <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-red-700' : 'text-black'}`}>For Box C NORSA In</span>
           <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
         </button>
       </div>
@@ -1100,7 +1101,7 @@ export default function IncomingDvs() {
                             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                               <div className="flex space-x-4 group" onMouseLeave={() => setBoxCHoveredButton(null)}>
                                 {['box_c', 'rts_in', 'norsa_in'].map((key) => {
-                                  const label = key === 'box_c' ? 'For Box C Certification' : key === 'rts_in' ? 'For RTS In' : 'For NORSA In';
+                                  const label = key === 'box_c' ? 'For Box C Certification' : key === 'rts_in' ? 'For Box C RTS In' : 'For Box C NORSA In'; // Updated labels
                                   const icon = key === 'box_c' ? '📦' : key === 'rts_in' ? '🔄' : '🌐';
                                   const count = sortedDvs.filter(dv => dv.status === (key === 'box_c' ? 'for_box_c' : key === 'rts_in' ? 'for_rts_in' : 'for_norsa_in')).length;
                                   return (

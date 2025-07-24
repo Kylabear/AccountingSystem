@@ -2079,7 +2079,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
               <>
                 {(dv.norsa_history && dv.norsa_history.some(norsa => !norsa.origin || norsa.origin === 'review')) && (
                   <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-blue-800 mb-3">For NORSA In (From Review)</h4>
+                    <h4 className="font-semibold text-blue-800 mb-3">For Box C NORSA In (From Review)</h4>
                     {dv.norsa_history.filter(norsa => !norsa.origin || norsa.origin === 'review').map((norsa, index) => (
                       <div key={index} className="mb-2 p-2 bg-white rounded border">
                         <p className="text-sm"><strong>Date:</strong> {norsa.date}</p>
@@ -2197,7 +2197,7 @@ export default function DvDetailsModal({ dv: originalDv, isOpen, onClose, onStat
             {/* For RTS In Actions - Show latest RTS info and 'Returned After RTS' button */}
             {dv.status === 'for_rts_in' && dv.rts_history && dv.rts_history.length > 0 && (
               <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4 text-orange-800">For RTS In</h3>
+                <h3 className="text-lg font-semibold mb-4 text-orange-800">For Box C RTS In</h3>
                 <div className="mb-6 p-4 border-2 border-orange-200 rounded-lg bg-orange-50">
                   <h4 className="font-semibold text-orange-800 mb-3">Current RTS Cycle Details</h4>
                   {(() => {
