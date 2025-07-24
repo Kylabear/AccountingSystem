@@ -12,6 +12,7 @@ import LddapModal from '../Components/LddapModal';
 import EditDvModal from '../Components/EditDvModal';
 import DownloadModal from '../Components/DownloadModal';
 import ProcessedDvModal from '../Components/ProcessedDvModal';
+import ApprovalModal from '../Components/ApprovalModal';
 import AnimatedBackground from '../Components/AnimatedBackground';
 
 
@@ -89,6 +90,7 @@ export default function IncomingDvs() {
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
     const [isProcessedModalOpen, setIsProcessedModalOpen] = useState(false);
     const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+    const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
     // Add missing state for For Review tab section
     const [forReviewSection, setForReviewSection] = useState('for_review');
     
@@ -181,7 +183,7 @@ export default function IncomingDvs() {
     };
 
     // Handle sending DV out for approval
-    const handleSendForApproval = async (dv) => {
+    const handleSendForApproval = async (dv, outDate) => {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             
@@ -198,7 +200,7 @@ export default function IncomingDvs() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    out_date: new Date().toISOString().split('T')[0] // Auto-populate current date
+                    out_date: outDate || new Date().toISOString().split('T')[0] // Use provided date or auto-populate current date
                 })
             });
 
@@ -340,8 +342,8 @@ export default function IncomingDvs() {
         }
     };
 
-    // Handle DV returned from approval
-    const handleApprovalIn = async (dv) => {
+    // Handle DV returned from approval - proceed to indexing
+    const handleApprovalIn = async (dv, inDate) => {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             
@@ -358,14 +360,16 @@ export default function IncomingDvs() {
                     'Accept': 'application/json',
                 },
                 body: JSON.stringify({
-                    in_date: new Date().toISOString().split('T')[0], // Auto-populate current date
-                    approval_status: 'approved'
+                    in_date: inDate || new Date().toISOString().split('T')[0], // Use provided date or auto-populate current date
+                    approval_status: 'approved',
+                    next_status: 'for_indexing' // Automatically proceed to indexing stage
                 })
             });
 
             const responseData = await response.json();
 
             if (response.ok) {
+                alert('✅ DV approved successfully! Now proceeding to Indexing stage.');
                 // Auto-reload to show updated status and transaction history
                 window.location.reload();
             } else {
@@ -571,6 +575,10 @@ export default function IncomingDvs() {
             setIsProcessedModalOpen(true);
         } else if (dv.status === 'for_cash_allocation') {
             setIsCashAllocationModalOpen(true);
+        } else if (dv.status === 'for_approval') {
+            setIsApprovalModalOpen(true);
+        } else if (dv.status === 'for_indexing') {
+            setIsIndexingModalOpen(true);
         } else if (dv.status === 'for_lddap') {
             setIsLddapModalOpen(true);
         } else if (dv.status === 'for_engas') {
@@ -654,28 +662,6 @@ export default function IncomingDvs() {
               </span>
             </div>
             <div className="flex flex-row items-center space-x-1 mb-1">
-              {dv.status === 'for_approval' && !dv.approval_out_date && (
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleSendForApproval(dv);
-                  }}
-                  className="bg-green-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-green-600 transition-colors duration-200"
-                >
-                  Out
-                </button>
-              )}
-              {dv.status === 'for_approval' && dv.approval_out_date && !dv.approval_in_date && (
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleApprovalIn(dv);
-                  }}
-                  className="bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-600 transition-colors duration-200"
-                >
-                  In
-                </button>
-              )}
               <button
                 onClick={e => {
                   e.stopPropagation();
@@ -1554,6 +1540,17 @@ export default function IncomingDvs() {
                     setSelectedDv(null);
                 }}
                 onReallocate={handleCashReallocation}
+            />
+
+            <ApprovalModal
+                dv={selectedDv}
+                isOpen={isApprovalModalOpen}
+                onClose={() => {
+                    setIsApprovalModalOpen(false);
+                    setSelectedDv(null);
+                }}
+                onApprovalOut={handleSendForApproval}
+                onApprovalIn={handleApprovalIn}
             />
 
             <DownloadModal
