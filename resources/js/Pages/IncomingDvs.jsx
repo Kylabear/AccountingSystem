@@ -397,7 +397,9 @@ export default function IncomingDvs() {
 // For Box C Certification tab shows DVs in for_box_c status OR those in RTS/NORSA cycles that originated from box_c
                 matchesStatus = dv.status === 'for_box_c' || 
                     (dv.status === 'for_rts_in' && dv.rts_origin === 'box_c') ||
-                    (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c');
+                    (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c') ||
+                    dv.status === 'for_bx_c_rts_in' ||
+                    dv.status === 'for_bx_c_norsa_in';
             } else if (activeTab === 'for_approval') {
                 // For Approval tab shows DVs in for_approval status that haven't been sent out yet
                 // DVs that have been sent out will be shown in a separate "Out for Approval" section
@@ -835,7 +837,9 @@ export default function IncomingDvs() {
                                         count = dvs.filter(dv => 
                                             dv.status === 'for_box_c' ||
                                             (dv.status === 'for_rts_in' && dv.rts_origin === 'box_c') ||
-                                            (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c')
+                                            (dv.status === 'for_norsa_in' && dv.norsa_origin === 'box_c') ||
+                                            dv.status === 'for_bx_c_rts_in' ||
+                                            dv.status === 'for_bx_c_norsa_in'
                                         ).length;
                                     } else if (status.key === 'for_mode_of_payment') {
                                         // Count DVs in for_payment OR out_to_cashiering status
@@ -1103,7 +1107,11 @@ export default function IncomingDvs() {
                                 {['box_c', 'rts_in', 'norsa_in'].map((key) => {
                                   const label = key === 'box_c' ? 'For Box C Certification' : key === 'rts_in' ? 'For Box C RTS In' : 'For Box C NORSA In'; // Updated labels
                                   const icon = key === 'box_c' ? '📦' : key === 'rts_in' ? '🔄' : '🌐';
-                                  const count = sortedDvs.filter(dv => dv.status === (key === 'box_c' ? 'for_box_c' : key === 'rts_in' ? 'for_rts_in' : 'for_norsa_in')).length;
+                                  const count = sortedDvs.filter(dv =>
+                                    key === 'box_c' ? dv.status === 'for_box_c' :
+                                    key === 'rts_in' ? (dv.status === 'for_rts_in' || dv.status === 'for_bx_c_rts_in') :
+                                    (dv.status === 'for_norsa_in' || dv.status === 'for_bx_c_norsa_in')
+                                  ).length;
                                   return (
                                     <button
                                       key={key}
@@ -1127,11 +1135,11 @@ export default function IncomingDvs() {
                                   filtered = sortedDvs.filter(dv => dv.status === 'for_box_c');
                                   emptyMsg = "No disbursement vouchers are pending Box C certification. You're up to date.";
                                 } else if (boxCSection === 'rts_in') {
-                                  filtered = sortedDvs.filter(dv => dv.status === 'for_rts_in');
-                                  emptyMsg = "No disbursement vouchers are pending RTS In for Box C. Check back later.";
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_rts_in' || dv.status === 'for_bx_c_rts_in');
+                                  emptyMsg = "No disbursement vouchers are pending Bx C RTS In. Check back later.";
                                 } else if (boxCSection === 'norsa_in') {
-                                  filtered = sortedDvs.filter(dv => dv.status === 'for_norsa_in');
-                                  emptyMsg = "No disbursement vouchers are pending NORSA In for Box C. Check back later.";
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_norsa_in' || dv.status === 'for_bx_c_norsa_in');
+                                  emptyMsg = "No disbursement vouchers are pending Bx C NORSA In. Check back later.";
                                 } else {
                                   filtered = [];
                                   emptyMsg = "No disbursement vouchers in this section. Check back later.";
