@@ -392,7 +392,10 @@ export default function IncomingDvs() {
             // Other tabs filter by actual status
             if (activeTab === 'for_review') {
                 // For Review tab shows DVs in for_review, for_rts_in, or for_norsa_in status
-                matchesStatus = ['for_review', 'for_rts_in', 'for_norsa_in'].includes(dv.status);
+                // BUT only if RTS/NORSA originated from review stage (not from other stages like box_c)
+                matchesStatus = dv.status === 'for_review' ||
+                    (dv.status === 'for_rts_in' && (!dv.rts_origin || dv.rts_origin === 'review')) ||
+                    (dv.status === 'for_norsa_in' && (!dv.norsa_origin || dv.norsa_origin === 'review'));
             } else if (activeTab === 'for_box_c') {
 // For Box C Certification tab shows DVs in for_box_c status OR those in RTS/NORSA cycles that originated from box_c
                 matchesStatus = dv.status === 'for_box_c' || 
@@ -828,8 +831,12 @@ export default function IncomingDvs() {
                                         // Count ALL DVs regardless of status (notification center)
                                         count = dvs.length;
                                     } else if (status.key === 'for_review') {
-                                        // Count all DVs in review-related statuses
-                                        count = dvs.filter(dv => ['for_review', 'for_rts_in', 'for_norsa_in'].includes(dv.status)).length;
+                                        // Count all DVs in review-related statuses (only those that originated from review)
+                                        count = dvs.filter(dv => 
+                                            dv.status === 'for_review' ||
+                                            (dv.status === 'for_rts_in' && (!dv.rts_origin || dv.rts_origin === 'review')) ||
+                                            (dv.status === 'for_norsa_in' && (!dv.norsa_origin || dv.norsa_origin === 'review'))
+                                        ).length;
                                     } else if (status.key === 'for_box_c') {
                                         // Count all DVs in box_c-related statuses
                                         count = dvs.filter(dv => 
@@ -977,7 +984,7 @@ export default function IncomingDvs() {
         >
           <span className="mr-2">📦</span>
           <span className={`transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'text-red-700' : 'text-black'}`}>For RTS In</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in').length}</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_rts_in' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_rts_in' && (!dv.rts_origin || dv.rts_origin === 'review')).length}</span>
         </button>
         <button
           className={`text-xl font-bold flex items-center px-6 py-3 rounded-lg transition-all duration-200 bg-white/30 backdrop-blur-md border border-white/60 shadow-xl hover:bg-white/40 hover:backdrop-blur-lg ${forReviewSection === 'for_norsa_in' ? 'text-red-700 bg-white/50 backdrop-blur-lg shadow-2xl' : 'text-black'}`}
@@ -985,7 +992,7 @@ export default function IncomingDvs() {
         >
           <span className="mr-2">🌐</span>
           <span className={`transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'text-red-700' : 'text-black'}`}>For NORSA In</span>
-          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in').length}</span>
+          <span className={`ml-2 px-2 py-1 rounded-full text-sm font-semibold transition-colors duration-200 ${forReviewSection === 'for_norsa_in' ? 'bg-red-700 text-white' : 'bg-transparent text-red-700'}`}>{sortedDvs.filter(dv => dv.status === 'for_norsa_in' && (!dv.norsa_origin || dv.norsa_origin === 'review')).length}</span>
         </button>
       </div>
     </div>
@@ -996,9 +1003,9 @@ export default function IncomingDvs() {
                                 if (forReviewSection === 'for_review') {
                                   filtered = sortedDvs.filter(dv => dv.status === 'for_review');
                                 } else if (forReviewSection === 'for_rts_in') {
-                                  filtered = sortedDvs.filter(dv => dv.status === 'for_rts_in');
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_rts_in' && (!dv.rts_origin || dv.rts_origin === 'review'));
                                 } else if (forReviewSection === 'for_norsa_in') {
-                                  filtered = sortedDvs.filter(dv => dv.status === 'for_norsa_in');
+                                  filtered = sortedDvs.filter(dv => dv.status === 'for_norsa_in' && (!dv.norsa_origin || dv.norsa_origin === 'review'));
                                 } else {
                                   filtered = [];
                                 }
