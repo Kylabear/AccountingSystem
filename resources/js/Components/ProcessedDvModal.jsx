@@ -202,8 +202,8 @@ export default function ProcessedDvModal({ dv, isOpen, onClose, onReallocate }) 
     const invalidDateOrder = completedDate < createdDate;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '60px', paddingBottom: '20px' }}>
-            <div className="bg-white rounded-lg w-full max-w-7xl max-h-screen overflow-hidden m-4 flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '80px', paddingBottom: '20px' }}>
+            <div className="bg-white rounded-lg w-full max-w-6xl max-h-screen overflow-hidden m-4 flex flex-col">
                 {/* Header */}
                 <div className="bg-white border-b px-6 py-4 flex justify-between items-center flex-shrink-0">
                     <h2 className="text-xl font-bold text-gray-800">Processed Disbursement Voucher</h2>

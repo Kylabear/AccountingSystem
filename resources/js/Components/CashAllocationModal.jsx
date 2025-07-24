@@ -126,8 +126,8 @@ export default function CashAllocationModal({ dv, isOpen, onClose, onUpdate }) {
     if (!isOpen || !dv) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '120px', paddingBottom: '40px' }}>
-            <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full mx-4 my-4 flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '80px', paddingBottom: '20px' }}>
+            <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 my-4 flex flex-col">
                 {/* Full-width Header */}
                 <div className="bg-orange-500 text-white p-4 rounded-t-lg flex justify-between items-center">
                     <h2 className="text-lg font-semibold">Cash Allocation</h2>

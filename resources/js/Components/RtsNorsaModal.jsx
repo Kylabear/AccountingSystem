@@ -228,8 +228,8 @@ export default function RtsNorsaModal({ dv, isOpen, onClose, onUpdate }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto" style={{ zIndex: 50000 }}>
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 modal-backdrop overflow-y-auto" style={{ zIndex: 50000, paddingTop: '80px', paddingBottom: '20px' }}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-screen overflow-hidden m-4 flex flex-col">
                 {renderContent()}
             </div>
         </div>
