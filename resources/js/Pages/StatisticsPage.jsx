@@ -324,7 +324,6 @@ export default function StatisticsPage() {
                                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300">
                                     Statistics & Analytics
                                 </h1>
-                                <p className="text-xs sm:text-sm text-green-200">DA-CAR Accounting Monitoring System</p>
                             </div>
                         </Link>
                     </div>

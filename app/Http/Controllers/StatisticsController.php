@@ -497,12 +497,6 @@ class StatisticsController extends Controller
 
         $column = $columnMap[$filterBy] ?? 'implementing_unit';
 
-        // Predefined implementing units
-        $predefinedUnits = [
-            'RAED', 'SAAD', 'REGULATORY', 'RESEARCH', 'ILD', 'AFD', 'RICE', 'CORN', 'LIVESTOCK',
-            'OAP', 'HVCDP', '4K', 'F2C2', 'AMAD', 'PMED', 'BP2'
-        ];
-
         // Get breakdown statistics
         $breakdown = (clone $baseQuery)
             ->selectRaw("
@@ -519,13 +513,6 @@ class StatisticsController extends Controller
             ->groupBy($column)
             ->orderBy('received', 'desc')
             ->get()
-            ->filter(function ($item) use ($filterBy, $predefinedUnits) {
-                // Only filter for implementing_unit breakdown
-                if ($filterBy === 'implementing_unit') {
-                    return in_array($item->category, $predefinedUnits);
-                }
-                return true;
-            })
             ->map(function ($item) {
                 return [
                     'category' => $item->category,
@@ -533,8 +520,7 @@ class StatisticsController extends Controller
                     'processed' => (int) $item->processed,
                     'progress_percentage' => (float) $item->progress_percentage,
                 ];
-            })
-            ->values(); // Reset keys after filter
+            });
 
         return [
             'filter_type' => $filterBy,
