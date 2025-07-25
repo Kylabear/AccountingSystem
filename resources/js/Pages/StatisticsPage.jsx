@@ -30,7 +30,7 @@ export default function StatisticsPage() {
     const [selectedCategory, setSelectedCategory] = useState('implementing-unit');
     const [animatedCards, setAnimatedCards] = useState(false);
     const [showExportDropdown, setShowExportDropdown] = useState(false);
-    
+
     // Calculate dashboard statistics from DVs data
     const getDashboardStats = () => {
         if (!dvs || !Array.isArray(dvs)) {
@@ -41,12 +41,12 @@ export default function StatisticsPage() {
                 outsideAccounting: 0
             };
         }
-        
+
         const totalReceived = dvs.length;
-        const totalProcessed = dvs.filter(dv => dv.status === 'processed').length;
-        const processing = dvs.filter(dv => !['processed'].includes(dv.status)).length;
+        const totalProcessed = dvs.filter(dv => ['approved', 'completed', 'processed'].includes(dv.status)).length;
+        const processing = dvs.filter(dv => !['approved', 'completed', 'processed'].includes(dv.status)).length;
         const outsideAccounting = dvs.filter(dv => ['out_to_cashiering', 'for_lddap'].includes(dv.status)).length;
-        
+
         return {
             totalReceived,
             totalProcessed,
@@ -54,100 +54,66 @@ export default function StatisticsPage() {
             outsideAccounting
         };
     };
-    
+
     // New states for enhanced filtering
     const [selectedChartCategory, setSelectedChartCategory] = useState('all'); // For chart category filtering
     const [selectedDrillPeriod, setSelectedDrillPeriod] = useState(''); // For hierarchical time filtering
 
     // Enhanced mock data for intelligent filtering
-    const mockStats = {
-        totalDVs: 1247,
-        pendingDVs: 89,
-        processedDVs: 1158,
-        receivedDVs: 1247,
-        totalAmount: 15420000.50,
-        averageProcessingTime: 3.2,
-        recentActivity: [
-            { id: 1, action: 'DV Processed', dv: 'DV-2024-001', amount: 45000, time: '2 minutes ago' },
-            { id: 2, action: 'DV Submitted', dv: 'DV-2024-002', amount: 32000, time: '15 minutes ago' },
-            { id: 3, action: 'DV Approved', dv: 'DV-2024-003', amount: 78000, time: '1 hour ago' },
-            { id: 4, action: 'DV Rejected', dv: 'DV-2024-004', amount: 12000, time: '2 hours ago' },
-        ],
-        
-        // Enhanced processing time data by period and category
-        processingTimeData: {
-            // Base data sets by time period
-            daily: [
-                { x: 1, y: 1.2, date: '2024-07-01', category: 'implementing-unit', subCategory: 'Central Office' },
-                { x: 2, y: 0.8, date: '2024-07-02', category: 'fund-source', subCategory: 'General Appropriations Act' },
-                { x: 3, y: 2.1, date: '2024-07-03', category: 'type-disbursement', subCategory: 'Salary and Wages' },
-                { x: 4, y: 1.5, date: '2024-07-04', category: 'implementing-unit', subCategory: 'Regional Field Office I' },
-                { x: 5, y: 0.9, date: '2024-07-05', category: 'fund-source', subCategory: 'Trust Fund' },
-                { x: 6, y: 2.8, date: '2024-07-06', category: 'type-disbursement', subCategory: 'Travel Expenses' },
-                { x: 7, y: 1.1, date: '2024-07-07', category: 'implementing-unit', subCategory: 'Regional Field Office II' }
-            ],
-            weekly: [
-                { x: 1, y: 2.3, period: 'Week 1', category: 'implementing-unit', subCategory: 'Central Office' },
-                { x: 2, y: 1.8, period: 'Week 2', category: 'fund-source', subCategory: 'General Appropriations Act' },
-                { x: 3, y: 3.1, period: 'Week 3', category: 'type-disbursement', subCategory: 'Equipment Purchase' },
-                { x: 4, y: 2.7, period: 'Week 4', category: 'implementing-unit', subCategory: 'Regional Field Office I' },
-                { x: 5, y: 1.9, period: 'Week 5', category: 'fund-source', subCategory: 'Special Appropriations' },
-                { x: 6, y: 4.2, period: 'Week 6', category: 'type-disbursement', subCategory: 'Office Supplies' },
-                { x: 7, y: 2.1, period: 'Week 7', category: 'implementing-unit', subCategory: 'Regional Field Office III' }
-            ],
-            monthly: [
-                { x: 1, y: 2, period: 'Jan', category: 'implementing-unit', subCategory: 'Central Office' },
-                { x: 2, y: 1, period: 'Feb', category: 'fund-source', subCategory: 'General Appropriations Act' },
-                { x: 3, y: 4, period: 'Mar', category: 'type-disbursement', subCategory: 'Salary and Wages' },
-                { x: 4, y: 3, period: 'Apr', category: 'implementing-unit', subCategory: 'Regional Field Office I' },
-                { x: 5, y: 2, period: 'May', category: 'fund-source', subCategory: 'Trust Fund' },
-                { x: 6, y: 5, period: 'Jun', category: 'type-disbursement', subCategory: 'Travel Expenses' },
-                { x: 7, y: 1, period: 'Jul', category: 'implementing-unit', subCategory: 'Regional Field Office II' },
-                { x: 8, y: 3, period: 'Aug', category: 'fund-source', subCategory: 'Foreign Assisted Projects' },
-                { x: 9, y: 2, period: 'Sep', category: 'type-disbursement', subCategory: 'Training and Seminars' },
-                { x: 10, y: 4, period: 'Oct', category: 'implementing-unit', subCategory: 'Regional Field Office III' },
-                { x: 11, y: 3, period: 'Nov', category: 'fund-source', subCategory: 'Internally Generated Funds' },
-                { x: 12, y: 2, period: 'Dec', category: 'type-disbursement', subCategory: 'Maintenance and Repairs' }
-            ],
-            quarterly: [
-                { x: 1, y: 2.3, period: 'Q1', category: 'implementing-unit', subCategory: 'Central Office' },
-                { x: 2, y: 3.1, period: 'Q2', category: 'fund-source', subCategory: 'General Appropriations Act' },
-                { x: 3, y: 2.8, period: 'Q3', category: 'type-disbursement', subCategory: 'Salary and Wages' },
-                { x: 4, y: 3.5, period: 'Q4', category: 'implementing-unit', subCategory: 'Regional Field Office I' }
-            ],
-            yearly: [
-                { x: 1, y: 2.8, period: '2022', category: 'implementing-unit', subCategory: 'Central Office' },
-                { x: 2, y: 3.2, period: '2023', category: 'fund-source', subCategory: 'General Appropriations Act' },
-                { x: 3, y: 2.9, period: '2024', category: 'type-disbursement', subCategory: 'Overall Average' }
-            ]
-        },
-        
-        // Category data for filterable progress bars
-        categoryData: {
-            'implementing-unit': [
-                { name: 'Regional Field Office I', received: 120, processed: 98 },
-                { name: 'Regional Field Office II', received: 85, processed: 75 },
-                { name: 'Regional Field Office III', received: 95, processed: 82 },
-                { name: 'Central Office', received: 150, processed: 140 },
-                { name: 'Regional Field Office IV', received: 75, processed: 65 },
-                { name: 'Regional Field Office V', received: 110, processed: 95 }
-            ],
-            'fund-source': [
-                { name: 'General Appropriations Act', received: 200, processed: 180 },
-                { name: 'Special Appropriations', received: 150, processed: 135 },
-                { name: 'Trust Fund', received: 100, processed: 85 },
-                { name: 'Foreign Assisted Projects', received: 80, processed: 70 },
-                { name: 'Internally Generated Funds', received: 120, processed: 110 }
-            ],
-            'type-disbursement': [
-                { name: 'Salary and Wages', received: 180, processed: 170 },
-                { name: 'Office Supplies', received: 95, processed: 85 },
-                { name: 'Travel Expenses', received: 110, processed: 95 },
-                { name: 'Equipment Purchase', received: 60, processed: 50 },
-                { name: 'Training and Seminars', received: 75, processed: 65 },
-                { name: 'Maintenance and Repairs', received: 85, processed: 75 }
-            ]
-        }
+    // Use real backend data for breakdowns
+    const getCategoryData = (category) => {
+    // Always show all predefined categories for selected breakdown, fallback to zeroes if backend data is missing or mismatched
+    const filterTypeMap = {
+        'implementing-unit': 'implementing_unit',
+        'type-disbursement': 'type_disbursement',
+        'fund-source': 'fund_source'
+    };
+    const normalizedCategory = filterTypeMap[category] || category;
+    let predefinedList = [];
+    if (category === 'implementing-unit') {
+        predefinedList = [
+            'RAED', 'SAAD', 'REGULATORY', 'RESEARCH', 'ILD', 'AFD', 'RICE', 'CORN', 'LIVESTOCK',
+            'OAP', 'HVCDP', '4K', 'F2C2', 'AMAD', 'PMED', 'BP2'
+        ];
+    } else if (category === 'type-disbursement') {
+        predefinedList = [
+            'Professional/General/Job Order Services',
+            'Communication (Telephone/Internet)',
+            'Electricity/Water',
+            'Supplies (office and other supplies)',
+            'Seeds/fertilizer/medicine/drugs',
+            'Equipment/Machinery/Motor Vehicles/Furniture and Fixtures',
+            'Infrastructure - mobilization, partial and final billings',
+            'Biological Assets',
+            'Training- Meals, Snacks and Accommodation',
+            'Remittances/Loans',
+            'Fund Transfers',
+            'Retention',
+            'Salaries/Wages/Allowances/Benefit',
+            'TEV inc. toll fees',
+            'Fuel'
+        ];
+    } else if (category === 'fund-source') {
+        // Add your predefined fund source list here if needed
+        predefinedList = [];
+    }
+
+    // Map backend data if available and filter_type matches
+    let dataMap = {};
+    if (breakdownData && Array.isArray(breakdownData.data) && breakdownData.filter_type === normalizedCategory) {
+        breakdownData.data.forEach(item => {
+            dataMap[item.category] = {
+                name: item.category,
+                received: item.received,
+                processed: item.processed
+            };
+        });
+    }
+
+    // Always return the full predefined list, filling missing with zeroes
+    return predefinedList.map(cat => (
+        dataMap[cat] || { name: cat, received: 0, processed: 0 }
+    ));
     };
 
     const formatCurrency = (amount) => {
@@ -178,44 +144,32 @@ export default function StatisticsPage() {
     };
 
     // Get filtered processing time data based on current selections
+    // There is no real processing time data from backend yet, so return empty array
     const getFilteredProcessingData = () => {
-        let baseData = mockStats.processingTimeData[selectedPeriod] || mockStats.processingTimeData.monthly;
-        
-        // Apply category filter if selected
-        if (selectedChartCategory !== 'all') {
-            baseData = baseData.filter(point => {
-                if (selectedChartCategory === 'implementing-unit') {
-                    return point.category === 'implementing-unit';
-                } else if (selectedChartCategory === 'fund-source') {
-                    return point.category === 'fund-source';
-                } else if (selectedChartCategory === 'type-disbursement') {
-                    return point.category === 'type-disbursement';
-                }
-                return true;
-            });
-        }
-        
-        return baseData;
+        return [];
     };
 
     // Get drill-down data if drill period is selected
     const getDrillDownData = () => {
-        if (!selectedDrillPeriod) return null;
-        return mockStats.processingTimeData[selectedDrillPeriod] || null;
+        return null;
     };
 
     // Calculate average processing time for filtered data
     const filteredData = getFilteredProcessingData();
     const drillDownData = getDrillDownData();
-    const averageProcessingTime = filteredData.reduce((sum, point) => sum + point.y, 0) / filteredData.length;
-    const drillDownAverageTime = drillDownData ? drillDownData.reduce((sum, point) => sum + point.y, 0) / drillDownData.length : null;
+    const averageProcessingTime = 0;
+    const drillDownAverageTime = null;
 
     // Calculate progress percentage
-    const progressPercentage = ((mockStats.processedDVs / mockStats.receivedDVs) * 100).toFixed(2);
+    // Use real dashboard stats for progress percentage
+    const dashboardStats = getDashboardStats();
+    const progressPercentage = dashboardStats.totalReceived > 0
+        ? ((dashboardStats.totalProcessed / dashboardStats.totalReceived) * 100).toFixed(2)
+        : '0.00';
 
     // Get current category data and calculate max received value for proportional scaling
-    const currentCategoryData = mockStats.categoryData[selectedCategory];
-    const maxReceived = Math.max(...currentCategoryData.map(item => item.received));
+    const currentCategoryData = getCategoryData(selectedCategory);
+    const maxReceived = currentCategoryData.length > 0 ? Math.max(...currentCategoryData.map(item => item.received)) : 1;
 
     // Enhanced Chart.js configuration for processing time scatter plot
     const chartData = {
@@ -466,16 +420,7 @@ export default function StatisticsPage() {
                                             </div>
                                         </button>
                                         
-                                        <button
-                                            onClick={() => handleExport('csv')}
-                                            className="w-full text-left px-3 py-3 hover:bg-yellow-50 rounded-lg transition-all duration-200 flex items-center group"
-                                        >
-                                            <span className="mr-3 text-lg group-hover:scale-110 transition-transform duration-200">📋</span>
-                                            <div>
-                                                <div className="font-medium text-gray-800">CSV File</div>
-                                                <div className="text-xs text-gray-500">Raw data for import</div>
-                                            </div>
-                                        </button>
+                                        
                                     </div>
                                 </div>
                             )}
@@ -773,17 +718,17 @@ export default function StatisticsPage() {
                                 <div className="text-center p-4 sm:p-6 bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 rounded-2xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-200">
                                     <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-700 mb-2 flex items-center justify-center">
                                         <span className="mr-2">✅</span>
-                                        {mockStats.processedDVs.toLocaleString()}
+                                        {dashboardStats.totalProcessed.toLocaleString()}
                                     </div>
                                     <div className="text-sm sm:text-base text-blue-600 font-medium">Processed Transactions</div>
                                     <div className="mt-2 w-full bg-blue-300 rounded-full h-2">
-                                        <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-2 rounded-full animate-pulse" style={{ width: '85%' }}></div>
+                                        <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-2 rounded-full animate-pulse" style={{ width: dashboardStats.totalReceived > 0 ? `${(dashboardStats.totalProcessed / dashboardStats.totalReceived) * 100}%` : '0%' }}></div>
                                     </div>
                                 </div>
                                 <div className="text-center p-4 sm:p-6 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 rounded-2xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200">
                                     <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-700 mb-2 flex items-center justify-center">
                                         <span className="mr-2">📥</span>
-                                        {mockStats.receivedDVs.toLocaleString()}
+                                        {dashboardStats.totalReceived.toLocaleString()}
                                     </div>
                                     <div className="text-sm sm:text-base text-gray-600 font-medium">Received Transactions</div>
                                     <div className="mt-2 w-full bg-gray-300 rounded-full h-2">
@@ -842,8 +787,8 @@ export default function StatisticsPage() {
                                 {currentCategoryData.map((item, index) => {
                                     const receivedWidthPercent = (item.received / maxReceived) * 100;
                                     const processedWidthPercent = (item.processed / maxReceived) * 100;
-                                    const completionRate = ((item.processed / item.received) * 100).toFixed(1);
-                                    
+                                    const completionRate = item.received > 0 ? ((item.processed / item.received) * 100).toFixed(1) : '0.0';
+                                    const isEmpty = item.received === 0 && item.processed === 0;
                                     return (
                                         <div key={index} className="group transform hover:scale-[1.02] transition-all duration-300">
                                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3">
@@ -860,26 +805,30 @@ export default function StatisticsPage() {
                                                     </span>
                                                 </div>
                                             </div>
-                                            
                                             {/* Enhanced Dual Progress Bars */}
                                             <div className="relative">
-                                                {/* Received transactions bar (light) */}
-                                                <div className="w-full bg-gray-200 rounded-full h-6 mb-1 shadow-inner">
-                                                    <div 
-                                                        className="h-6 bg-gradient-to-r from-blue-300 via-blue-400 to-blue-500 rounded-full transition-all duration-1000 ease-out"
-                                                        style={{ width: `${receivedWidthPercent}%` }}
-                                                    ></div>
-                                                </div>
-                                                
-                                                {/* Processed transactions bar (dark overlay) */}
-                                                <div className="w-full bg-transparent rounded-full h-6 -mt-7 relative">
-                                                    <div 
-                                                        className="h-6 bg-gradient-to-r from-green-400 via-green-500 to-green-600 rounded-full transition-all duration-1200 ease-out opacity-90 shadow-lg"
-                                                        style={{ width: `${processedWidthPercent}%` }}
-                                                    ></div>
-                                                </div>
+                                                {/* If both received and processed are zero, show grey bar */}
+                                                {isEmpty ? (
+                                                    <div className="w-full bg-gray-400 rounded-full h-6 mb-1 shadow-inner opacity-50"></div>
+                                                ) : (
+                                                    <>
+                                                        {/* Received transactions bar (light) */}
+                                                        <div className="w-full bg-gray-200 rounded-full h-6 mb-1 shadow-inner">
+                                                            <div 
+                                                                className="h-6 bg-gradient-to-r from-blue-300 via-blue-400 to-blue-500 rounded-full transition-all duration-1000 ease-out"
+                                                                style={{ width: `${receivedWidthPercent}%` }}
+                                                            ></div>
+                                                        </div>
+                                                        {/* Processed transactions bar (dark overlay) */}
+                                                        <div className="w-full bg-transparent rounded-full h-6 -mt-7 relative">
+                                                            <div 
+                                                                className="h-6 bg-gradient-to-r from-green-400 via-green-500 to-green-600 rounded-full transition-all duration-1200 ease-out opacity-90 shadow-lg"
+                                                                style={{ width: `${processedWidthPercent}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
-                                            
                                             {/* Enhanced Legend */}
                                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mt-3 text-xs text-gray-500">
                                                 <div className="flex items-center space-x-4 mb-2 sm:mb-0">
@@ -923,7 +872,13 @@ export default function StatisticsPage() {
                                     <div className="bg-white/70 p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
                                         <span className="text-gray-600 block mb-1">📈 Average Rate:</span>
                                         <span className="text-xl font-bold text-purple-600">
-                                            {(currentCategoryData.reduce((sum, item) => sum + (item.processed / item.received), 0) / currentCategoryData.length * 100).toFixed(1)}%
+                                            {(() => {
+                                                const totalReceived = currentCategoryData.reduce((sum, item) => sum + item.received, 0);
+                                                const totalProcessed = currentCategoryData.reduce((sum, item) => sum + item.processed, 0);
+                                                if (totalReceived === 0) return '0.0%';
+                                                const overallRate = (totalProcessed / totalReceived) * 100;
+                                                return overallRate.toFixed(1) + '%';
+                                            })()}
                                         </span>
                                     </div>
                                 </div>

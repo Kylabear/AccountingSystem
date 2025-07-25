@@ -38,63 +38,42 @@ export default function StatisticsPage() {
         totalAmount: 15420000.50,
         averageProcessingTime: 3.2,
         departments: ['All Departments', 'Finance', 'HR', 'Operations', 'IT', 'Procurement'],
-        recentActivity: [
-            { id: 1, action: 'DV Processed', dv: 'DV-2024-001', amount: 45000, time: '2 minutes ago' },
-            { id: 2, action: 'DV Submitted', dv: 'DV-2024-002', amount: 32000, time: '15 minutes ago' },
-            { id: 3, action: 'DV Approved', dv: 'DV-2024-003', amount: 78000, time: '1 hour ago' },
-            { id: 4, action: 'DV Rejected', dv: 'DV-2024-004', amount: 12000, time: '2 hours ago' },
-        ],
-        // Processing time data for scatter plot (transaction number vs days to process)
-        processingTimeData: [
-            { x: 1, y: 2 }, { x: 2, y: 1 }, { x: 3, y: 4 }, { x: 4, y: 3 }, { x: 5, y: 2 },
-            { x: 6, y: 5 }, { x: 7, y: 1 }, { x: 8, y: 3 }, { x: 9, y: 2 }, { x: 10, y: 4 },
-            { x: 11, y: 3 }, { x: 12, y: 2 }, { x: 13, y: 6 }, { x: 14, y: 1 }, { x: 15, y: 3 },
-            { x: 16, y: 2 }, { x: 17, y: 4 }, { x: 18, y: 3 }, { x: 19, y: 1 }, { x: 20, y: 5 }
-        ],
-        // Category data for filterable progress bars
-        categoryData: {
-            'implementing-unit': [
-                { name: 'Regional Field Office I', received: 120, processed: 98 },
-                { name: 'Regional Field Office II', received: 85, processed: 75 },
-                { name: 'Regional Field Office III', received: 95, processed: 82 },
-                { name: 'Central Office', received: 150, processed: 140 },
-                { name: 'Regional Field Office IV', received: 75, processed: 65 },
-                { name: 'Regional Field Office V', received: 110, processed: 95 }
-            ],
-            'fund-source': [
-                { name: 'General Appropriations Act', received: 200, processed: 180 },
-                { name: 'Special Appropriations', received: 150, processed: 135 },
-                { name: 'Trust Fund', received: 100, processed: 85 },
-                { name: 'Foreign Assisted Projects', received: 80, processed: 70 },
-                { name: 'Internally Generated Funds', received: 120, processed: 110 }
-            ],
-            'type-disbursement': [
-                { name: 'Salary and Wages', received: 180, processed: 170 },
-                { name: 'Office Supplies', received: 95, processed: 85 },
-                { name: 'Travel Expenses', received: 110, processed: 95 },
-                { name: 'Equipment Purchase', received: 60, processed: 50 },
-                { name: 'Training and Seminars', received: 75, processed: 65 },
-                { name: 'Maintenance and Repairs', received: 85, processed: 75 }
-            ]
-        }
+    // ...existing code for mockStats except categoryData...
     };
 
-    const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('en-PH', {
-            style: 'currency',
-            currency: 'PHP'
-        }).format(amount);
+    // Predefined implementing units
+    const predefinedUnits = [
+        'RAED', 'SAAD', 'REGULATORY', 'RESEARCH', 'ILD', 'AFD', 'RICE', 'CORN', 'LIVESTOCK',
+        'OAP', 'HVCDP', '4K', 'F2C2', 'AMAD', 'PMED', 'BP2'
+    ];
+
+    // Get implementing unit breakdown from backend
+    const implementingUnitData = (breakdownData?.filter_type === 'implementing_unit' ? breakdownData.data : []) || [];
+
+    // Map backend data to predefined units, fill missing with zeroes
+    const categoryData = {
+        'implementing-unit': predefinedUnits.map(unit => {
+            const found = implementingUnitData.find(item => item.category === unit);
+            return {
+                name: unit,
+                received: found ? found.received : 0,
+                processed: found ? found.processed : 0,
+                progress_percentage: found ? found.progress_percentage : 0
+            };
+        }),
+        // TODO: Add real data mapping for other categories if needed
     };
 
     // Calculate average processing time
     const averageProcessingTime = mockStats.processingTimeData.reduce((sum, point) => sum + point.y, 0) / mockStats.processingTimeData.length;
-
-    // Calculate progress percentage
-    const progressPercentage = ((mockStats.processedDVs / mockStats.receivedDVs) * 100).toFixed(2);
-
-    // Get current category data and calculate max received value for proportional scaling
-    const currentCategoryData = mockStats.categoryData[selectedCategory];
+    // Use real data for implementing unit breakdown
+    const currentCategoryData = categoryData[selectedCategory];
     const maxReceived = Math.max(...currentCategoryData.map(item => item.received));
+    // Calculate progress percentage for implementing unit
+    const progressPercentage = currentCategoryData && currentCategoryData.length > 0
+        ? ((currentCategoryData.reduce((sum, item) => sum + item.processed, 0) /
+            currentCategoryData.reduce((sum, item) => sum + item.received, 0)) * 100).toFixed(2)
+        : '0.00';
 
     // Chart.js configuration for processing time scatter plot
     const chartData = {
