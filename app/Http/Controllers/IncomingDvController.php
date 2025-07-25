@@ -365,28 +365,35 @@ class IncomingDvController extends Controller
         // Determine next status based on whether this is a reallocation
         $nextStatus = 'for_box_c'; // Default for new DVs
         
-        if ($dv->is_reallocated) {
-            // For reallocated DVs, skip Box C, Approval, and Indexing - go directly to mode of payment
+        if ($dv->is_reallocated || $dv->isReallocationView) {
+            // For reallocated DVs, follow new workflow: Cash Allocation → Mode of Payment → For-engas → CDJ → LLDAP → Processed
             $nextStatus = 'for_mode_of_payment';
             
-            // Add additional entry for reallocation completion with skip notification
+            // Add additional entry for reallocation completion
             $this->transactionHistoryService->recordStatusChange(
                 $dv, 
                 $dv->status, 
                 $nextStatus, 
                 $currentUser,
-                'Cash Reallocation Completed - Skipped Box C, Approval, and Indexing stages'
+                'Cash Reallocation Completed - Following new workflow: Mode of Payment → For-engas → CDJ → LLDAP → Processed'
             );
         }
 
-        $dv->update([
+        $updateData = [
             'cash_allocation_date' => $validated['cash_allocation_date'],
             'cash_allocation_number' => $validated['cash_allocation_number'],
             'net_amount' => $validated['net_amount'],
             'allocated_by' => $currentUser,
             'status' => $nextStatus, // Use determined next status
-            'is_reallocated' => false, // Clear reallocated flag to allow normal workflow progression
-        ]);
+        ];
+
+        // Clear reallocation flags only if this was a reallocation
+        if ($dv->is_reallocated || $dv->isReallocationView) {
+            $updateData['is_reallocated'] = false;
+            $updateData['isReallocationView'] = false;
+        }
+
+        $dv->update($updateData);
 
         if ($request->inertia()) {
             return redirect()->back()->with('success', 'Cash allocation completed successfully.');
@@ -1076,6 +1083,122 @@ class IncomingDvController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ]);
+    }
+
+    /**
+     * Reallocate a processed DV - new workflow with data hiding
+     * Moves old data to history fields and resets DV to cash allocation stage
+     */
+    public function reallocate(Request $request, $id)
+    {
+        try {
+            Log::info("New reallocation request received for DV ID: {$id}");
+            
+            $dv = IncomingDv::findOrFail($id);
+            
+            Log::info("DV found with status: {$dv->status}");
+            
+            // Verify that the DV is in processed status
+            if ($dv->status !== 'processed') {
+                Log::warning("DV {$id} cannot be reallocated - status is {$dv->status}, not 'processed'");
+                return response()->json(['error' => 'Only processed DVs can be reallocated'], 400);
+            }
+            
+            // Store current post-cash allocation data in old_* fields for history
+            $oldDataFields = [
+                'old_cash_allocation_date' => $dv->cash_allocation_date,
+                'old_cash_allocation_number' => $dv->cash_allocation_number,
+                'old_net_amount' => $dv->net_amount,
+                'old_allocated_by' => $dv->allocated_by,
+                'old_approval_out' => $dv->approval_out,
+                'old_approval_out_date' => $dv->approval_out_date,
+                'old_approval_in_date' => $dv->approval_in_date,
+                'old_approved_by' => $dv->approved_by,
+                'old_indexing_date' => $dv->indexing_date,
+                'old_indexed_by' => $dv->indexed_by,
+                'old_payment_method' => $dv->payment_method,
+                'old_payment_method_date' => $dv->payment_method_date,
+                'old_payment_method_set_by' => $dv->payment_method_set_by,
+                'old_lddap_number' => $dv->lddap_number,
+                'old_pr_out_date' => $dv->pr_out_date,
+                'old_pr_in_date' => $dv->pr_in_date,
+                'old_pr_out_by' => $dv->pr_out_by,
+                'old_pr_in_by' => $dv->pr_in_by,
+                'old_engas_number' => $dv->engas_number,
+                'old_engas_date' => $dv->engas_date,
+                'old_engas_recorded_by' => $dv->engas_recorded_by,
+                'old_cdj_date' => $dv->cdj_date,
+                'old_cdj_details' => $dv->cdj_details,
+                'old_cdj_recorded_by' => $dv->cdj_recorded_by,
+                'old_lddap_certified_date' => $dv->lddap_certified_date,
+                'old_lddap_certified_by' => $dv->lddap_certified_by,
+                'old_processed_date' => $dv->processed_date,
+            ];
+            
+            // Clear current post-cash allocation fields
+            $clearFields = [
+                'status' => 'for_cash_allocation',
+                'is_reallocated' => true,
+                'isReallocationView' => true,
+                'reallocation_date' => now()->toDateString(),
+                'reallocation_reason' => $request->input('reallocation_reason', 'DV reallocated for fund source changes or corrections'),
+                'cash_allocation_date' => null,
+                'cash_allocation_number' => null,
+                'net_amount' => null,
+                'allocated_by' => null,
+                'approval_out' => false,
+                'approval_out_date' => null,
+                'approval_in_date' => null,
+                'approved_by' => null,
+                'indexing_date' => null,
+                'indexed_by' => null,
+                'payment_method' => null,
+                'lddap_number' => null,
+                'payment_method_date' => null,
+                'payment_method_set_by' => null,
+                'pr_out_date' => null,
+                'pr_in_date' => null,
+                'pr_out_by' => null,
+                'pr_in_by' => null,
+                'engas_number' => null,
+                'engas_date' => null,
+                'engas_recorded_by' => null,
+                'cdj_date' => null,
+                'cdj_details' => null,
+                'cdj_recorded_by' => null,
+                'lddap_certified_date' => null,
+                'lddap_certified_by' => null,
+                'processed_date' => null,
+            ];
+            
+            // Combine old data fields with clear fields
+            $updateData = array_merge($oldDataFields, $clearFields);
+            
+            Log::info("Updating DV {$id} for reallocation");
+            
+            $dv->update($updateData);
+            
+            // Record reallocation in transaction history
+            $this->transactionHistoryService->recordStatusChange(
+                $dv, 
+                'processed', 
+                'for_cash_allocation', 
+                Auth::user()->name ?? 'System',
+                'DV Reallocated - Old data moved to history, restarting from Cash Allocation'
+            );
+            
+            Log::info("DV {$id} successfully reallocated");
+            
+            return response()->json([
+                'message' => 'DV successfully reallocated',
+                'new_status' => 'for_cash_allocation'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error("Error reallocating DV {$id}: " . $e->getMessage());
+            Log::error("Stack trace: " . $e->getTraceAsString());
+            return response()->json(['error' => 'Internal server error: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
