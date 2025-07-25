@@ -2,6 +2,7 @@
 // Cache bust: Updated Box C labels - July 24, 2025
 import React, { useState, useEffect } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
+import AppHeader from '../Components/AppHeader';
 import DvDetailsModal from '../Components/DvDetailsModal';
 import RtsNorsaModal from '../Components/RtsNorsaModal';
 import CashAllocationModal from '../Components/CashAllocationModal';
@@ -35,10 +36,22 @@ const statuses = [
 ];
 
 export default function IncomingDvs() {
-// For menu hover effect in Box C Certification tab
+    // For menu hover effect in Box C Certification tab
     const [boxCHoveredButton, setBoxCHoveredButton] = useState(null);
     // For menu hover effect in For Review tab
     const [hoveredButton, setHoveredButton] = useState(null);
+
+    // ...existing code...
+
+    // Inject global header at the top of the page
+    // Place this in your return statement at the top
+    // Example:
+    // return (
+    //   <>
+    //     <AppHeader title="Incoming Disbursement Vouchers" user={auth?.user} />
+    //     ...rest of your page...
+    //   </>
+    // );
 // Add state for Box C Certification tab sections
     const [boxCSection, setBoxCSection] = React.useState('box_c');
     const { dvs, auth, debug } = usePage().props;

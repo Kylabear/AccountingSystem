@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import AnimatedBackground from '../Components/AnimatedBackground';
+import AppHeader from '../Components/AppHeader';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -307,58 +308,8 @@ export default function StatisticsPage() {
                 </div>
             </div>
 
-            {/* Enhanced Fixed Header - Responsive and always visible */}
-            <div className="bg-green-700 text-white p-4 sm:p-6 shadow-2xl backdrop-blur-sm bg-opacity-95 header-fixed">
-                <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center group mb-4 sm:mb-0">
-                        <Link 
-                            href="/"
-                            className="flex items-center hover:scale-105 transition-all duration-300"
-                        >
-                            <img 
-                                src="/DALOGO.png" 
-                                alt="DA Logo" 
-                                className="w-10 h-10 sm:w-12 sm:h-12 mr-3 object-contain drop-shadow-lg group-hover:rotate-12 transition-all duration-300"
-                            />
-                            <div>
-                                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-400 group-hover:text-yellow-300 transition-colors duration-300">
-                                    Statistics & Analytics
-                                </h1>
-                            </div>
-                        </Link>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-                        <Link 
-                            href="/incoming-dvs"
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 flex items-center justify-center text-sm sm:text-base"
-                        >
-                            <span className="mr-2">🏠</span>
-                            Home
-                        </Link>
-                        <div className="flex space-x-2 sm:space-x-4">
-                            <Link
-                                href="/logout"
-                                method="post"
-                                as="button"
-                                className="flex-1 sm:flex-none bg-red-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-red-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg hover:-translate-y-1 group flex items-center justify-center"
-                            >
-                                <span className="mr-2 transition-transform duration-300 group-hover:scale-125">🚪</span>
-                                <span className="group-hover:scale-105 transition-transform duration-200">Logout</span>
-                            </Link>
-                            <Link 
-                                href="/profile"
-                                className="hover:opacity-80 transition-all duration-300 transform hover:scale-110 flex items-center justify-center"
-                            >
-                                <img 
-                                    src={user?.profile_image ? `/storage/${user.profile_image}` : '/default-profile.png'} 
-                                    alt="Profile" 
-                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-yellow-400 shadow-lg"
-                                />
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* Global AppHeader for unified header styling */}
+            <AppHeader title="Statistics & Analytics" user={user} />
 
             {/* Main Content - with top padding to account for fixed header */}
             <div className="content-with-header relative z-10">
