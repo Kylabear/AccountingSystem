@@ -95,8 +95,20 @@ export default function StatisticsPage() {
             'Fuel'
         ];
     } else if (category === 'fund-source') {
-        // Add your predefined fund source list here if needed
-        predefinedList = [];
+        // Full list of fund sources
+        predefinedList = [
+            'GASS-GMS', 'GASS-APB', 'STO ICTMS', 'STO DOPP-PMED', 'STO DOPP-CRA', 'STO DOPP-F2C2', 'STO ILD', 'STO FPMA',
+            'STO FPMA-RICE', 'STO FPMA-LVSTK', 'STO FPMA-CORN', 'STO FPMA-HVCDP', 'STO FPMA-OAP', 'STO FPMA-UPAP',
+            'STO AFESA', 'STO QRF', 'PSS RICE', 'PSS LVSTK', 'PSS CORN', 'PSS HVCDP', 'PSS OAP', 'OTHER PSS', 'OTHER PSS-RD',
+            'OTHER PSS-RICE', 'OTHER PSS-CORN', 'OTHER PSS-LVSTK', 'OTHER PSS-HVCDP', 'PSS UPAP', 'MDS', 'ESETS RICE',
+            'ESETS LVSTK', 'ESETS CORN', 'ESETS HVCDP', 'ESETS OAP', 'OTHER ESETS', 'ESETS HALAL', 'ESETS UPAP', 'RD RICE',
+            'RD LVSTK', 'RD CORN', 'OTHER RD', 'PAEF RICE', 'PAEF LVSTK', 'PAEF CORN', 'PAEF HVCDP', 'PAEF OAP', 'PAEF UPAP',
+            'INS RICE', 'INS CORN', 'INS HVCDP', 'INS OAP', 'FMR', 'QCI', 'RL', 'SAAD', 'SAAD PHASE II', 'CRA', 'BP2', 'RSBSA',
+            '4K PROJECT', 'YFCF', 'RCEF RFFA', 'KAKP', 'SPF QRF-RRP', 'SPF QRF-RCP', 'SPF QRF-RLP', 'SPF QRF-RHVCDP',
+            'SPF QRF-ROAP', 'SPF QRF-DRRMO', 'PGF-GASS', 'MPBF-GASS', 'FUEL ASSISTANCE', 'YFC PROGRAM', 'RCEP',
+            'FFED PROGRAM (SAGIP SAKA ACT)', 'PRDP SCALE-UP', 'DAP', 'SIRP', 'PRDP SCALE-UP GOP', "NSHP (Nat'l Soil HP)",
+            'CSEP (Cold Storage EP)', 'IFFE (Farmers & Fisherfolk Enterprise)', 'PIS'
+        ];
     }
 
     // Map backend data if available and filter_type matches
